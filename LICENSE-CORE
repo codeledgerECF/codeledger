@@ -1,0 +1,61 @@
+CodeLedger Core Engine License
+Version 1.0, 2025
+
+Copyright (c) 2025 Intelligent Context AI, Inc.
+All rights reserved.
+
+GRANT OF LICENSE
+
+Subject to the terms of this license, Intelligent Context AI, Inc. ("Licensor")
+grants you a non-exclusive, non-transferable, revocable license to use the
+CodeLedger Core Engine binary ("Software") under the following conditions:
+
+1. INDIVIDUAL USE (FREE)
+   You may use the Software for personal, non-commercial development work
+   at no cost. This includes individual developers using the Software on
+   their own projects or contributing to open-source projects.
+
+2. OPEN-SOURCE PROJECTS (FREE)
+   You may use the Software in open-source projects licensed under
+   OSI-approved licenses at no cost.
+
+3. COMMERCIAL USE (LICENSE REQUIRED)
+   Use of the Software in commercial settings, including but not limited to:
+   - CI/CD pipelines
+   - Team development environments (>1 developer)
+   - Enterprise deployments
+   - Products or services that incorporate the Software
+   requires a CodeLedger Pro license. Contact team@contextecf.com for pricing.
+
+RESTRICTIONS
+
+You may NOT:
+- Reverse engineer, decompile, or disassemble the Software
+- Redistribute the Software as a standalone product
+- Remove or modify any license notices or proprietary markings
+- Use the Software to build a competing product or service
+
+PRIVACY GUARANTEE
+
+The Software:
+- Runs entirely on your local machine
+- Makes no network calls
+- Collects no telemetry, analytics, or usage data
+- Does not transmit your source code or any data to external services
+
+DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+TERMINATION
+
+This license terminates automatically if you breach any of its terms.
+Upon termination, you must destroy all copies of the Software.
+
+CONTACT
+
+Intelligent Context AI, Inc.
+team@contextecf.com
+https://contextecf.com/license
