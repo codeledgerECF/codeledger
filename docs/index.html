@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeLedger — Deterministic Context Selection for AI Coding Agents</title>
+  <meta name="description" content="Give your AI coding agent the right files first. Deterministic, local, zero cloud dependencies. Works with Claude Code, Cursor, Codex, and any CLI-based agent.">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #23232f;
+      --text: #e4e4eb;
+      --text-dim: #8888a0;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --green: #22c55e;
+      --orange: #f59e0b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      margin-left: 24px;
+      font-size: 14px;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero .subtitle {
+      font-size: 18px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin: 0 auto 12px;
+    }
+    .agents {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 40px;
+    }
+    .agents strong { color: var(--text); }
+
+    /* Download card */
+    .download-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .download-card h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .download-card p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--accent);
+    }
+    .form-group select option { background: var(--bg); }
+    .optional {
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    .btn-download {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-download:hover { background: var(--accent-hover); }
+    .btn-download:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skip-link {
+      display: block;
+      margin-top: 16px;
+      color: var(--text-dim);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .skip-link:hover { color: var(--text); }
+
+    .privacy-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Success state */
+    .download-success {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .download-success .checkmark {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .download-success h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .download-success p {
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    /* How it works */
+    .how-it-works {
+      padding: 60px 0;
+    }
+    .how-it-works h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 40px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .step-num {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .step h3 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .step p {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* Stats */
+    .stats {
+      padding: 40px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .stat-num {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+      margin: 40px 0;
+    }
+    .code-block pre {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .code-comment { color: var(--text-dim); }
+    .code-cmd { color: var(--green); }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+    footer a:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 28px; }
+      .steps { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .download-card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <a href="/" class="logo">Code<span>Ledger</span></a>
+      <nav class="nav-links">
+        <a href="https://github.com/codeledgerECF/codeledger" target="_blank">GitHub</a>
+        <a href="https://github.com/codeledgerECF/codeledger/blob/main/GETTING-STARTED.md" target="_blank">Docs</a>
+        <a href="https://contextecf.com" target="_blank">Enterprise</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Give your agent the <em>right files</em> first</h1>
+      <p class="subtitle">
+        Deterministic context selection for AI coding agents.
+        No embeddings. No cloud. No telemetry. Fully local.
+      </p>
+      <p class="agents">
+        Works with <strong>Claude Code</strong> &middot; <strong>Cursor</strong> &middot; <strong>Codex</strong> &middot; <strong>Gemini CLI</strong> &middot; any CLI-based agent<br>
+        Multi-session ready — run parallel tabs with isolated context
+      </p>
+
+      <div class="download-card" id="downloadCard">
+        <div id="formView">
+          <h2>Download CodeLedger</h2>
+          <p>Get the latest release. We'll only email you for major updates and to ask how it's going.</p>
+
+          <form id="downloadForm">
+            <div class="form-group">
+              <label for="email">Work email</label>
+              <input type="email" id="email" name="email" placeholder="you@company.com" required>
+            </div>
+            <div class="form-group">
+              <label for="company">Company <span class="optional">(optional)</span></label>
+              <input type="text" id="company" name="company" placeholder="Acme Corp">
+            </div>
+            <div class="form-group">
+              <label for="role">Role <span class="optional">(optional)</span></label>
+              <select id="role" name="role">
+                <option value="">Select...</option>
+                <option value="developer">Developer / Engineer</option>
+                <option value="lead">Tech Lead / Staff</option>
+                <option value="manager">Engineering Manager</option>
+                <option value="architect">Architect</option>
+                <option value="devops">DevOps / Platform</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-download" id="submitBtn">Download .zip</button>
+          </form>
+
+          <a href="#" class="skip-link" id="skipLink">Skip — go straight to GitHub Releases</a>
+          <p class="privacy-note">No telemetry. No tracking. This form is the only data we collect.</p>
+        </div>
+
+        <div class="download-success" id="successView">
+          <div class="checkmark">&#10003;</div>
+          <h3>Downloading...</h3>
+          <p>Check your downloads folder. The getting-started guide is inside the zip.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="container">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Scans your repo</h3>
+          <p>Builds a dependency graph, git churn history, test mappings, and content index. All local.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Scores every file</h3>
+          <p>9 weighted signals: keywords, centrality, churn, recency, test relevance, size, error infrastructure, and more.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Selects what matters</h3>
+          <p>Picks the top files within a token budget. Deterministic — same task, same repo, same bundle.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Delivers to your agent</h3>
+          <p>Writes a context bundle your agent reads immediately. No manual file discovery needed.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <h3>Isolates parallel sessions</h3>
+          <p>Each Claude Code tab gets its own session — separate bundles, separate state, with overlap detection.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div>
+          <div class="stat-num">9</div>
+          <div class="stat-label">Scoring signals per file</div>
+        </div>
+        <div>
+          <div class="stat-num">99%</div>
+          <div class="stat-label">Context reduction on large repos</div>
+        </div>
+        <div>
+          <div class="stat-num">0</div>
+          <div class="stat-label">Cloud dependencies</div>
+        </div>
+        <div>
+          <div class="stat-num">N</div>
+          <div class="stat-label">Parallel sessions (no hard cap)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="code-block">
+      <pre><span class="code-comment"># Install and initialize</span>
+<span class="code-cmd">npm install -g @codeledger/cli</span>
+<span class="code-cmd">cd your-project</span>
+<span class="code-cmd">codeledger init</span>
+
+<span class="code-comment"># One command — scan + score + bundle</span>
+<span class="code-cmd">codeledger activate --task "Fix null handling in user service"</span>
+
+<span class="code-comment"># Your agent now has .codeledger/active-bundle.md</span>
+<span class="code-comment"># with the right files, ranked by relevance.</span>
+
+<span class="code-comment"># Running multiple agent tabs? Each gets its own session:</span>
+<span class="code-cmd">codeledger session-init</span>
+<span class="code-cmd">codeledger sessions</span></pre>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 Context ECF. <a href="https://contextecf.com">Enterprise</a> &middot; <a href="https://github.com/codeledgerECF/codeledger" target="_blank">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // ── Configuration ──────────────────────────────────────────────────
+    // Replace these with your actual values:
+
+    // Option A: Google Form / Tally / Typeform endpoint
+    // const FORM_ENDPOINT = 'https://your-form-service.com/api/submit';
+
+    // Option B: Simple Google Apps Script web app
+    // const FORM_ENDPOINT = 'https://script.google.com/macros/s/YOUR_ID/exec';
+
+    // The actual download URL — points to the GitHub Release asset
+    const DOWNLOAD_URL = 'https://github.com/codeledgerECF/codeledger/releases/latest/download/codeledger.zip';
+
+    // The fallback URL for "skip" link
+    const RELEASES_URL = 'https://github.com/codeledgerECF/codeledger/releases';
+
+    // ── Form handling ──────────────────────────────────────────────────
+
+    const form = document.getElementById('downloadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const skipLink = document.getElementById('skipLink');
+    const formView = document.getElementById('formView');
+    const successView = document.getElementById('successView');
+
+    skipLink.href = RELEASES_URL;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Preparing download...';
+
+      const data = {
+        email: document.getElementById('email').value,
+        company: document.getElementById('company').value,
+        role: document.getElementById('role').value,
+        timestamp: new Date().toISOString(),
+        source: 'landing-page',
+      };
+
+      // Send lead data (fire-and-forget — don't block download on form service)
+      try {
+        if (typeof FORM_ENDPOINT !== 'undefined') {
+          fetch(FORM_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            mode: 'no-cors', // works with Google Apps Script
+          });
+        } else {
+          // No form endpoint configured yet — log to console
+          console.log('Download lead (configure FORM_ENDPOINT to capture):', data);
+        }
+      } catch (err) {
+        console.warn('Lead capture failed (download continues):', err);
+      }
+
+      // Show success + trigger download
+      formView.style.display = 'none';
+      successView.style.display = 'block';
+
+      // Small delay so the user sees the success state
+      setTimeout(function () {
+        window.location.href = DOWNLOAD_URL;
+      }, 600);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+name: Create Release
+
+# Trigger: push a tag like v0.1.0
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gather release assets
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          STAGING="codeledger-${VERSION}"
+          mkdir -p "$STAGING"
+
+          # Copy distribution files
+          cp install.sh "$STAGING/"
+          cp GETTING-STARTED.md "$STAGING/"
+          cp README.md "$STAGING/"
+          cp LICENSE "$STAGING/" 2>/dev/null || true
+          cp LICENSE-CORE "$STAGING/" 2>/dev/null || true
+          chmod +x "$STAGING/install.sh"
+
+          # Create zip
+          zip -r "codeledger-${VERSION}.zip" "$STAGING/"
+
+          # Also create a generic name for the "latest" download link
+          cp "codeledger-${VERSION}.zip" codeledger.zip
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "ZIP_VERSIONED=codeledger-${VERSION}.zip" >> "$GITHUB_ENV"
+          echo "ZIP_LATEST=codeledger.zip" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CodeLedger v${{ env.VERSION }}
+          body: |
+            ## CodeLedger v${{ env.VERSION }}
+
+            Download the zip, extract, and run `./install.sh` — or install directly:
+
+            ```bash
+            npm install -g @codeledger/cli
+            ```
+
+            See [GETTING-STARTED.md](https://github.com/${{ github.repository }}/blob/main/GETTING-STARTED.md) for the full setup guide.
+          files: |
+            ${{ env.ZIP_VERSIONED }}
+            ${{ env.ZIP_LATEST }}
+          draft: false
+          prerelease: false
