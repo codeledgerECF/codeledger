@@ -1,6 +1,6 @@
 # CodeLedger
 
-**Deterministic context selection for AI coding agents.**
+**Deterministic context selection and agent governance for AI coding agents.**
 
 Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
 
@@ -40,8 +40,17 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 | Agent reads files in random order, missing structural context | **Architectural layer ordering** (`--layer-order`) | Sorts bundle files by architectural layer (types, models, services, routes, tests) | Agent reads contracts before implementations, just like a human would |
 | Token estimates are wildly inaccurate across languages | **Language-aware token calibration** | Uses per-language token/line rates (TypeScript 3.5, Python 3.2, Java 4.5, etc.) instead of a flat 4.0 | Budgets are accurate; no over- or under-packing |
 | Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; features emphasize centrality |
+- Scope contract derivation (bundle files + dependency neighbors)
+- Commit-aware invalidation (addressed files marked as stale)
 | TODO/FIXME markers scattered across the codebase are invisible | **TODO/FIXME awareness** | Scans selected files for TODO, FIXME, HACK, XXX markers and surfaces counts in the bundle | Agent sees open work items in the files it's about to edit |
 | No way to compare agent performance with vs. without context | **A/B benchmarking** (`compare`) | Runs the same task twice — once with CodeLedger context, once without — and diffs test pass rate, iterations, token usage, and time | Quantified proof that context selection works |
+| Agent gets stuck in test-fail-edit-retry loops | **Loop detection & circuit-breaker** | Detects repeated test failures, file edit loops, and command retries from the event ledger with configurable thresholds | Stuck agents get a clear signal to change approach |
+| Agent edits files outside the task's scope | **Scope contract enforcement** | Derives allowed file paths from bundle + dependency neighbors; warns or blocks out-of-scope edits | Haphazard changes caught before they land |
+| Multiple agents edit the same files concurrently | **Cross-session conflict zones** | Detects file overlap between active sessions and warns before edits begin | Merge conflicts prevented before they happen |
+| Refreshed bundles re-surface already-resolved files | **Commit-aware bundle invalidation** | Marks bundled files as "addressed" when committed; suggests refresh when staleness >= 75% | No re-review parroting — agents move forward |
+| Task objective drifts mid-session without detection | **Intent governance** (`intent`) | Tracks structured task contracts (objective, scope, constraints) with deterministic Jaccard-based drift scoring across 7 fields | Scope creep detected and flagged automatically |
+| Rate limit or crash loses all work-in-progress | **Checkpoint bundles** (`checkpoint`) | Incremental snapshots of bundle state + git HEAD + changed files; restore to resume | Work survives interruptions |
+| No visibility across concurrent agent sessions | **Multi-agent shared summary** (`shared-summary`) | Cross-session overlap matrix, per-session metrics, hotspot detection | Orchestrators see the full picture |
 
 ## Install
 
@@ -151,6 +160,14 @@ codeledger refine --learned "…"          # Re-score with new context mid-sessi
   --add-keywords "pool,cache"            #   Inject new search terms
 codeledger session-progress              # Write ground-truth progress snapshot
 codeledger session-summary               # Show session-end recall/precision metrics
+codeledger checkpoint create             # Save work-in-progress snapshot
+codeledger checkpoint restore --id …    # Resume from a checkpoint
+codeledger checkpoint list               # List available checkpoints
+codeledger shared-summary                # Cross-session coordination summary
+codeledger intent init --objective "…"   # Create a structured task contract
+codeledger intent show                   # Display drift score and per-field distances
+codeledger intent set --objective "…"    # Update contract fields mid-session
+codeledger intent ack                    # Acknowledge drift (reset or accept)
 codeledger share [--format twitter]      # Generate shareable result snippet
 codeledger run --scenario …              # Execute a single benchmark scenario
 codeledger compare --scenario …          # A/B comparison: with vs without CodeLedger
@@ -198,10 +215,32 @@ CodeLedger uses a multi-stage candidate pipeline and a ten-signal scorer:
 - Architectural layer ordering
 - TODO/FIXME marker surfacing
 - Task-type inference (bug fix, feature, refactor, test, config)
+- Scope contract derivation (bundle files + dependency neighbors)
+- Commit-aware invalidation (addressed files marked as stale)
 
 Run `codeledger bundle --task "…" --explain` to see the per-file scoring breakdown.
 
 See [docs/SCORING.md](docs/SCORING.md) for the full scoring algorithm documentation.
+
+## Agent Governance
+
+CodeLedger v0.4.0 extends beyond context selection into **deterministic agent governance** — three containment layers that keep agents productive without requiring LLM judgment:
+
+**Context Containment** — what the agent sees:
+- Deterministic scoring, bounded budgets, intent-tracked bundles
+
+**Execution Containment** — what the agent does:
+- Scope contracts prevent out-of-scope edits
+- Loop detection catches stuck agents before they waste tokens
+- Cross-session conflict zones prevent concurrent agents from colliding
+- Intent drift scoring flags when the task objective has changed
+
+**Quality Containment** — what the agent produces:
+- Commit-aware invalidation prevents re-review parroting
+- Checkpoint bundles enable resume after interruption
+- Multi-agent shared summaries give orchestrators full visibility
+
+All governance features are **deterministic** — numeric thresholds, pattern matching, and set distance calculations. No LLM reasoning. No probabilistic language. Fully auditable.
 
 ## Architecture: Open Surface, Closed Engine
 
@@ -280,6 +319,7 @@ For team-scale AI workflow benchmarking and context orchestration:
 
 - [Getting Started Guide](GETTING-STARTED.md)
 - [Scoring Algorithm](docs/SCORING.md)
+- [Changelog](CHANGELOG.md)
 - [CodeLedger](https://codeledger.dev)
 - [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
 - [ContextECF Enterprise](https://timetocontext.co)

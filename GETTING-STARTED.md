@@ -171,6 +171,11 @@ You'll see:
 | `codeledger bundle --task "..." --explain` | See per-file scoring breakdown |
 | `codeledger session-summary` | Check recall/precision after commits |
 | `codeledger session-progress` | Snapshot progress (survives compaction) |
+| `codeledger checkpoint create` | Save work-in-progress snapshot |
+| `codeledger checkpoint restore --id …` | Resume from a checkpoint |
+| `codeledger shared-summary` | Cross-session coordination summary |
+| `codeledger intent show` | Check task drift score |
+| `codeledger intent ack` | Acknowledge drift when prompted |
 | `codeledger init --force` | Re-initialize (updates hooks + CLAUDE.md) |
 
 ---
@@ -300,5 +305,7 @@ npm uninstall -g @codeledger/cli
 
 - Run `codeledger bundle --task "..." --explain` to see exactly why each file was selected
 - Try different budget levels to find the right precision/recall tradeoff
+- Use `codeledger intent show` to monitor task drift mid-session
+- Use `codeledger checkpoint create` to save progress before risky operations
 - Run `codeledger compare --scenario "..."` to benchmark agent performance with vs without CodeLedger
 - Visit [contextecf.com](https://contextecf.com) for enterprise features
