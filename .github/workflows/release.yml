@@ -32,6 +32,8 @@ jobs:
 
           echo "Downloading @codeledger/cli@${VERSION} from npm..."
 
+          DOWNLOAD_OK=false
+
           # Retry up to 5 times with backoff — npm publish may still be propagating
           for attempt in 1 2 3 4 5; do
             if npm pack "@codeledger/cli@${VERSION}" 2>/dev/null; then
@@ -40,14 +42,14 @@ jobs:
                 echo "✓ Downloaded $TARBALL"
                 echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
                 echo "NPM_TARBALL=$TARBALL" >> "$GITHUB_ENV"
-                break
+              DOWNLOAD_OK=true                break
               fi
             fi
             echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available, waiting..."
             sleep $((attempt * 10))
           done
 
-          if [ "${NPM_VERIFIED:-}" != "true" ]; then
+          if [ "$DOWNLOAD_OK" != "true" ]; then
             echo "::error::@codeledger/cli@${VERSION} not found on npm after 5 attempts. Cannot create release without the package."
             exit 1
           fi
