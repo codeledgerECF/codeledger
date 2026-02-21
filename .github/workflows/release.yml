@@ -22,43 +22,49 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Verify npm package is published
-        id: npm_check
+      - name: Download npm package
+        id: npm_download
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-          echo "Checking npm for @codeledger/cli@${VERSION}..."
+          echo "Downloading @codeledger/cli@${VERSION} from npm..."
 
           # Retry up to 5 times with backoff — npm publish may still be propagating
           for attempt in 1 2 3 4 5; do
-            NPM_VERSION=$(npm view @codeledger/cli@"${VERSION}" version 2>/dev/null || echo "")
-            if [ "$NPM_VERSION" = "$VERSION" ]; then
-              echo "✓ @codeledger/cli@${VERSION} found on npm"
-              echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
-              break
+            if npm pack "@codeledger/cli@${VERSION}" 2>/dev/null; then
+              TARBALL=$(ls codeledger-cli-*.tgz 2>/dev/null | head -1)
+              if [ -n "$TARBALL" ]; then
+                echo "✓ Downloaded $TARBALL"
+                echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
+                echo "NPM_TARBALL=$TARBALL" >> "$GITHUB_ENV"
+                break
+              fi
             fi
-            echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available on npm, waiting..."
+            echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available, waiting..."
             sleep $((attempt * 10))
           done
 
           if [ "${NPM_VERIFIED:-}" != "true" ]; then
-            echo "::warning::@codeledger/cli@${VERSION} not found on npm after 5 attempts. Release will proceed with a warning."
-            echo "NPM_VERIFIED=false" >> "$GITHUB_ENV"
+            echo "::error::@codeledger/cli@${VERSION} not found on npm after 5 attempts. Cannot create release without the package."
+            exit 1
           fi
 
-      - name: Install CLI from npm for verification
-        if: env.NPM_VERIFIED == 'true'
+      - name: Verify CLI works
         run: |
-          npm install -g @codeledger/cli@"${VERSION}"
+          npm install -g "./${NPM_TARBALL}"
           INSTALLED_VERSION=$(codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
           echo "Installed CLI version: $INSTALLED_VERSION"
-          echo "INSTALLED_VERSION=$INSTALLED_VERSION" >> "$GITHUB_ENV"
+
+          if [ "$INSTALLED_VERSION" != "$VERSION" ]; then
+            echo "::warning::Version mismatch — expected $VERSION, got $INSTALLED_VERSION"
+          fi
 
       - name: Generate MANIFEST.md
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           TAG_DATE=$(date -u +"%Y-%m-%d")
+          SHA256=$(sha256sum "${NPM_TARBALL}" | cut -d' ' -f1)
 
           # Read feature list from CHANGELOG.md (everything between first ## and second ##)
           CHANGELOG_SECTION=$(awk '/^## '"${VERSION}"'/{found=1; next} /^## [0-9]/{if(found) exit} found{print}' CHANGELOG.md)
@@ -68,19 +74,21 @@ jobs:
 
           **Release date:** ${TAG_DATE}
           **npm package:** \`@codeledger/cli@${VERSION}\`
-          **npm verified:** ${NPM_VERIFIED:-unknown}
+          **npm verified:** true
           **Git tag:** v${VERSION}
           **Git commit:** $(git rev-parse --short HEAD)
+          **Package checksum (SHA-256):** \`${SHA256}\`
 
           ---
 
           ## What's in this zip
 
-          This release zip is a **bootstrap package** — it contains documentation, licenses, and an install script. The actual CLI and scoring engine are distributed via npm.
+          This release zip contains the **full installable package** — no internet connection to npm is required.
 
           | File | Purpose |
           |------|---------|
-          | \`install.sh\` | Installs \`@codeledger/cli@${VERSION}\` from npm (with prerequisite checks) |
+          | \`${NPM_TARBALL}\` | The npm package (installable offline with \`npm install -g\`) |
+          | \`install.sh\` | Installs from the bundled package (with prerequisite checks) |
           | \`README.md\` | Full feature documentation and CLI reference |
           | \`GETTING-STARTED.md\` | Step-by-step setup guide |
           | \`CHANGELOG.md\` | Version history with feature details |
@@ -90,7 +98,7 @@ jobs:
 
           ## How to install
 
-          **Option A: From this zip**
+          **Option A: From this zip (recommended — works offline)**
           \`\`\`bash
           unzip codeledger-${VERSION}.zip
           cd codeledger-${VERSION}/
@@ -112,6 +120,14 @@ jobs:
 
           codeledger doctor
           # Runs 8 health checks on your installation
+          \`\`\`
+
+          ## Verify package integrity
+
+          \`\`\`bash
+          # Check the bundled package checksum
+          sha256sum ${NPM_TARBALL}
+          # Expected: ${SHA256}
           \`\`\`
 
           ## Feature verification
@@ -164,6 +180,9 @@ jobs:
           STAGING="codeledger-${VERSION}"
           mkdir -p "$STAGING"
 
+          # Copy the actual npm package
+          cp "${NPM_TARBALL}" "$STAGING/"
+
           # Copy distribution files
           cp install.sh "$STAGING/"
           cp GETTING-STARTED.md "$STAGING/"
@@ -192,15 +211,21 @@ jobs:
 
             ### Install
 
+            **From the zip (works offline):**
+            ```bash
+            unzip codeledger-${{ env.VERSION }}.zip
+            cd codeledger-${{ env.VERSION }}/
+            ./install.sh
+            ```
+
+            **Or directly from npm:**
             ```bash
             npm install -g @codeledger/cli@${{ env.VERSION }}
             ```
 
-            Or download the zip, extract, and run `./install.sh`.
-
             ### npm verification
 
-            ${{ env.NPM_VERIFIED == 'true' && format('✅ `@codeledger/cli@{0}` verified on npm at release time.', env.VERSION) || format('⚠️ `@codeledger/cli@{0}` was not yet available on npm when this release was created. Run `npm view @codeledger/cli version` to check current availability.', env.VERSION) }}
+            ✅ `@codeledger/cli@${{ env.VERSION }}` verified on npm and bundled in the zip.
 
             ### Verify after install
 
@@ -211,9 +236,9 @@ jobs:
 
             ### What's in the zip
 
-            The release zip is a **bootstrap package** containing documentation, licenses, and an install script. The CLI and scoring engine are distributed via npm (`@codeledger/cli`). See `MANIFEST.md` inside the zip for full details including feature verification steps.
+            The release zip contains the **full installable package** — the npm tarball is bundled so installation works offline. See `MANIFEST.md` inside the zip for checksums and feature verification steps.
 
-            **Zip contents:** `install.sh` · `README.md` · `GETTING-STARTED.md` · `CHANGELOG.md` · `MANIFEST.md` · `LICENSE` · `LICENSE-CORE`
+            **Zip contents:** `${{ env.NPM_TARBALL }}` · `install.sh` · `README.md` · `GETTING-STARTED.md` · `CHANGELOG.md` · `MANIFEST.md` · `LICENSE` · `LICENSE-CORE`
 
             ### Links
 
