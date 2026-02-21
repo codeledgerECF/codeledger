@@ -45,15 +45,22 @@ These are the workflows where teams see the largest improvement:
 
 ### Monorepo strategy
 
-For large monorepos, don't run CodeLedger from the root. Instead:
+**v0.5.0+:** CodeLedger auto-detects service/package names in your task description. If you say `"Fix auth for api-gateway"`, it automatically restricts context to `services/api-gateway/` — no `--scope` flag needed.
+
+For explicit control, use `--scope` or initialize per-package:
 
 ```bash
+# Option A: auto-scope (v0.5.0+) — just describe the service in your task
+codeledger activate --task "Fix auth for api-gateway"
+
+# Option B: explicit scope flag
+codeledger activate --task "Fix auth" --scope "services/api-gateway/"
+
+# Option C: initialize per-package
 cd packages/your-service
 codeledger init
 codeledger activate --task "your task"
 ```
-
-This gives the scorer a focused file set with a meaningful dependency graph. You can initialize CodeLedger independently in each package that needs it.
 
 ---
 
@@ -79,7 +86,7 @@ Verify it works:
 codeledger --version
 ```
 
-You should see something like `codeledger v0.1.0`.
+You should see something like `codeledger v0.5.0`.
 
 > **Alternative (no global install):** Use `npx codeledger <command>` anywhere. The examples below use the global command for brevity, but `npx codeledger` works identically.
 
@@ -113,7 +120,7 @@ codeledger activate --task "Fix null handling in user service"
 
 This single command:
 1. Scans your repo (builds dependency graph, git churn data, test mappings)
-2. Scores every file across 9 weighted signals
+2. Scores every file across 10 weighted signals
 3. Selects the most relevant files within a token budget
 4. Writes the bundle to `.codeledger/active-bundle.md`
 
@@ -231,7 +238,7 @@ Edit `.codeledger/config.json` to tune:
 }
 ```
 
-Add your language's file extensions to `include`. CodeLedger ships with TypeScript/JavaScript defaults.
+**v0.5.0+:** CodeLedger auto-detects 42 file extensions across 15 language families (JS/TS, Python, Go, Rust, Ruby, Java, C#, and more). You can also create a `.codeledgerignore` file (same syntax as `.gitignore`) to exclude paths without modifying config.
 
 ---
 
@@ -308,4 +315,9 @@ npm uninstall -g @codeledger/cli
 - Use `codeledger intent show` to monitor task drift mid-session
 - Use `codeledger checkpoint create` to save progress before risky operations
 - Run `codeledger compare --scenario "..."` to benchmark agent performance with vs without CodeLedger
-- Visit [contextecf.com](https://contextecf.com) for enterprise features
+- Visit [codeledger.dev](https://codeledger.dev) for the latest releases
+- Visit [timetocontext.co](https://timetocontext.co) for enterprise features
+
+---
+
+<sub>**ContextECF™** — Enterprise Context Infrastructure. Customer-Controlled Data · Tenant-Isolated · Read-Only v1 · Full Provenance · Governance-First Architecture. Confidential. ContextECF is proprietary infrastructure that augments enterprise systems with governed, role-aware contextual intelligence. The platform does not replace source systems and does not execute autonomous actions in Read-Only v1. All intelligence outputs are explainable, permission-validated, and fully auditable. Protected by pending and issued patents. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>

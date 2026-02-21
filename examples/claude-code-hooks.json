@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "CL_CMD=\"\"; if command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; fi; if [ -n \"$CL_CMD\" ]; then $CL_CMD activate --quiet --stale-after 3600; fi",
+        "timeout": 30000
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "if [ \"$TOOL_NAME\" = \"Edit\" ] || [ \"$TOOL_NAME\" = \"Write\" ]; then MARKER=\".codeledger/.hook-reminded\"; if [ ! -f \"$MARKER\" ]; then mkdir -p .codeledger && touch \"$MARKER\" && echo 'CodeLedger: active bundle at .codeledger/active-bundle.md -- check it for relevant context'; fi; fi",
+        "timeout": 5000
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "CL_CMD=\"\"; if command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; fi; if [ -n \"$CL_CMD\" ]; then $CL_CMD session-progress --quiet 2>/dev/null; fi; echo 'CodeLedger: session progress snapshot written to .codeledger/session-progress.md -- read it after compaction to see what was accomplished.'",
+        "timeout": 10000
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "rm -f .codeledger/.hook-reminded; CL_CMD=\"\"; if command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; fi; if [ -n \"$CL_CMD\" ]; then $CL_CMD session-summary 2>/dev/null; fi; rm -f .codeledger/.session-start-ref .codeledger/.activate-ref .codeledger/session-progress.md; echo 'Tip: Run codeledger activate --task \"your next task\" to refresh context for the next task.'",
+        "timeout": 10000
+      }
+    ]
+  }
+}

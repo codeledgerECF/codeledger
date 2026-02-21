@@ -26,7 +26,7 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 |:-|:-|:-|:-|
 | Agent reads 30-50 files before finding the right ones | **Deterministic file selection** | Scores every file across 10 weighted signals (keyword, centrality, churn, recency, test relevance, size, priors, error infra, branch changes) and selects the top-ranked set within a token budget | Agent starts with the right files from the first turn |
 | Irrelevant context burns tokens and degrades model accuracy | **Bounded token budgets** | Stop-rule algorithm packs files greedily until the budget is full; `--expand` doubles when you need more | 60-99% context reduction — pay only for what matters |
-| Agent edits files in package A when the task is in package B | **Monorepo scope restriction** (`--scope`) | Constrains candidate generation, dependency expansion, fan-out, and test pairing to specified path prefixes | No cross-package pollution; bundles stay focused |
+| Agent edits files in package A when the task is in package B | **Monorepo scope restriction** (`--scope`) + **Auto-scope inference** | Constrains candidate generation to specified path prefixes. v0.5.0: auto-detects service names in the task (e.g., "fix auth for api-gateway") and scopes automatically — no `--scope` flag needed | No cross-package pollution; bundles stay focused |
 | Compound tasks ("fix auth and add tests") miss half the files | **Task decomposition** | Splits compound tasks into clauses, runs keyword matching per-clause, then unions results | Every clause gets its own file discovery pass |
 | Agent doesn't know which tests to run after a change | **Blast radius annotation** (`--blast-radius`) | Traces direct dependents, transitive dependents, and impacted test files for each bundle file via the dependency graph | Agent knows exactly what to test and what might break |
 | Hard to tell if the bundle actually covers the task | **Confidence scoring with actionable UX** | Assesses keyword coverage, score distribution, and reason diversity; suggests improvements when confidence is low | Low-confidence bundles come with specific "try this" guidance |
@@ -38,10 +38,9 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 | Manually figuring out which files changed on the current branch | **Branch-aware scoring** (`--branch-aware`) | Detects uncommitted and branch-diffed files and boosts their scores automatically | Work-in-progress files float to the top |
 | Config files, type definitions, and contracts get missed | **Surface-aware auto-inclusion** | Automatically includes config files, type definitions, and API contracts that match task keywords | Critical context files never fall through the cracks |
 | Agent reads files in random order, missing structural context | **Architectural layer ordering** (`--layer-order`) | Sorts bundle files by architectural layer (types, models, services, routes, tests) | Agent reads contracts before implementations, just like a human would |
+| Only works on TypeScript/JavaScript repos | **Language-agnostic scanning** (v0.5.0) | Built-in language registry for 42 file extensions across 15 language families. Python and Go get full deep support (import resolution, test conventions, keyword extraction). Any language works out of the box | Polyglot and multi-language monorepos just work |
 | Token estimates are wildly inaccurate across languages | **Language-aware token calibration** | Uses per-language token/line rates (TypeScript 3.5, Python 3.2, Java 4.5, etc.) instead of a flat 4.0 | Budgets are accurate; no over- or under-packing |
-| Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; features emphasize centrality |
-- Scope contract derivation (bundle files + dependency neighbors)
-- Commit-aware invalidation (addressed files marked as stale)
+| Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; test tasks now heavily prioritize test files (v0.5.0 fix) |
 | TODO/FIXME markers scattered across the codebase are invisible | **TODO/FIXME awareness** | Scans selected files for TODO, FIXME, HACK, XXX markers and surfaces counts in the bundle | Agent sees open work items in the files it's about to edit |
 | No way to compare agent performance with vs. without context | **A/B benchmarking** (`compare`) | Runs the same task twice — once with CodeLedger context, once without — and diffs test pass rate, iterations, token usage, and time | Quantified proof that context selection works |
 | Agent gets stuck in test-fail-edit-retry loops | **Loop detection & circuit-breaker** | Detects repeated test failures, file edit loops, and command retries from the event ledger with configurable thresholds | Stuck agents get a clear signal to change approach |
@@ -83,7 +82,7 @@ See **[GETTING-STARTED.md](GETTING-STARTED.md)** for the full 5-step setup guide
 |-------------|-------------|--------|
 | Large monolith or service | 500 – 5,000 | **Highest.** Cuts straight to the 10-25 files that matter. |
 | Mid-size application | 100 – 500 | **High.** Sweet spot for tight-budget precision. |
-| Multi-package monorepo | 1,000 – 50,000+ | **High — run per-package.** |
+| Multi-package monorepo | 1,000 – 50,000+ | **High.** Auto-scope inference (v0.5.0) detects service names in your task automatically. |
 | Small project | 20 – 100 | **Moderate.** Still useful for churn-based prioritization. |
 
 **Rule of thumb:** If your agent regularly reads more than 25 files before making its first edit, CodeLedger will help.
@@ -224,7 +223,7 @@ See [docs/SCORING.md](docs/SCORING.md) for the full scoring algorithm documentat
 
 ## Agent Governance
 
-CodeLedger v0.4.0 extends beyond context selection into **deterministic agent governance** — three containment layers that keep agents productive without requiring LLM judgment:
+CodeLedger extends beyond context selection into **deterministic agent governance** — three containment layers that keep agents productive without requiring LLM judgment:
 
 **Context Containment** — what the agent sees:
 - Deterministic scoring, bounded budgets, intent-tracked bundles

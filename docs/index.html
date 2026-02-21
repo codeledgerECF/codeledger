@@ -295,7 +295,7 @@
       <nav class="nav-links">
         <a href="https://github.com/codeledgerECF/codeledger" target="_blank">GitHub</a>
         <a href="https://github.com/codeledgerECF/codeledger/blob/main/GETTING-STARTED.md" target="_blank">Docs</a>
-        <a href="https://contextecf.com" target="_blank">Enterprise</a>
+        <a href="https://timetocontext.co" target="_blank">Enterprise</a>
       </nav>
     </div>
   </header>
@@ -362,12 +362,12 @@
         <div class="step">
           <div class="step-num">1</div>
           <h3>Scans your repo</h3>
-          <p>Builds a dependency graph, git churn history, test mappings, and content index. All local.</p>
+          <p>Builds a dependency graph, git churn history, test mappings, and content index. Auto-detects 30+ languages. All local.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <h3>Scores every file</h3>
-          <p>9 weighted signals: keywords, centrality, churn, recency, test relevance, size, error infrastructure, and more.</p>
+          <p>10 weighted signals: keywords, centrality, churn, recency, test relevance, size, error infrastructure, branch changes, and more.</p>
         </div>
         <div class="step">
           <div class="step-num">3</div>
@@ -392,7 +392,7 @@
     <div class="container">
       <div class="stats-grid">
         <div>
-          <div class="stat-num">9</div>
+          <div class="stat-num">10</div>
           <div class="stat-label">Scoring signals per file</div>
         </div>
         <div>
@@ -432,19 +432,15 @@
 
   <footer>
     <div class="container">
-      <p>&copy; 2026 Context ECF. <a href="https://contextecf.com">Enterprise</a> &middot; <a href="https://github.com/codeledgerECF/codeledger" target="_blank">GitHub</a></p>
+      <p>&copy; 2026 ContextECF&trade;. <a href="https://timetocontext.co">Enterprise</a> &middot; <a href="https://codeledger.dev">CodeLedger</a> &middot; <a href="https://github.com/codeledgerECF/codeledger" target="_blank">GitHub</a></p>
     </div>
   </footer>
 
   <script>
     // ── Configuration ──────────────────────────────────────────────────
-    // Replace these with your actual values:
 
-    // Option A: Google Form / Tally / Typeform endpoint
-    // const FORM_ENDPOINT = 'https://your-form-service.com/api/submit';
-
-    // Option B: Simple Google Apps Script web app
-    // const FORM_ENDPOINT = 'https://script.google.com/macros/s/YOUR_ID/exec';
+    // Paste your Google Apps Script web app URL here (see google-apps-script/SETUP.md)
+    const FORM_ENDPOINT = '';  // e.g. 'https://script.google.com/macros/s/AKfycbx.../exec'
 
     // The actual download URL — points to the GitHub Release asset
     const DOWNLOAD_URL = 'https://github.com/codeledgerECF/codeledger/releases/latest/download/codeledger.zip';
@@ -477,7 +473,7 @@
 
       // Send lead data (fire-and-forget — don't block download on form service)
       try {
-        if (typeof FORM_ENDPOINT !== 'undefined') {
+        if (FORM_ENDPOINT) {
           fetch(FORM_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

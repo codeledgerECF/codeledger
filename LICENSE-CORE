@@ -25,7 +25,7 @@ CodeLedger Core Engine binary ("Software") under the following conditions:
    - Team development environments (>1 developer)
    - Enterprise deployments
    - Products or services that incorporate the Software
-   requires a CodeLedger Pro license. Contact team@contextecf.com for pricing.
+   requires a CodeLedger Pro license. Contact team@codeledger.dev for pricing.
 
 RESTRICTIONS
 
@@ -57,5 +57,5 @@ Upon termination, you must destroy all copies of the Software.
 CONTACT
 
 Intelligent Context AI, Inc.
-team@contextecf.com
-https://contextecf.com/license
+team@codeledger.dev
+https://codeledger.dev/license
