@@ -63,7 +63,7 @@ info "Git $(git --version | awk '{print $3}')"
 PINNED_VERSION=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -f "$SCRIPT_DIR/MANIFEST.md" ]; then
-  PINNED_VERSION=$(grep -oP '(?<=@codeledger/cli@)\d+\.\d+\.\d+' "$SCRIPT_DIR/MANIFEST.md" | head -1)
+  PINNED_VERSION=$(sed -n 's/.*@codeledger\/cli@\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$SCRIPT_DIR/MANIFEST.md" | head -1)
 fi
 
 if [ -n "$PINNED_VERSION" ]; then
