@@ -42,7 +42,8 @@ jobs:
                 echo "✓ Downloaded $TARBALL"
                 echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
                 echo "NPM_TARBALL=$TARBALL" >> "$GITHUB_ENV"
-              DOWNLOAD_OK=true                break
+              DOWNLOAD_OK=true                
+              break
               fi
             fi
             echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available, waiting..."
