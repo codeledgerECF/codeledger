@@ -16,9 +16,151 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Gather release assets
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify npm package is published
+        id: npm_check
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          echo "Checking npm for @codeledger/cli@${VERSION}..."
+
+          # Retry up to 5 times with backoff — npm publish may still be propagating
+          for attempt in 1 2 3 4 5; do
+            NPM_VERSION=$(npm view @codeledger/cli@"${VERSION}" version 2>/dev/null || echo "")
+            if [ "$NPM_VERSION" = "$VERSION" ]; then
+              echo "✓ @codeledger/cli@${VERSION} found on npm"
+              echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available on npm, waiting..."
+            sleep $((attempt * 10))
+          done
+
+          if [ "${NPM_VERIFIED:-}" != "true" ]; then
+            echo "::warning::@codeledger/cli@${VERSION} not found on npm after 5 attempts. Release will proceed with a warning."
+            echo "NPM_VERIFIED=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install CLI from npm for verification
+        if: env.NPM_VERIFIED == 'true'
+        run: |
+          npm install -g @codeledger/cli@"${VERSION}"
+          INSTALLED_VERSION=$(codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+          echo "Installed CLI version: $INSTALLED_VERSION"
+          echo "INSTALLED_VERSION=$INSTALLED_VERSION" >> "$GITHUB_ENV"
+
+      - name: Generate MANIFEST.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TAG_DATE=$(date -u +"%Y-%m-%d")
+
+          # Read feature list from CHANGELOG.md (everything between first ## and second ##)
+          CHANGELOG_SECTION=$(awk '/^## '"${VERSION}"'/{found=1; next} /^## [0-9]/{if(found) exit} found{print}' CHANGELOG.md)
+
+          cat > MANIFEST.md << MANIFEST_EOF
+          # CodeLedger v${VERSION} — Release Manifest
+
+          **Release date:** ${TAG_DATE}
+          **npm package:** \`@codeledger/cli@${VERSION}\`
+          **npm verified:** ${NPM_VERIFIED:-unknown}
+          **Git tag:** v${VERSION}
+          **Git commit:** $(git rev-parse --short HEAD)
+
+          ---
+
+          ## What's in this zip
+
+          This release zip is a **bootstrap package** — it contains documentation, licenses, and an install script. The actual CLI and scoring engine are distributed via npm.
+
+          | File | Purpose |
+          |------|---------|
+          | \`install.sh\` | Installs \`@codeledger/cli@${VERSION}\` from npm (with prerequisite checks) |
+          | \`README.md\` | Full feature documentation and CLI reference |
+          | \`GETTING-STARTED.md\` | Step-by-step setup guide |
+          | \`CHANGELOG.md\` | Version history with feature details |
+          | \`MANIFEST.md\` | This file — release contents and verification |
+          | \`LICENSE\` | MIT license (CLI, types, repo scanner, harness) |
+          | \`LICENSE-CORE\` | CodeLedger Core License (scoring engine binary) |
+
+          ## How to install
+
+          **Option A: From this zip**
+          \`\`\`bash
+          unzip codeledger-${VERSION}.zip
+          cd codeledger-${VERSION}/
+          ./install.sh
+          \`\`\`
+
+          **Option B: Directly from npm**
+          \`\`\`bash
+          npm install -g @codeledger/cli@${VERSION}
+          \`\`\`
+
+          ## How to verify
+
+          After installation, confirm the version matches this release:
+
+          \`\`\`bash
+          codeledger --version
+          # Expected: ${VERSION}
+
+          codeledger doctor
+          # Runs 8 health checks on your installation
+          \`\`\`
+
+          ## Feature verification
+
+          To verify the v${VERSION} feature set is present in your installed CLI:
+
+          \`\`\`bash
+          # Multi-language detection (v0.5.0+)
+          codeledger scan    # Should index .py, .go, .rs, .java files (not just .ts/.js)
+
+          # Auto-scope inference (v0.5.0+)
+          codeledger activate --task "Fix auth for api-gateway"
+          # Should auto-scope to api-gateway/ directory if it exists
+
+          # Agent governance (v0.4.0+)
+          codeledger intent init --objective "test"
+          codeledger checkpoint list
+          codeledger shared-summary
+          \`\`\`
+
+          ## npm package contents
+
+          The \`@codeledger/cli\` npm package includes all compiled packages:
+
+          | Package | Description |
+          |---------|-------------|
+          | \`@codeledger/cli\` | CLI entry point and all commands |
+          | \`@codeledger/types\` | Shared TypeScript types |
+          | \`@codeledger/core\` | SQLite ledger for event recording |
+          | \`@codeledger/core-engine\` | Scoring engine (compiled) |
+          | \`@codeledger/repo\` | Repository scanning, dependency graph, language detection |
+          | \`@codeledger/selector\` | File scoring, selection, governance features |
+          | \`@codeledger/instrument\` | Runtime instrumentation |
+          | \`@codeledger/harness\` | Benchmark execution engine |
+          | \`@codeledger/cowork\` | Cowork session integration |
+
+          ## v${VERSION} features
+          ${CHANGELOG_SECTION}
+
+          ---
+
+          *Generated automatically by release workflow on ${TAG_DATE}.*
+          MANIFEST_EOF
+
+          # Clean leading whitespace from heredoc indentation
+          sed -i 's/^          //' MANIFEST.md
+
+      - name: Gather release assets
+        run: |
           STAGING="codeledger-${VERSION}"
           mkdir -p "$STAGING"
 
@@ -26,6 +168,8 @@ jobs:
           cp install.sh "$STAGING/"
           cp GETTING-STARTED.md "$STAGING/"
           cp README.md "$STAGING/"
+          cp CHANGELOG.md "$STAGING/"
+          cp MANIFEST.md "$STAGING/"
           cp LICENSE "$STAGING/" 2>/dev/null || true
           cp LICENSE-CORE "$STAGING/" 2>/dev/null || true
           chmod +x "$STAGING/install.sh"
@@ -36,7 +180,6 @@ jobs:
           # Also create a generic name for the "latest" download link
           cp "codeledger-${VERSION}.zip" codeledger.zip
 
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "ZIP_VERSIONED=codeledger-${VERSION}.zip" >> "$GITHUB_ENV"
           echo "ZIP_LATEST=codeledger.zip" >> "$GITHUB_ENV"
 
@@ -47,13 +190,36 @@ jobs:
           body: |
             ## CodeLedger v${{ env.VERSION }}
 
-            Download the zip, extract, and run `./install.sh` — or install directly:
+            ### Install
 
             ```bash
-            npm install -g @codeledger/cli
+            npm install -g @codeledger/cli@${{ env.VERSION }}
             ```
 
-            See [GETTING-STARTED.md](https://github.com/${{ github.repository }}/blob/main/GETTING-STARTED.md) for the full setup guide.
+            Or download the zip, extract, and run `./install.sh`.
+
+            ### npm verification
+
+            ${{ env.NPM_VERIFIED == 'true' && format('✅ `@codeledger/cli@{0}` verified on npm at release time.', env.VERSION) || format('⚠️ `@codeledger/cli@{0}` was not yet available on npm when this release was created. Run `npm view @codeledger/cli version` to check current availability.', env.VERSION) }}
+
+            ### Verify after install
+
+            ```bash
+            codeledger --version    # Should show: ${{ env.VERSION }}
+            codeledger doctor       # Runs 8 health checks
+            ```
+
+            ### What's in the zip
+
+            The release zip is a **bootstrap package** containing documentation, licenses, and an install script. The CLI and scoring engine are distributed via npm (`@codeledger/cli`). See `MANIFEST.md` inside the zip for full details including feature verification steps.
+
+            **Zip contents:** `install.sh` · `README.md` · `GETTING-STARTED.md` · `CHANGELOG.md` · `MANIFEST.md` · `LICENSE` · `LICENSE-CORE`
+
+            ### Links
+
+            - 📦 [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
+            - 📖 [Getting Started Guide](https://github.com/${{ github.repository }}/blob/main/GETTING-STARTED.md)
+            - 📋 [Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
           files: |
             ${{ env.ZIP_VERSIONED }}
             ${{ env.ZIP_LATEST }}

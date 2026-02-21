@@ -58,6 +58,22 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 info "Git $(git --version | awk '{print $3}')"
 
+# ── Detect version from MANIFEST.md (if present) ─────────────────────────────
+
+PINNED_VERSION=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/MANIFEST.md" ]; then
+  PINNED_VERSION=$(grep -oP '(?<=@codeledger/cli@)\d+\.\d+\.\d+' "$SCRIPT_DIR/MANIFEST.md" | head -1)
+fi
+
+if [ -n "$PINNED_VERSION" ]; then
+  PACKAGE="@codeledger/cli@${PINNED_VERSION}"
+  info "Version pinned from release manifest: $PINNED_VERSION"
+else
+  PACKAGE="@codeledger/cli"
+  warn "No MANIFEST.md found — installing latest version from npm"
+fi
+
 # ── Install ──────────────────────────────────────────────────────────────────
 
 step "2. Installing CodeLedger..."
@@ -65,12 +81,12 @@ step "2. Installing CodeLedger..."
 MODE="${1:-global}"
 
 if [ "$MODE" = "--local" ]; then
-  npm install @codeledger/cli
-  info "Installed @codeledger/cli as a local dependency"
+  npm install "$PACKAGE"
+  info "Installed $PACKAGE as a local dependency"
   echo "  Run with: npx codeledger <command>"
 else
-  npm install -g @codeledger/cli
-  info "Installed @codeledger/cli globally"
+  npm install -g "$PACKAGE"
+  info "Installed $PACKAGE globally"
   echo "  Run with: codeledger <command>"
 fi
 
