@@ -169,13 +169,33 @@ You'll see:
 
 ---
 
+## Step 5b (Optional): CI Integration
+
+For teams that want CI enforcement on every PR:
+
+```bash
+codeledger setup-ci --mode warn
+```
+
+This generates two files in one command:
+- `.github/workflows/codeledger-verify.yml` — GitHub Actions workflow
+- `.codeledger/policy/org/default.json` — policy thresholds
+
+**Enforcement modes:** `observe` (report only) | `warn` (annotate PRs) | `block` (fail build on violations)
+
+Commit both files to enable CI verification. See `codeledger policy --print` to inspect resolved thresholds.
+
+---
+
 ## Common Commands
 
 | Command | When to Use |
 |---------|-------------|
 | `codeledger activate --task "..."` | Starting a new task (scans if needed) |
+| `codeledger activate --task "..." --branch-aware` | Boost files changed on your branch |
+| `codeledger activate --task "..." --explain` | See why each file was selected |
 | `codeledger scan` | Force rebuild the repo index |
-| `codeledger bundle --task "..." --explain` | See per-file scoring breakdown |
+| `codeledger refine --learned "..."` | Re-score mid-session with new context |
 | `codeledger session-summary` | Check recall/precision after commits |
 | `codeledger session-progress` | Snapshot progress (survives compaction) |
 | `codeledger checkpoint create` | Save work-in-progress snapshot |
@@ -183,6 +203,9 @@ You'll see:
 | `codeledger shared-summary` | Cross-session coordination summary |
 | `codeledger intent show` | Check task drift score |
 | `codeledger intent ack` | Acknowledge drift when prompted |
+| `codeledger doctor` | Health check (config, hooks, index, ledger) |
+| `codeledger setup-ci --mode warn` | Generate CI workflow + policy |
+| `codeledger verify --task "..."` | Evaluate policy locally |
 | `codeledger init --force` | Re-initialize (updates hooks + CLAUDE.md) |
 
 ---

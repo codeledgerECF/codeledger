@@ -3,7 +3,8 @@
 #  CodeLedger — Install Script
 #
 #  This script installs CodeLedger from a local zip distribution.
-#  Run it from inside the extracted directory.
+#  It installs from the bundled .tgz package (no internet required).
+#  Falls back to npm registry if the .tgz is missing.
 #
 #  Usage:
 #    ./install.sh                     # Install globally
@@ -58,20 +59,28 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 info "Git $(git --version | awk '{print $3}')"
 
-# ── Detect version from MANIFEST.md (if present) ─────────────────────────────
+# ── Locate the bundled package ────────────────────────────────────────────────
 
-PINNED_VERSION=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Look for the bundled .tgz in the same directory as install.sh
+TARBALL=$(ls "$SCRIPT_DIR"/codeledger-cli-*.tgz 2>/dev/null | head -1)
+
+# Also detect the pinned version from MANIFEST.md
+PINNED_VERSION=""
 if [ -f "$SCRIPT_DIR/MANIFEST.md" ]; then
   PINNED_VERSION=$(sed -n 's/.*@codeledger\/cli@\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$SCRIPT_DIR/MANIFEST.md" | head -1)
 fi
 
-if [ -n "$PINNED_VERSION" ]; then
-  PACKAGE="@codeledger/cli@${PINNED_VERSION}"
-  info "Version pinned from release manifest: $PINNED_VERSION"
+if [ -n "$TARBALL" ]; then
+  INSTALL_SOURCE="$TARBALL"
+  info "Found bundled package: $(basename "$TARBALL")"
+elif [ -n "$PINNED_VERSION" ]; then
+  INSTALL_SOURCE="@codeledger/cli@${PINNED_VERSION}"
+  warn "No bundled .tgz found — will install v${PINNED_VERSION} from npm (requires internet)"
 else
-  PACKAGE="@codeledger/cli"
-  warn "No MANIFEST.md found — installing latest version from npm"
+  INSTALL_SOURCE="@codeledger/cli"
+  warn "No bundled .tgz or MANIFEST.md found — will install latest from npm (requires internet)"
 fi
 
 # ── Install ──────────────────────────────────────────────────────────────────
@@ -81,12 +90,12 @@ step "2. Installing CodeLedger..."
 MODE="${1:-global}"
 
 if [ "$MODE" = "--local" ]; then
-  npm install "$PACKAGE"
-  info "Installed $PACKAGE as a local dependency"
+  npm install "$INSTALL_SOURCE"
+  info "Installed CodeLedger as a local dependency"
   echo "  Run with: npx codeledger <command>"
 else
-  npm install -g "$PACKAGE"
-  info "Installed $PACKAGE globally"
+  npm install -g "$INSTALL_SOURCE"
+  info "Installed CodeLedger globally"
   echo "  Run with: codeledger <command>"
 fi
 

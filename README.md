@@ -142,7 +142,11 @@ codeledger activate --task "your new task"
 ## CLI Commands
 
 ```bash
-codeledger init                          # Set up .codeledger/ with config and scenarios
+# ── Getting Started ───────────────────────────────────────────
+codeledger init [--force]                # Set up .codeledger/ with config and scenarios
+codeledger doctor                        # Integration health check (config, hooks, index, ledger)
+
+# ── Context Selection (daily use) ─────────────────────────────
 codeledger scan                          # Build repo index (dep graph, churn, test map)
 codeledger bundle --task "…"             # Generate a deterministic context bundle
   --scope "src/auth/,src/api/"           #   Restrict to path prefixes (monorepo-friendly)
@@ -157,19 +161,43 @@ codeledger activate --task "…"           # Scan-if-stale + bundle + write acti
 codeledger refine --learned "…"          # Re-score with new context mid-session
   --drop "file1.ts,file2.ts"             #   Remove specific files
   --add-keywords "pool,cache"            #   Inject new search terms
+
+# ── Session Management ────────────────────────────────────────
+codeledger session-init                  # Initialize a new session (returns session ID)
+codeledger sessions                      # List active sessions and file overlaps
 codeledger session-progress              # Write ground-truth progress snapshot
 codeledger session-summary               # Show session-end recall/precision metrics
+codeledger session-cleanup               # Clean up a session's state files
 codeledger checkpoint create             # Save work-in-progress snapshot
 codeledger checkpoint restore --id …    # Resume from a checkpoint
 codeledger checkpoint list               # List available checkpoints
 codeledger shared-summary                # Cross-session coordination summary
+
+# ── Intent Governance ─────────────────────────────────────────
 codeledger intent init --objective "…"   # Create a structured task contract
 codeledger intent show                   # Display drift score and per-field distances
 codeledger intent set --objective "…"    # Update contract fields mid-session
 codeledger intent ack                    # Acknowledge drift (reset or accept)
-codeledger share [--format twitter]      # Generate shareable result snippet
+
+# ── CI / Enterprise Governance ────────────────────────────────
+codeledger setup-ci                      # Generate GitHub Actions workflow + policy file
+  --mode observe|warn|block              #   Set enforcement level (default: warn)
+  --output <dir>                         #   Custom workflow directory
+codeledger manifest --task "…"           # Generate deterministic context manifest
+codeledger sign-manifest --in … --out …  # Sign a manifest with HMAC-SHA256
+codeledger policy --print                # Show resolved policy for current repo
+codeledger verify --task "…"             # CI enforcement: evaluate policy, emit artifacts
+
+# ── Cowork (Knowledge Mode) ──────────────────────────────────
+codeledger cowork-start --intent "…"     # Scan workspace + generate context bundle
+codeledger cowork-refresh --intent "…"   # Re-run selection with updated intent
+codeledger cowork-snapshot               # Write progress snapshot for continuity
+codeledger cowork-stop                   # Finalize session + print summary
+
+# ── Benchmarking ──────────────────────────────────────────────
 codeledger run --scenario …              # Execute a single benchmark scenario
 codeledger compare --scenario …          # A/B comparison: with vs without CodeLedger
+codeledger share [--format twitter]      # Generate shareable result snippet
 codeledger clean                         # Remove orphaned worktrees
 ```
 

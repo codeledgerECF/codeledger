@@ -29,29 +29,42 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          TARBALL_NAME="codeledger-cli-${VERSION}.tgz"
 
           echo "Downloading @codeledger/cli@${VERSION} from npm..."
 
           DOWNLOAD_OK=false
 
-          # Retry up to 5 times with backoff — npm publish may still be propagating
+          # Method 1: try npm pack (5 attempts with backoff)
           for attempt in 1 2 3 4 5; do
-            if npm pack "@codeledger/cli@${VERSION}" 2>/dev/null; then
-              TARBALL=$(ls codeledger-cli-*.tgz 2>/dev/null | head -1)
-              if [ -n "$TARBALL" ]; then
-                echo "✓ Downloaded $TARBALL"
-                echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
-                echo "NPM_TARBALL=$TARBALL" >> "$GITHUB_ENV"
-              DOWNLOAD_OK=true                
+            echo "--- Attempt $attempt: npm pack ---"
+            npm pack "@codeledger/cli@${VERSION}" && true
+            TARBALL=$(ls codeledger-cli-*.tgz 2>/dev/null | head -1)
+            if [ -n "$TARBALL" ]; then
+              echo "✓ Downloaded $TARBALL via npm pack"
+              echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
+              echo "NPM_TARBALL=$TARBALL" >> "$GITHUB_ENV"
+              DOWNLOAD_OK=true
               break
-              fi
             fi
-            echo "Attempt $attempt: @codeledger/cli@${VERSION} not yet available, waiting..."
+            echo "npm pack did not produce a tarball, waiting $((attempt * 10))s..."
             sleep $((attempt * 10))
           done
 
+          # Method 2: fallback to direct registry download
           if [ "$DOWNLOAD_OK" != "true" ]; then
-            echo "::error::@codeledger/cli@${VERSION} not found on npm after 5 attempts. Cannot create release without the package."
+            echo "npm pack failed, trying direct registry download..."
+            REGISTRY_URL="https://registry.npmjs.org/@codeledger/cli/-/cli-${VERSION}.tgz"
+            if curl -fsSL -o "$TARBALL_NAME" "$REGISTRY_URL"; then
+              echo "✓ Downloaded $TARBALL_NAME via registry URL"
+              echo "NPM_VERIFIED=true" >> "$GITHUB_ENV"
+              echo "NPM_TARBALL=$TARBALL_NAME" >> "$GITHUB_ENV"
+              DOWNLOAD_OK=true
+            fi
+          fi
+
+          if [ "$DOWNLOAD_OK" != "true" ]; then
+            echo "::error::@codeledger/cli@${VERSION} not found on npm after 5 attempts + direct download. Cannot create release without the package."
             exit 1
           fi
 

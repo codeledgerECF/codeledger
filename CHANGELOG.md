@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.5.0 (2026-02-21)
+## 0.5.0 (2026-02-23)
 
-Multi-language scanning, auto-scope inference, and test-task scoring fix.
+Multi-language scanning, auto-scope inference, CI governance pipeline, and onboarding improvements.
 
 ### Added
 
@@ -16,13 +16,26 @@ Multi-language scanning, auto-scope inference, and test-task scoring fix.
 - **`inferScope()`** — Automatically detects service/package names in task descriptions (e.g., `api-gateway`, `stripe_billing`) and restricts context to matching directories. No `--scope` flag needed.
 - **Three-level fallback** — CLI `--scope` > config `default_scope` > auto-inference > no scope.
 
+#### CI / Enterprise Governance (Mustang Pipeline)
+- **`codeledger manifest`** — Generates a deterministic context manifest (bundle metadata + git state + policy snapshot). Evidence payload for CI gates.
+- **`codeledger sign-manifest`** — Signs manifests with HMAC-SHA256 using JCS canonicalization (RFC 8785) for tamper evidence.
+- **`codeledger policy`** — Cascading policy resolution (hardcoded defaults → `org/default.json` → `repos/<name>.json`). Three enforcement modes: `observe`, `warn`, `block`.
+- **`codeledger verify`** — CI enforcement command. Evaluates 5 violation codes (`LOW_CONFIDENCE`, `HIGH_DRIFT`, `DENY_PATH_MATCH`, `MISSING_TESTS`, `BUNDLE_TOO_LARGE`), emits structured artifacts, returns appropriate exit code.
+- **`codeledger setup-ci`** — One-command enterprise onboarding. Generates GitHub Actions workflow + policy file with configurable enforcement mode (`--mode observe|warn|block`).
+
+#### Onboarding UX
+- **Simplified `init` output** — Collapsed verbose checkmarks into a single summary line with one clear CTA and discoverable flags.
+- **Readable `--explain` table** — Human-readable column headers, active weights displayed above the table, actionable tips when keyword scores are low.
+- **Cleaner `activate` output** — Inline confidence tag, detailed LOW-confidence guidance, no emoji clutter.
+- **`codeledger doctor`** — Integration health check (8 checks: config, hooks, index, ledger, engine, sessions, intent, policy).
+
 ### Fixed
 
 - **Test-task scoring** — "Run tests" and similar execution-verb tasks now correctly prioritize test files. `test_relevance` weight boosted 2.5×, test file patterns added to acceptance surface.
 
 ### Test Coverage
-- 49 new tests (40 multi-language, 9 auto-scope inference)
-- Full suite: 679 tests passing
+- 167 adversarial smoke tests covering all CLI commands and edge cases
+- Full suite: 915 tests passing
 
 ## 0.4.0 (2026-02-20)
 
