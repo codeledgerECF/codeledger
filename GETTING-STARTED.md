@@ -308,8 +308,9 @@ More keywords = better file matching = higher confidence.
 
 ## Privacy
 
-- Runs entirely on your local machine
-- Makes zero network calls
+- **Installation** requires npm access to fetch `@codeledger/*` dependencies (one-time)
+- **After install**, runs entirely on your local machine
+- Makes zero network calls at runtime
 - Collects zero telemetry
 - Your source code never leaves your machine
 - No account required

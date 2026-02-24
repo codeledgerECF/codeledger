@@ -20,7 +20,7 @@ Your agent reads the right files first. Every time.
 
 AI coding agents are powerful, but on real codebases they waste time, tokens, and accuracy because they lack **targeted context**. CodeLedger fixes that — deterministically.
 
-**No embeddings. No cloud. No telemetry. Fully local. Fully deterministic.**
+**No embeddings. No cloud. No telemetry. Fully local at runtime. Fully deterministic.**
 
 | Pain Point (Without CodeLedger) | Feature (With CodeLedger) | How It Works | Benefit |
 |:-|:-|:-|:-|
@@ -304,8 +304,9 @@ codeledger share --clipboard            # Copy to clipboard
 
 ## Privacy
 
-- Runs entirely on your local machine
-- Makes zero network calls
+- **Installation** requires npm access to fetch `@codeledger/*` dependencies (one-time)
+- **After install**, runs entirely on your local machine
+- Makes zero network calls at runtime
 - Collects zero telemetry
 - Your source code never leaves your machine
 - No account required
