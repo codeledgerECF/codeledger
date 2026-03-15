@@ -74,7 +74,7 @@ See **[GETTING-STARTED.md](GETTING-STARTED.md)** for the full 5-step setup guide
 
 ### Alternative: Download from GitHub Releases
 
-**[Download the latest release](https://github.com/codeledgerECF/codeledger/releases/latest)** — extract the zip and run `./install.sh`.
+**[Download the latest release](https://github.com/codeledgerECF/codeledger/releases/latest)** — extract the zip, then drag `install.sh` into your terminal and press Enter. The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry required.
 
 ## Best For
 

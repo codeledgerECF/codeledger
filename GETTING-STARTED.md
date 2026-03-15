@@ -76,19 +76,29 @@ codeledger activate --task "your task"
 
 ## Step 1: Install
 
+### Option A: Download the release (recommended)
+
+1. **[Download the latest release](https://github.com/codeledgerECF/codeledger/releases/latest)** and extract the zip
+2. Drag `install.sh` from the extracted folder into your terminal window
+3. Press Enter
+
+That's it. The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry lookup needed.
+
+### Option B: Install from npm
+
 ```bash
 npm install -g @codeledger/cli
 ```
 
-Verify it works:
+> **No global install?** Use `npx codeledger <command>` anywhere. The examples below use the global command for brevity, but `npx codeledger` works identically.
+
+### Verify
 
 ```bash
 codeledger --version
 ```
 
 You should see something like `codeledger v0.5.0`.
-
-> **Alternative (no global install):** Use `npx codeledger <command>` anywhere. The examples below use the global command for brevity, but `npx codeledger` works identically.
 
 ---
 
