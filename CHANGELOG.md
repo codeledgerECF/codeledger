@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.6.7 (2026-03-17)
+
+Enterprise infrastructure, Review Intelligence, Shadow Files, and deployment flexibility.
+
+### Added
+
+#### Review Intelligence
+- **Architectural verification in `codeledger verify`** — 5 invariant modules detect missing runtime validation (P1), unguarded outbound HTTP calls (P1), helper bypass (P2), build/runtime drift, and test integrity issues. Zero configuration required.
+- **Baseline management** — `--update-baseline` accepts current findings into `.codeledger/review-baseline.json`. Baselined findings are hidden on subsequent runs.
+- **Inline suppressions** — `// codeledger: ignore <rule|category|*> -- reason` comments suppress individual findings at the source.
+- **Dispositions** — Every finding classified as `new`, `baselined`, or `suppressed`. CI blocks only on new P0/P1 findings.
+- **Flags** — `--explain` (richer reasoning), `--json` (machine-readable for AI repair loops), `--debug-review` (internals), `--invariant <name>` (filter), `--show-triaged` (show hidden findings).
+
+#### Shadow Files (Temporal Co-Commit Expansion)
+- **`buildTemporalCoCommitIndex()`** — Mines git history for files frequently committed together. Builds a sparse adjacency graph with recency-weighted scoring and commit-size penalties.
+- **Bundle expansion** — High-affinity neighbors (types ↔ tests, schema ↔ migration) are added to bundles automatically. No keyword or import edge needed.
+- **Configurable** — `shadow.minAffinity`, `shadow.minCoCommitCount`, `shadow.maxShadowAdds`, `shadow.recencyHalfLifeDays`, `shadow.commitSizePenaltyThreshold` in config.
+
+#### Enterprise Infrastructure
+- **Multi-CI provider support** — `setup-ci --provider github|gitlab|circleci|azure` generates workflows for GitHub Actions, GitLab CI, CircleCI, and Azure Pipelines.
+- **API server** — `codeledger serve [--port 7400]` exposes GET /health, POST /verify, POST /bundle for toolchain integration.
+- **Audit export** — `codeledger audit-export --format json|csv|jsonl` exports the event ledger for SIEM/compliance integration.
+- **Container deployment** — Dockerfile, docker-compose.yml, and Kubernetes Helm chart for containerized deployments.
+- **Cloud IaC templates** — AWS CloudFormation and Terraform templates for cloud infrastructure.
+- **Standalone CLI bundle** — `codeledger vendor` produces a zero-dependency standalone CLI for cloud/web environments.
+
+#### Architectural Contract Enforcement
+- **Invariant packs** — `codeledger pack list|enable|disable` for managing built-in and generated invariant packs.
+- **Convention learning** — `codeledger learn [--save] [--enable]` discovers repository conventions and generates custom invariant packs.
+- **Architecture graph** — `codeledger graph [--json] [--save]` builds and displays service dependency graphs with cycle detection.
+- **Auto-fix** — `codeledger fix [--rule <id>] [--dry-run]` applies auto-fixes for architectural violations.
+
+#### Security
+- **Credential scanning** — `codeledger detect:secrets` with entropy detection, baseline management, SARIF output, and allowlists.
+
+### Test Coverage
+- Full suite: 1,473 tests passing (up from 951 in v0.5.0)
+
 ## 0.5.0 (2026-02-23)
 
 Multi-language scanning, auto-scope inference, CI governance pipeline, and onboarding improvements.

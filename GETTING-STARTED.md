@@ -45,12 +45,12 @@ These are the workflows where teams see the largest improvement:
 
 ### Monorepo strategy
 
-**v0.5.0+:** CodeLedger auto-detects service/package names in your task description. If you say `"Fix auth for api-gateway"`, it automatically restricts context to `services/api-gateway/` — no `--scope` flag needed.
+CodeLedger auto-detects service/package names in your task description. If you say `"Fix auth for api-gateway"`, it automatically restricts context to `services/api-gateway/` — no `--scope` flag needed.
 
 For explicit control, use `--scope` or initialize per-package:
 
 ```bash
-# Option A: auto-scope (v0.5.0+) — just describe the service in your task
+# Option A: auto-scope — just describe the service in your task
 codeledger activate --task "Fix auth for api-gateway"
 
 # Option B: explicit scope flag
@@ -98,7 +98,7 @@ npm install -g @codeledger/cli
 codeledger --version
 ```
 
-You should see something like `codeledger v0.5.0`.
+You should see something like `codeledger v0.6.7`.
 
 ---
 
@@ -271,7 +271,7 @@ Edit `.codeledger/config.json` to tune:
 }
 ```
 
-**v0.5.0+:** CodeLedger auto-detects 42 file extensions across 15 language families (JS/TS, Python, Go, Rust, Ruby, Java, C#, and more). You can also create a `.codeledgerignore` file (same syntax as `.gitignore`) to exclude paths without modifying config.
+CodeLedger auto-detects 42 file extensions across 15 language families (JS/TS, Python, Go, Rust, Ruby, Java, C#, and more). You can also create a `.codeledgerignore` file (same syntax as `.gitignore`) to exclude paths without modifying config.
 
 ---
 
@@ -313,6 +313,21 @@ The bundle's confidence depends on how specific your task description is. Compar
 - Specific: `"Fix null handling in getUserById when email is missing"` (high confidence)
 
 More keywords = better file matching = higher confidence.
+
+### "npx shows old version after upgrade"
+
+If `npx codeledger --version` shows an older version after upgrading globally, your project has a local copy in `node_modules` that shadows the global install. Fix it:
+
+```bash
+# Option 1: Update the local copy
+npm install /path/to/codeledger-cli-0.6.8.tgz
+
+# Option 2: Remove the local copy (npx will use global)
+rm -rf node_modules/@codeledger
+
+# Option 3: Use the global install directly
+codeledger --version  # global, not npx
+```
 
 ---
 

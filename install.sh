@@ -97,6 +97,19 @@ else
   npm install -g "$INSTALL_SOURCE"
   info "Installed CodeLedger globally"
   echo "  Run with: codeledger <command>"
+
+  # Detect local project installation that may shadow the global one
+  if [ -f "package.json" ] && [ -d "node_modules/@codeledger" ]; then
+    LOCAL_VER=$(npx codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+    GLOBAL_VER=$(codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+    if [ -n "$LOCAL_VER" ] && [ -n "$GLOBAL_VER" ] && [ "$LOCAL_VER" != "$GLOBAL_VER" ]; then
+      echo ""
+      warn "This project has a local CodeLedger (v${LOCAL_VER}) that npx will use instead of the global (v${GLOBAL_VER})."
+      echo "  To update the local copy, run:"
+      echo "    npm install ${INSTALL_SOURCE}"
+      echo ""
+    fi
+  fi
 fi
 
 # ── Verify installation ─────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # CodeLedger
 
-**Deterministic context selection and agent governance for AI coding agents.**
+**Deterministic context selection, agent governance, and architectural verification for AI coding agents.**
 
 Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
 
@@ -26,7 +26,7 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 |:-|:-|:-|:-|
 | Agent reads 30-50 files before finding the right ones | **Deterministic file selection** | Scores every file across 10 weighted signals (keyword, centrality, churn, recency, test relevance, size, priors, error infra, branch changes) and selects the top-ranked set within a token budget | Agent starts with the right files from the first turn |
 | Irrelevant context burns tokens and degrades model accuracy | **Bounded token budgets** | Stop-rule algorithm packs files greedily until the budget is full; `--expand` doubles when you need more | 60-99% context reduction — pay only for what matters |
-| Agent edits files in package A when the task is in package B | **Monorepo scope restriction** (`--scope`) + **Auto-scope inference** | Constrains candidate generation to specified path prefixes. v0.5.0: auto-detects service names in the task (e.g., "fix auth for api-gateway") and scopes automatically — no `--scope` flag needed | No cross-package pollution; bundles stay focused |
+| Agent edits files in package A when the task is in package B | **Monorepo scope restriction** (`--scope`) + **Auto-scope inference** | Constrains candidate generation to specified path prefixes. Auto-detects service names in the task (e.g., "fix auth for api-gateway") and scopes automatically — no `--scope` flag needed | No cross-package pollution; bundles stay focused |
 | Compound tasks ("fix auth and add tests") miss half the files | **Task decomposition** | Splits compound tasks into clauses, runs keyword matching per-clause, then unions results | Every clause gets its own file discovery pass |
 | Agent doesn't know which tests to run after a change | **Blast radius annotation** (`--blast-radius`) | Traces direct dependents, transitive dependents, and impacted test files for each bundle file via the dependency graph | Agent knows exactly what to test and what might break |
 | Hard to tell if the bundle actually covers the task | **Confidence scoring with actionable UX** | Assesses keyword coverage, score distribution, and reason diversity; suggests improvements when confidence is low | Low-confidence bundles come with specific "try this" guidance |
@@ -38,9 +38,11 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 | Manually figuring out which files changed on the current branch | **Branch-aware scoring** (`--branch-aware`) | Detects uncommitted and branch-diffed files and boosts their scores automatically | Work-in-progress files float to the top |
 | Config files, type definitions, and contracts get missed | **Surface-aware auto-inclusion** | Automatically includes config files, type definitions, and API contracts that match task keywords | Critical context files never fall through the cracks |
 | Agent reads files in random order, missing structural context | **Architectural layer ordering** (`--layer-order`) | Sorts bundle files by architectural layer (types, models, services, routes, tests) | Agent reads contracts before implementations, just like a human would |
-| Only works on TypeScript/JavaScript repos | **Language-agnostic scanning** (v0.5.0) | Built-in language registry for 42 file extensions across 15 language families. Python and Go get full deep support (import resolution, test conventions, keyword extraction). Any language works out of the box | Polyglot and multi-language monorepos just work |
+| Only works on TypeScript/JavaScript repos | **Language-agnostic scanning** | Built-in language registry for 42 file extensions across 15 language families. Python and Go get full deep support (import resolution, test conventions, keyword extraction). Any language works out of the box | Polyglot and multi-language monorepos just work |
+| Co-changed files missing from the bundle | **Shadow Files** | Mines git history for temporal co-commit affinity. Expands bundle with high-affinity neighbors using recency-weighted scoring and commit-size penalties | Cross-cutting companions (types ↔ tests, schema ↔ migration) included automatically |
+| Agent introduces architectural violations that linters miss | **Review Intelligence** | 5 invariant modules detect missing runtime validation (P1), unguarded outbound HTTP (P1), helper bypass (P2). Baselines, inline suppressions, disposition tracking | Catches architectural risks — not just syntax issues — deterministically |
 | Token estimates are wildly inaccurate across languages | **Language-aware token calibration** | Uses per-language token/line rates (TypeScript 3.5, Python 3.2, Java 4.5, etc.) instead of a flat 4.0 | Budgets are accurate; no over- or under-packing |
-| Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; test tasks now heavily prioritize test files (v0.5.0 fix) |
+| Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; test tasks heavily prioritize test files |
 | TODO/FIXME markers scattered across the codebase are invisible | **TODO/FIXME awareness** | Scans selected files for TODO, FIXME, HACK, XXX markers and surfaces counts in the bundle | Agent sees open work items in the files it's about to edit |
 | No way to compare agent performance with vs. without context | **A/B benchmarking** (`compare`) | Runs the same task twice — once with CodeLedger context, once without — and diffs test pass rate, iterations, token usage, and time | Quantified proof that context selection works |
 | Agent gets stuck in test-fail-edit-retry loops | **Loop detection & circuit-breaker** | Detects repeated test failures, file edit loops, and command retries from the event ledger with configurable thresholds | Stuck agents get a clear signal to change approach |
@@ -82,7 +84,7 @@ See **[GETTING-STARTED.md](GETTING-STARTED.md)** for the full 5-step setup guide
 |-------------|-------------|--------|
 | Large monolith or service | 500 – 5,000 | **Highest.** Cuts straight to the 10-25 files that matter. |
 | Mid-size application | 100 – 500 | **High.** Sweet spot for tight-budget precision. |
-| Multi-package monorepo | 1,000 – 50,000+ | **High.** Auto-scope inference (v0.5.0) detects service names in your task automatically. |
+| Multi-package monorepo | 1,000 – 50,000+ | **High.** Auto-scope inference detects service names in your task automatically. |
 | Small project | 20 – 100 | **Moderate.** Still useful for churn-based prioritization. |
 
 **Rule of thumb:** If your agent regularly reads more than 25 files before making its first edit, CodeLedger will help.
@@ -180,13 +182,23 @@ codeledger intent set --objective "…"    # Update contract fields mid-session
 codeledger intent ack                    # Acknowledge drift (reset or accept)
 
 # ── CI / Enterprise Governance ────────────────────────────────
-codeledger setup-ci                      # Generate GitHub Actions workflow + policy file
+codeledger setup-ci                      # Generate CI workflow + policy file
+  --provider github|gitlab|circleci|azure #  CI provider (default: github)
   --mode observe|warn|block              #   Set enforcement level (default: warn)
   --output <dir>                         #   Custom workflow directory
 codeledger manifest --task "…"           # Generate deterministic context manifest
 codeledger sign-manifest --in … --out …  # Sign a manifest with HMAC-SHA256
 codeledger policy --print                # Show resolved policy for current repo
 codeledger verify --task "…"             # CI enforcement: evaluate policy, emit artifacts
+  --explain                              #   Show richer reasoning and repo-standard examples
+  --json                                 #   Machine-readable output for CI/AI agents
+  --invariant <name>                     #   Narrow to one invariant module
+
+# ── API Server & Compliance ──────────────────────────────────
+codeledger serve                         # Start HTTP API server (default: port 7400)
+  --port 7400                            #   GET /health, POST /verify, POST /bundle
+codeledger audit-export                  # Export ledger to JSON, CSV, or JSON Lines
+  --format json|csv|jsonl                #   SIEM-compatible output
 
 # ── Cowork (Knowledge Mode) ──────────────────────────────────
 codeledger cowork-start --intent "…"     # Scan workspace + generate context bundle
@@ -224,12 +236,13 @@ codeledger clean                         # Remove orphaned worktrees
 
 CodeLedger uses a multi-stage candidate pipeline and a ten-signal scorer:
 
-**Candidate Generation (5 stages):**
+**Candidate Generation (6 stages):**
 1. Per-clause keyword matching (with IDF weighting and plural tolerance)
 2. Hot-zone inclusion (most-churned files from git history)
 3. Scope-aware dependency expansion (imports + dependents of matched files)
 4. Fan-out detection (cross-cutting changes like "rename everywhere")
 5. Test neighborhood pairing (source + test files together)
+6. Shadow Files — temporal co-commit expansion (files frequently committed together in git history)
 
 **Scoring Signals (10 dimensions):**
 `keyword` | `centrality` | `churn` | `recency` | `test_relevance` | `size_penalty` | `success_prior` | `fail_prior` | `error_infrastructure` | `branch_changed`
@@ -244,10 +257,24 @@ CodeLedger uses a multi-stage candidate pipeline and a ten-signal scorer:
 - Task-type inference (bug fix, feature, refactor, test, config)
 - Scope contract derivation (bundle files + dependency neighbors)
 - Commit-aware invalidation (addressed files marked as stale)
+- Shadow file annotations (temporal co-commit companions with boost reasons)
+- Intent drift scoring (objective/scope/constraint change detection)
 
 Run `codeledger bundle --task "…" --explain` to see the per-file scoring breakdown.
 
 See [docs/SCORING.md](docs/SCORING.md) for the full scoring algorithm documentation.
+
+## Review Intelligence
+
+`codeledger verify` includes **Review Intelligence** — a repository-aware architectural verification layer that catches risks linters and SAST tools miss. Runs automatically with zero configuration:
+
+- **Runtime validation** — catches typed routes without runtime input validation (P1)
+- **Outbound I/O safety** — flags HTTP calls without timeouts (P1)
+- **Repository drift** — detects bypass of sanctioned helpers/wrappers (P2)
+- **Repo-standard discovery** — automatically finds and recommends helpers already used in your repo
+- **AI repair loop** — structured JSON output lets AI agents patch and re-verify
+
+Findings support baselines (`--update-baseline`), inline suppressions (`// codeledger: ignore <rule>`), and dispositions (new/baselined/suppressed). CI blocks only on **new** P0/P1 findings.
 
 ## Agent Governance
 
@@ -332,11 +359,24 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 | npm | v9+ | `npm -v` |
 | Git | v2.15+ | `git --version` |
 
-## Enterprise
+## Tiers
 
-For team-scale AI workflow benchmarking and context orchestration:
+| | **Individual (Free)** | **Team** | **Organization** |
+|---|---|---|---|
+| **Who** | Solo devs, personal projects, OSS | Dev teams (>1 developer), commercial | Engineering orgs, enterprise, regulated |
+| **Context selection** | Full (10 signals, Shadow Files, auto-scope) | Same | Same |
+| **Agent governance** | Full (scope, loops, intent, checkpoints) | Same | Same |
+| **Review Intelligence** | Full (5 invariant modules) | Same | Same |
+| **Multi-session coordination** | — | Conflict zones, shared summary | Same |
+| **CI enforcement** | — | `setup-ci` for 4 CI providers | Same |
+| **Audit & compliance** | — | — | Audit export (JSON/CSV/JSONL), manifest signing |
+| **Deployment** | Local CLI | Local CLI | + Docker, Helm, AWS, Terraform |
+| **API server** | — | — | `codeledger serve` |
+| **Policy cascading** | — | — | Org → repo policy resolution |
+| **Enterprise platform** | — | — | [ContextECF](https://timetocontext.co) |
+| **Price** | Free | [Contact us](mailto:team@codeledger.dev) | [Contact us](mailto:team@codeledger.dev) |
 
-**[ContextECF](https://timetocontext.co)** — Enterprise Context Infrastructure. Customer-controlled data, tenant-isolated, governance-first architecture.
+Start free. Tier up when your team — or your compliance team — needs more.
 
 ## License
 
