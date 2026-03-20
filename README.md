@@ -1,20 +1,74 @@
-# CodeLedger
+# CodeLedger: 
+**Stop your AI coding agent from reading 50 useless files before writing one line of code.**
 
-**Deterministic context selection, agent governance, and architectural verification for AI coding agents.**
+CodeLedger gives your agent the **right 10–25 files instantly** — deterministically, locally, and without embeddings.
 
-Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
+Works with: **Claude Code · Cursor · Codex · Gemini CLI**
+
+## ⚡ What Actually Happens
+
+**Without CodeLedger:**
+
+* Agent scans 30–50 files
+* Wastes tokens
+* Misses key context
+* Makes wrong edits
+
+**With CodeLedger:**
+
+* Agent starts with the **exact files that matter**
+* Within the **first turn**
+* Every time
+
+## 🧠 How It Works (Simple)
+
+```bash
+codeledger activate --task "Fix null handling in user service"
+```
+
+That’s it.
+
+CodeLedger:
+
+1. Scores every file in your repo
+2. Selects the most relevant ones
+3. Packs them into a token budget
+4. Writes `.codeledger/active-bundle.md`
+
+👉 Your agent reads that first — and starts in the right place.
+
+## 🚀 Why It’s Different
+
+* ❌ No embeddings
+
+* ❌ No cloud
+
+* ❌ No randomness
+
+* ✅ Fully deterministic
+
+* ✅ Fully local
+
+* ✅ Same task = same result
+
+## 📊 Real Impact
+
+* **+16% test pass rate**
+* **-50% iterations**
+* **-36% token usage**
+* **-41% time to completion**
+
+## ⚡ Try It (30 seconds)
 
 ```bash
 npm install -g @codeledger/cli
 cd your-project
 codeledger init
 codeledger activate --task "Fix null handling in user service"
-# Your agent now has .codeledger/active-bundle.md with the right context
 ```
 
-Your agent reads the right files first. Every time.
+**Your agent now starts with the right context.**
 
----
 
 ## Why CodeLedger?
 
