@@ -2,11 +2,23 @@
 
 CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
 
+It works with every major AI coding agent, in every environment: desktop apps, browser-based IDEs, CLI terminals, and as a plugin.
+
+---
+
+## Where You Can Use CodeLedger
+
+| Environment | Agents | Integration |
+|-------------|--------|-------------|
+| **Desktop CLI** | Claude Code, OpenAI Codex CLI, Gemini CLI, Aider | Lifecycle hooks (fully automatic) or manual CLI commands |
+| **Desktop IDE** | Cursor, Windsurf, GitHub Copilot, Cline, Continue | Agent reads `CLAUDE.md` instructions + `.codeledger/active-bundle.md` |
+| **Browser IDE** | Claude Code (web), Codespaces, Gitpod, Replit, StackBlitz | Standalone bundle (zero-dependency .cjs) — no npm install needed |
+| **Plugin** | Claude Code plugin (`/codeledger:activate`) | Slash commands inside the agent conversation |
+| **CI Pipeline** | GitHub Actions, GitLab CI, CircleCI, Azure Pipelines | `codeledger verify` as a merge gate |
+
 ---
 
 ## Is CodeLedger Right for Your Codebase?
-
-### Where CodeLedger has the biggest impact
 
 CodeLedger solves the problem of **agents reading the wrong files first** in repos that are too large to fit in a single context window. The bigger the gap between "total repo size" and "what the agent actually needs for a task", the more value you get.
 
@@ -19,48 +31,6 @@ CodeLedger solves the problem of **agents reading the wrong files first** in rep
 | Tiny repo / scripts | < 20 | **Low.** The agent can read the whole repo in one pass. CodeLedger adds setup overhead for little gain. |
 
 **Rule of thumb:** If your agent regularly reads more than 25 files before making its first edit, CodeLedger will help.
-
-### Best use cases
-
-These are the workflows where teams see the largest improvement:
-
-- **Feature development on a mature codebase** — "Add pagination to the products API." The agent needs the route handler, service layer, model, test file, and maybe a migration — not the 300 other files. CodeLedger hands it exactly those 8-12 files.
-
-- **Bug fixes in unfamiliar code** — "Fix the race condition in session refresh." Even if the developer doesn't know which files are involved, CodeLedger's keyword + dependency + churn signals find them.
-
-- **Onboarding AI agents to large projects** — First time pointing Claude Code or Cursor at a 2,000-file enterprise app? CodeLedger means the agent starts productive immediately instead of spending the first 5 minutes reading irrelevant files.
-
-- **Reducing token waste at scale** — Enterprise teams running AI agents across many tasks per day. A 99% context reduction per task compounds into significant cost and latency savings.
-
-- **Cross-cutting refactors** — "Replace the logger with a structured logger everywhere." CodeLedger's fan-out detection finds all dependents automatically.
-
-- **Test-adjacent work** — "Fix the failing user-service tests." CodeLedger pairs source files with their tests and surfaces error-infrastructure files.
-
-### Where CodeLedger adds less value
-
-- **Greenfield projects** (< 20 files) — not enough files to warrant selection
-- **One-off scripts or notebooks** — no dependency graph or churn history to leverage
-- **Repos that restructure constantly** — churn and dependency signals become noisy if the file tree changes every week
-- **Pure documentation repos** — CodeLedger is optimized for code, not prose
-
-### Monorepo strategy
-
-CodeLedger auto-detects service/package names in your task description. If you say `"Fix auth for api-gateway"`, it automatically restricts context to `services/api-gateway/` — no `--scope` flag needed.
-
-For explicit control, use `--scope` or initialize per-package:
-
-```bash
-# Option A: auto-scope — just describe the service in your task
-codeledger activate --task "Fix auth for api-gateway"
-
-# Option B: explicit scope flag
-codeledger activate --task "Fix auth" --scope "services/api-gateway/"
-
-# Option C: initialize per-package
-cd packages/your-service
-codeledger init
-codeledger activate --task "your task"
-```
 
 ---
 
@@ -82,7 +52,7 @@ codeledger activate --task "your task"
 2. Drag `install.sh` from the extracted folder into your terminal window
 3. Press Enter
 
-That's it. The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry lookup needed.
+The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry lookup needed.
 
 ### Option B: Install from npm
 
@@ -92,13 +62,22 @@ npm install -g @codeledger/cli
 
 > **No global install?** Use `npx codeledger <command>` anywhere. The examples below use the global command for brevity, but `npx codeledger` works identically.
 
+### Option C: Standalone bundle (browser IDEs, sandboxed environments)
+
+For cloud IDEs (Codespaces, Gitpod, Replit) or environments without npm:
+
+```bash
+# Vendor a zero-dependency standalone CLI into your repo
+codeledger vendor
+# Then run it anywhere:
+node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
+```
+
 ### Verify
 
 ```bash
 codeledger --version
 ```
-
-You should see something like `codeledger v0.6.7`.
 
 ---
 
@@ -129,10 +108,10 @@ codeledger activate --task "Fix null handling in user service"
 ```
 
 This single command:
-1. Scans your repo (builds dependency graph, git churn data, test mappings)
-2. Scores every file across 10 weighted signals
-3. Selects the most relevant files within a token budget
-4. Writes the bundle to `.codeledger/active-bundle.md`
+1. **Scans** your repo (builds dependency graph, git churn data, test mappings) — shows `[1/5]...[5/5]` progress
+2. **Scores** every file across 10 weighted signals
+3. **Selects** the most relevant files within a token budget
+4. **Writes** the bundle to `.codeledger/active-bundle.md`
 
 Your agent reads that file and knows exactly where to start.
 
@@ -140,27 +119,125 @@ Your agent reads that file and knows exactly where to start.
 
 ## Step 4: Start Your Agent
 
-### Claude Code
+### Claude Code (Desktop CLI) — Fully Automatic
 
-Just start Claude Code. The hooks handle everything:
+Just start Claude Code. Five lifecycle hooks handle everything:
 
 ```bash
 claude
 ```
 
-The SessionStart hook automatically runs `codeledger activate`, and the agent sees the bundle in `CLAUDE.md` instructions + `.codeledger/active-bundle.md`. After each `git commit`, the PostToolUse hook automatically prints a session recap with recall and precision metrics.
+| Hook | What Happens |
+|------|-------------|
+| **SessionStart** | Scans the repo and warms the index |
+| **UserPromptSubmit** | Auto-activates a bundle from your message (you never run `activate` manually) |
+| **PreToolUse** | Reminds the agent to check the bundle before editing; logs file reads |
+| **PostToolUse** | After `git commit`, shows recall/precision metrics and staleness warnings |
+| **PreCompact** | Saves a progress snapshot before context compression |
+| **Stop** | Shows final session recap with recall, precision, and token savings |
 
-### Cursor / Codex / Other Agents
+When hooks detect a failure, they now emit a diagnostic message (e.g., "CodeLedger: activate failed — working without context") instead of failing silently.
 
-1. Open your project in your agent's IDE or CLI
-2. The agent reads `CLAUDE.md` which contains CodeLedger instructions
-3. Point the agent to `.codeledger/active-bundle.md` for context
+### Claude Code (Web / Browser) — Standalone Bundle
 
-For agents without hook support, refresh the bundle manually when switching tasks:
+In browser-based Claude Code (or any web IDE), use the vendored standalone bundle:
+
+```bash
+# One-time: vendor the standalone CLI into .codeledger/
+codeledger vendor
+
+# Then use it (no npm install needed at runtime):
+node .codeledger/bin/codeledger-standalone.cjs init
+node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
+```
+
+The `CLAUDE.md` instructions tell the agent to auto-activate. No npm install required.
+
+### Claude Code Plugin — Slash Commands
+
+If installed as a plugin, use slash commands directly in conversation:
+
+```
+/codeledger:activate Fix null handling in getUserById
+```
+
+The plugin supports two modes:
+- **Standalone context selection** — `/codeledger:activate` generates a ranked bundle
+- **Governed cowork session** — `/codeledger:cowork-start` for long multi-step tasks with checkpoints and drift detection
+
+### Cursor
+
+Cursor reads the `.cursor/rules/codeledger.mdc` rule file (created by `codeledger init`) which tells it to prioritize bundle files. Activate before you start:
+
+```bash
+codeledger activate --task "your task here"
+# Then open Cursor — it reads .codeledger/active-bundle.md automatically
+```
+
+Refresh when switching tasks:
 
 ```bash
 codeledger activate --task "your new task"
 ```
+
+### OpenAI Codex CLI
+
+Codex reads `CLAUDE.md` instructions and the active bundle. Use the standalone bundle for sandboxed execution:
+
+```bash
+# In your project root:
+codeledger activate --task "your task here"
+
+# Then run Codex — it reads CLAUDE.md + .codeledger/active-bundle.md
+codex
+```
+
+For Codex's sandboxed mode (no network, no npm), use the vendored standalone bundle:
+
+```bash
+node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
+```
+
+### Gemini CLI
+
+Gemini CLI reads `CLAUDE.md` and the active bundle, just like other agents:
+
+```bash
+codeledger activate --task "your task here"
+gemini
+```
+
+### Aider
+
+Aider can be pointed to the bundle file directly:
+
+```bash
+codeledger activate --task "your task here"
+aider --read .codeledger/active-bundle.md
+```
+
+### Windsurf / GitHub Copilot / Cline / Continue
+
+These IDE-based agents read `CLAUDE.md` instructions when present. The workflow is:
+
+1. Run `codeledger init` once (creates `CLAUDE.md` with instructions)
+2. Run `codeledger activate --task "your task"` before starting
+3. Open your IDE — the agent reads `CLAUDE.md` and `.codeledger/active-bundle.md`
+4. Refresh the bundle when switching tasks
+
+### Any Agent (Generic)
+
+For any AI coding agent that accepts text instructions:
+
+```bash
+# Generate a bundle
+codeledger activate --task "your task"
+
+# Print the bundle to stdout (for copy-paste)
+cat .codeledger/active-bundle.md
+```
+
+Paste the bundle content into your agent's context, or tell it to read `.codeledger/active-bundle.md`.
 
 ---
 
@@ -174,8 +251,13 @@ codeledger session-summary
 
 You'll see:
 - **Bundle recall** — what % of files you changed were in the bundle
+- **Edit-recall** — the meaningful metric when new files were created (bundles can't predict files that don't exist yet)
 - **Precision** — what % of bundle files you actually needed
-- **Token savings** — how much context was saved vs reading the whole repo (shown when the bundle was at least partially useful)
+- **Token savings** — how much context was saved vs reading the whole repo
+
+If recall is 0% but you changed tasks mid-session, that's normal — the summary will tell you "work diverged from task" instead of just "bundle wasn't useful."
+
+Run `codeledger doctor` to verify the full integration is healthy (config, hooks, index, bundle, weights).
 
 ---
 
@@ -193,7 +275,7 @@ This generates two files in one command:
 
 **Enforcement modes:** `observe` (report only) | `warn` (annotate PRs) | `block` (fail build on violations)
 
-Commit both files to enable CI verification. See `codeledger policy --print` to inspect resolved thresholds.
+**Supported CI providers:** GitHub Actions, GitLab CI, CircleCI, Azure Pipelines.
 
 ---
 
@@ -204,6 +286,7 @@ Commit both files to enable CI verification. See `codeledger policy --print` to 
 | `codeledger activate --task "..."` | Starting a new task (scans if needed) |
 | `codeledger activate --task "..." --branch-aware` | Boost files changed on your branch |
 | `codeledger activate --task "..." --explain` | See why each file was selected |
+| `codeledger activate --task "..." --expand` | Double the budget for broader coverage |
 | `codeledger scan` | Force rebuild the repo index |
 | `codeledger refine --learned "..."` | Re-score mid-session with new context |
 | `codeledger session-summary` | Check recall/precision after commits |
@@ -213,9 +296,11 @@ Commit both files to enable CI verification. See `codeledger policy --print` to 
 | `codeledger shared-summary` | Cross-session coordination summary |
 | `codeledger intent show` | Check task drift score |
 | `codeledger intent ack` | Acknowledge drift when prompted |
-| `codeledger doctor` | Health check (config, hooks, index, ledger) |
+| `codeledger doctor` | Health check (config, hooks, index, bundle, weights) |
+| `codeledger verify --task "..."` | Run architectural checks + policy evaluation |
+| `codeledger fix --rule <id>` | Auto-fix architectural violations |
+| `codeledger stats` | Cumulative value dashboard across all sessions |
 | `codeledger setup-ci --mode warn` | Generate CI workflow + policy |
-| `codeledger verify --task "..."` | Evaluate policy locally |
 | `codeledger init --force` | Re-initialize (updates hooks + CLAUDE.md) |
 
 ---
@@ -262,15 +347,6 @@ Edit `.codeledger/config.json` to tune:
 
 ### File Patterns
 
-```json
-{
-  "repo": {
-    "include": ["**/*.ts", "**/*.tsx", "**/*.py"],
-    "exclude": ["node_modules/**", "dist/**"]
-  }
-}
-```
-
 CodeLedger auto-detects 42 file extensions across 15 language families (JS/TS, Python, Go, Rust, Ruby, Java, C#, and more). You can also create a `.codeledgerignore` file (same syntax as `.gitignore`) to exclude paths without modifying config.
 
 ---
@@ -299,11 +375,11 @@ This updates the CLAUDE.md instructions and hooks to the latest version.
 
 ### Hook errors on session start
 
-If you see "CodeLedger: CLI not installed", run:
+If you see "CodeLedger: activate failed — working without pre-warmed context", run:
 ```bash
-npm install
+codeledger doctor
 ```
-The hooks check for the CLI before running and print a clear message if it's missing.
+This checks config validity, index freshness, hook installation, bundle health, and config weight sanity.
 
 ### Bundle confidence is LOW
 
@@ -312,7 +388,14 @@ The bundle's confidence depends on how specific your task description is. Compar
 - Vague: `"fix the bug"` (low confidence)
 - Specific: `"Fix null handling in getUserById when email is missing"` (high confidence)
 
-More keywords = better file matching = higher confidence.
+If the bundle is empty, CodeLedger now tells you *why* — whether your keywords don't exist in the repo, were filtered by scope rules, or need more specific terms.
+
+### Bundle feels stale after working for a while
+
+After 30+ minutes and several commits, CodeLedger will nudge you to refresh. You can also refresh manually:
+```bash
+codeledger activate --task "your current task"
+```
 
 ### "npx shows old version after upgrade"
 
@@ -320,13 +403,34 @@ If `npx codeledger --version` shows an older version after upgrading globally, y
 
 ```bash
 # Option 1: Update the local copy
-npm install /path/to/codeledger-cli-0.6.8.tgz
+npm install /path/to/codeledger-cli-<version>.tgz
 
 # Option 2: Remove the local copy (npx will use global)
 rm -rf node_modules/@codeledger
 
 # Option 3: Use the global install directly
 codeledger --version  # global, not npx
+```
+
+---
+
+## Monorepo Strategy
+
+CodeLedger auto-detects service/package names in your task description. If you say `"Fix auth for api-gateway"`, it automatically restricts context to `services/api-gateway/` — no `--scope` flag needed.
+
+For explicit control, use `--scope` or initialize per-package:
+
+```bash
+# Option A: auto-scope — just describe the service in your task
+codeledger activate --task "Fix auth for api-gateway"
+
+# Option B: explicit scope flag
+codeledger activate --task "Fix auth" --scope "services/api-gateway/"
+
+# Option C: initialize per-package
+cd packages/your-service
+codeledger init
+codeledger activate --task "your task"
 ```
 
 ---
@@ -363,7 +467,9 @@ npm uninstall -g @codeledger/cli
 - Try different budget levels to find the right precision/recall tradeoff
 - Use `codeledger intent show` to monitor task drift mid-session
 - Use `codeledger checkpoint create` to save progress before risky operations
+- Run `codeledger verify --task "..."` to catch architectural violations before merge
 - Run `codeledger compare --scenario "..."` to benchmark agent performance with vs without CodeLedger
+- Run `codeledger stats` to see cumulative value across all sessions
 - Visit [codeledger.dev](https://codeledger.dev) for the latest releases
 - Visit [timetocontext.co](https://timetocontext.co) for enterprise features
 
