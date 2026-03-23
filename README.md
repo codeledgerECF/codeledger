@@ -105,16 +105,15 @@ See [SCORING.md](docs/SCORING.md) for details on how files are scored.
 ```bash
 cd your-project
 codeledger init
-codeledger activate --task "Fix null handling in user service"
 ```
 
-That single `activate` command:
-1. Scans your repo (builds dependency graph, git churn data, test mappings)
-2. Scores every file across 10 weighted signals
-3. Selects the most relevant files within a token budget
-4. Writes the bundle to `.codeledger/active-bundle.md`
+That's it. Start your agent and describe your task in plain English. The hooks will:
+1. Extract your intent and scan the repo automatically
+2. Score every file across 10 weighted signals
+3. Select the most relevant files within a token budget
+4. Write a context bundle for your agent to read
 
-Your agent reads that file and knows exactly where to start.
+No commands to memorize. Context is ready when your agent starts.
 
 ## Agent Integration
 
@@ -135,7 +134,7 @@ See [examples/claude-code-hooks.json](examples/claude-code-hooks.json) for the h
 
 ### Cursor / Codex / Other Agents
 
-After `codeledger init`, your agent reads the `CLAUDE.md` instructions and `.codeledger/active-bundle.md` for context. Refresh the bundle when switching tasks:
+After `codeledger init`, your agent reads the `CLAUDE.md` instructions and `.codeledger/active-bundle.md` for context. For agents without hook support, refresh the bundle when switching tasks:
 
 ```bash
 codeledger activate --task "your new task"

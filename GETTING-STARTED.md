@@ -101,23 +101,9 @@ This creates:
 
 ---
 
-## Step 3: Activate a Bundle
+## Step 3: Start Your Agent
 
-```bash
-codeledger activate --task "Fix null handling in user service"
-```
-
-This single command:
-1. **Scans** your repo (builds dependency graph, git churn data, test mappings) — shows `[1/5]...[5/5]` progress
-2. **Scores** every file across 10 weighted signals
-3. **Selects** the most relevant files within a token budget
-4. **Writes** the bundle to `.codeledger/active-bundle.md`
-
-Your agent reads that file and knows exactly where to start.
-
----
-
-## Step 4: Start Your Agent
+That's it — just start your agent and describe your task in plain English.
 
 ### Claude Code (Desktop CLI) — Fully Automatic
 
@@ -167,81 +153,47 @@ The plugin supports two modes:
 
 ### Cursor
 
-Cursor reads the `.cursor/rules/codeledger.mdc` rule file (created by `codeledger init`) which tells it to prioritize bundle files. Activate before you start:
+Cursor reads the `.cursor/rules/codeledger.mdc` rule file (created by `codeledger init`) which tells it to prioritize bundle files. For agents without lifecycle hooks, generate a bundle before you start:
 
 ```bash
 codeledger activate --task "your task here"
 # Then open Cursor — it reads .codeledger/active-bundle.md automatically
 ```
 
-Refresh when switching tasks:
-
-```bash
-codeledger activate --task "your new task"
-```
-
 ### OpenAI Codex CLI
 
-Codex reads `CLAUDE.md` instructions and the active bundle. Use the standalone bundle for sandboxed execution:
-
-```bash
-# In your project root:
-codeledger activate --task "your task here"
-
-# Then run Codex — it reads CLAUDE.md + .codeledger/active-bundle.md
-codex
-```
-
-For Codex's sandboxed mode (no network, no npm), use the vendored standalone bundle:
+Codex reads `CLAUDE.md` instructions and the active bundle automatically. For sandboxed mode (no network, no npm), use the vendored standalone bundle:
 
 ```bash
 node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
 ```
 
-### Gemini CLI
+### Gemini CLI / Aider / Windsurf / Copilot / Cline / Continue
 
-Gemini CLI reads `CLAUDE.md` and the active bundle, just like other agents:
+These agents read `CLAUDE.md` and the active bundle. For agents without lifecycle hooks, generate a bundle before you start:
 
 ```bash
 codeledger activate --task "your task here"
-gemini
 ```
 
-### Aider
-
-Aider can be pointed to the bundle file directly:
+For Aider specifically, pass the bundle as a read-only file:
 
 ```bash
-codeledger activate --task "your task here"
 aider --read .codeledger/active-bundle.md
 ```
-
-### Windsurf / GitHub Copilot / Cline / Continue
-
-These IDE-based agents read `CLAUDE.md` instructions when present. The workflow is:
-
-1. Run `codeledger init` once (creates `CLAUDE.md` with instructions)
-2. Run `codeledger activate --task "your task"` before starting
-3. Open your IDE — the agent reads `CLAUDE.md` and `.codeledger/active-bundle.md`
-4. Refresh the bundle when switching tasks
 
 ### Any Agent (Generic)
 
 For any AI coding agent that accepts text instructions:
 
 ```bash
-# Generate a bundle
 codeledger activate --task "your task"
-
-# Print the bundle to stdout (for copy-paste)
-cat .codeledger/active-bundle.md
+cat .codeledger/active-bundle.md  # copy and paste into your agent's chat
 ```
-
-Paste the bundle content into your agent's context, or tell it to read `.codeledger/active-bundle.md`.
 
 ---
 
-## Step 5: Verify It's Working
+## Step 4: Verify It's Working
 
 After your agent makes a commit, check the session metrics:
 
@@ -261,7 +213,7 @@ Run `codeledger doctor` to verify the full integration is healthy (config, hooks
 
 ---
 
-## Step 5b (Optional): CI Integration
+## Step 4b (Optional): CI Integration
 
 For teams that want CI enforcement on every PR:
 
