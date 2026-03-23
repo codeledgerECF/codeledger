@@ -1,5 +1,5 @@
 # CodeLedger
-
+**Reduce Time-to- Accepted-Code. Without changing your coding agent.**
 **Deterministic context selection, agent governance, and architectural verification for AI coding agents.**
 
 Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
