@@ -1,5 +1,93 @@
 # Changelog
 
+## 0.7.2 (2026-03-24)
+
+Hardening, adversarial audit remediation, and GTM polish.
+
+### Fixed
+- `activate` no-task mode now preserves existing task bundles instead of overwriting with a placeholder. Only writes placeholder when no valid bundle exists.
+- `bundle --near-misses` and `bundle --blast-radius` now correctly suppress output when arrays are empty (instead of silently accepting the flag with no output).
+- `session-cleanup` flag corrected to `--session` (was documented as `--session-id` in older guides).
+- Removed duplicate type declarations in `packages/types/src/index.ts` (`HealthRating`, `PolicyDomain`, `PolicyDomainDefinition`, `PolicyFieldDefinition`, `PolicyValidationError`, `PolicyCheckResult`, `RealtimePolicyContext`, `PolicyDiffEntry`). Reconciled `PolicyFieldDefinition.resolution` to `'strictest' | 'union' | 'loosest' | 'override'`.
+
+### Changed
+- Removed protected internal term from README architecture diagram and ContextECF mapping table.
+- Removed contradictory "Confidential." label from open-source README footers.
+- Corrected `CONTRIBUTING.md` license attribution from Apache 2.0 to the actual dual-license structure (MIT + proprietary core).
+
+---
+
+## 0.6.9 (2026-03-20)
+
+### Added: Intent Sufficiency Check (ISC) — DCOL v2.2
+
+A pre-context certification layer that evaluates task prompt quality **before** context construction begins. Vague prompts are blocked or penalised before tokens are spent.
+
+#### ISC scoring engine (`packages/engine/src/isc/score.ts`)
+- `checkIntentSufficiency(task: string): IntentSufficiencyCheck`
+- Five deterministic factors (no ML, no external calls): token signal (0.20), operation clarity (0.30), domain clarity (0.25), target specificity (0.15), constraint presence (0.10)
+- Decision thresholds: ≥ 75% → SUFFICIENT, 50–74% → WEAK, < 50% → INSUFFICIENT
+
+| Score | Decision | Effect |
+|-------|----------|--------|
+| ≥ 75% | SUFFICIENT | CCS gets `intentConfidence = isc.score` |
+| 50–74% | WEAK | CCS gets `intentConfidence = max(0, isc.score - 0.05)` |
+| < 50% | INSUFFICIENT | Pipeline blocked; CCS skipped |
+
+#### CLI: `codeledger intent check "<task>" [--json]`
+- Prints per-factor breakdown with human-readable issues and recommendations
+- `--json` for machine-readable output; exits 1 on INSUFFICIENT
+
+#### `codeledger context validate` upgrade
+- ISC now runs as the first gate before structural validation and CCS
+- `--force` bypasses INSUFFICIENT block; `--json` output includes `isc` field
+
+#### Tests
+- `tests/isc.test.ts` — 46 tests covering all decision paths, JSON contract, edge cases, and determinism verification
+
+---
+
+## 0.6.8 (2026-03-20)
+
+### Added: Outcome-Aware Hardening — DCOL v2.1
+
+Closes the feedback loop: every execution cycle now informs future context selection.
+
+#### ECL-Lite — Local Context Ledger (`packages/engine/src/ecl/ledger.ts`)
+- Persistent append-only JSONL ledger at `.codeledger/ecl-lite.jsonl`; no SQLite dependency
+- `recordExecution()` — appends intent signature, files, symbols, expansion level, outcome, CCS score, failure vector, and SHA-256 context hash
+- `buildWeightIndex()` — integer success/failure counters per intent signature
+- `buildFailureHotspots()` — files ranked by failure implication rate
+- `pruneLedger()` — bounded to 2000 most recent entries
+
+#### CCS — Context Confidence Score (`packages/engine/src/ccs/score.ts`)
+- Pre-execution certification: deterministic `[0,1]` score from 5 weighted factors
+- Weights: dependency coverage (0.30), test coverage (0.25), historical success (0.20), symbol completeness (0.15), expansion efficiency (0.10)
+- Thresholds: ≥ 0.75 → HIGH (proceed), ≥ 0.50 → MEDIUM, < 0.35 → block
+
+#### Intent Decomposition (`packages/engine/src/iole/intent-decomposition.ts`)
+- `decomposeIntent()` — converts task string to structured `IntentObject` with domain, operation, layer, entities, and constraints
+- `compareIntentObjects()` — weighted semantic similarity scoring (0–1)
+
+#### SCE Execution Path Signals
+- Hotspot boosting: failure hotspots from ECL-Lite boost seed discovery and relevance scoring
+- Linear boost: 0% → 0, 100% → +0.5 (capped at 1.0)
+
+#### CLI: `codeledger ledger`
+- `ledger status` — ledger health: entry count, pass rates, top 10 failure hotspots with bar chart
+- `ledger inspect [--intent <sig>] [--limit N]` — browse recent entries
+- `ledger prune [--max N]` — trim to most recent N entries (default 2000)
+
+#### `codeledger context validate` upgrade
+- Computes and displays CCS alongside structural validation
+- `--task`, `--expansion-level` flags added
+- JSON output now includes `{ validation, ccs }` object
+
+#### New types
+`EclLiteEntry`, `EclWeightEntry`, `FailureHotspot`, `EclLiteStatus`, `CcsRecommendation`, `CcsFactors`, `ContextConfidenceScore`, `IntentObject`
+
+---
+
 ## 0.6.7 (2026-03-17)
 
 Enterprise infrastructure, Review Intelligence, Shadow Files, and deployment flexibility.

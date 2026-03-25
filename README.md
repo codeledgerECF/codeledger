@@ -1,11 +1,15 @@
 # CodeLedger
-**Reduce Time-to- Accepted-Code. Without changing your coding agent.**
-**Deterministic context selection, agent governance, and architectural verification for AI coding agents.**
+
+**The engineering truth layer for AI coding agents — context truth, completion truth, release truth.**
 
 Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
 
+### Get CodeLedger
+
+**[Download Latest Release](https://github.com/codeledgerECF/codeledger/releases/latest)** · `npm install -g @codeledger/cli` · [Getting Started Guide](GETTING-STARTED.md)
+
 ```bash
-npm install -g @codeledger/cli
+npm install -g @codeledger/cli   # or download the zip from Releases
 cd your-project
 codeledger init
 codeledger activate --task "Fix null handling in user service"
@@ -399,4 +403,4 @@ Large context windows are not the answer.
 
 ---
 
-<sub>**ContextECF™** — Enterprise Context Infrastructure. Customer-Controlled Data · Tenant-Isolated · Read-Only v1 · Full Provenance · Governance-First Architecture. Confidential. ContextECF is proprietary infrastructure that augments enterprise systems with governed, role-aware contextual intelligence. The platform does not replace source systems and does not execute autonomous actions in Read-Only v1. All intelligence outputs are explainable, permission-validated, and fully auditable. Protected by pending and issued patents. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
+<sub>**ContextECF™** — Enterprise Context Infrastructure. Customer-Controlled Data · Tenant-Isolated · Read-Only v1 · Full Provenance · Governance-First Architecture. ContextECF is proprietary infrastructure that augments enterprise systems with governed, role-aware contextual intelligence. The platform does not replace source systems and does not execute autonomous actions in Read-Only v1. All intelligence outputs are explainable, permission-validated, and fully auditable. Protected by pending and issued patents. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
