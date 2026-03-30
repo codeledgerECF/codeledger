@@ -75,7 +75,8 @@ jobs:
           echo "Installed CLI version: $INSTALLED_VERSION"
 
           if [ "$INSTALLED_VERSION" != "$VERSION" ]; then
-            echo "::warning::Version mismatch — expected $VERSION, got $INSTALLED_VERSION"
+            echo "::error::Version mismatch — expected $VERSION, got $INSTALLED_VERSION"
+            exit 1
           fi
 
       - name: Generate MANIFEST.md
