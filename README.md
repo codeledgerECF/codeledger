@@ -6,7 +6,7 @@ Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-
 
 ### Get CodeLedger
 
-**[Download Latest Release](https://github.com/codeledgerECF/codeledger/releases/latest)** · `npm install -g @codeledger/cli` · [Getting Started Guide](GETTING-STARTED.md)
+**[Download Latest Release](https://github.com/codeledgerECF/codeledger/releases/latest)** · `npm install -g @codeledger/cli` · [Getting Started Guide](GETTING-STARTED.md) · [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md)
 
 ```bash
 npm install -g @codeledger/cli   # or download the zip from Releases
@@ -77,6 +77,7 @@ codeledger --version
 ```
 
 See **[GETTING-STARTED.md](GETTING-STARTED.md)** for the full 5-step setup guide, configuration, and troubleshooting.
+For a command-by-command walkthrough with example output, see **[docs/CLI_COMMAND_REFERENCE.md](docs/CLI_COMMAND_REFERENCE.md)**.
 
 ### Alternative: Download from GitHub Releases
 

@@ -1,5 +1,7 @@
 # Getting Started with CodeLedger
 
+Need a command-by-command walkthrough with example output? See [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md).
+
 CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
 
 It works with every major AI coding agent, in every environment: desktop apps, browser-based IDEs, CLI terminals, and as a plugin.

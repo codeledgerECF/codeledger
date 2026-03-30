@@ -71,7 +71,7 @@ jobs:
       - name: Verify CLI works
         run: |
           npm install -g "./${NPM_TARBALL}"
-          INSTALLED_VERSION=$(codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+          INSTALLED_VERSION=$(codeledger --version 2>/dev/null | grep -oE '^[[:alpha:]-]+ v?[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
           echo "Installed CLI version: $INSTALLED_VERSION"
 
           if [ "$INSTALLED_VERSION" != "$VERSION" ]; then
