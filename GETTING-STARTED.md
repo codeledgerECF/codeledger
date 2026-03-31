@@ -137,6 +137,7 @@ git add .codeledger/bin/ .gitignore
 git commit -m "vendor codeledger standalone for cloud/browser environments"
 
 # Then use it (no npm install needed at runtime):
+./.codeledger/bin/codeledger activate --task "your task"
 node .codeledger/bin/codeledger-standalone.cjs init
 node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
 ```
@@ -147,6 +148,7 @@ Packaging model:
 - `packages/cli/bin/codeledger-standalone.cjs` is the canonical built standalone artifact in the source repo.
 - `.codeledger/bin/` is the deployed, repo-local runtime package committed for browser/cloud use.
 - `codeledger init` and `codeledger vendor` keep those aligned so the checked-in runtime matches the version you tested locally.
+- `./.codeledger/bin/codeledger` is the easiest interactive command inside a vendored repo.
 
 ### Claude Code Plugin — Slash Commands
 

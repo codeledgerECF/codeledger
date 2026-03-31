@@ -14,13 +14,14 @@ cd your-project
 codeledger init
 git add .codeledger/bin/ .gitignore
 git commit -m "chore: init codeledger"
+./.codeledger/bin/codeledger activate --task "Fix null handling in user service"
 codeledger activate --task "Fix null handling in user service"
 # Your agent now has .codeledger/active-bundle.md with the right context
 ```
 
 Your agent reads the right files first. Every time.
 
-For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally.
+For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally. Inside a vendored repo, `./.codeledger/bin/codeledger <command>` is the easiest interactive entry point.
 
 ---
 
