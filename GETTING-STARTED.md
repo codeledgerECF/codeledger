@@ -133,6 +133,8 @@ In browser-based Claude Code (or any web IDE), use the vendored standalone bundl
 ```bash
 # One-time: vendor the standalone CLI into .codeledger/
 codeledger vendor
+git add .codeledger/bin/ .gitignore
+git commit -m "vendor codeledger standalone for cloud/browser environments"
 
 # Then use it (no npm install needed at runtime):
 node .codeledger/bin/codeledger-standalone.cjs init
@@ -140,6 +142,11 @@ node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
 ```
 
 The `CLAUDE.md` instructions tell the agent to auto-activate. No npm install required.
+
+Packaging model:
+- `packages/cli/bin/codeledger-standalone.cjs` is the canonical built standalone artifact in the source repo.
+- `.codeledger/bin/` is the deployed, repo-local runtime package committed for browser/cloud use.
+- `codeledger init` and `codeledger vendor` keep those aligned so the checked-in runtime matches the version you tested locally.
 
 ### Claude Code Plugin — Slash Commands
 

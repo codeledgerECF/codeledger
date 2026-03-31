@@ -12,11 +12,15 @@ Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-
 npm install -g @codeledger/cli   # or download the zip from Releases
 cd your-project
 codeledger init
+git add .codeledger/bin/ .gitignore
+git commit -m "chore: init codeledger"
 codeledger activate --task "Fix null handling in user service"
 # Your agent now has .codeledger/active-bundle.md with the right context
 ```
 
 Your agent reads the right files first. Every time.
+
+For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally.
 
 ---
 
