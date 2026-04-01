@@ -23,6 +23,55 @@ Your agent reads the right files first. Every time.
 
 For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally. Inside a vendored repo, `./.codeledger/bin/codeledger <command>` is the easiest interactive entry point.
 
+### What Happens After Install
+
+Installing CodeLedger gives you the CLI. To use it in a project, initialize that project:
+
+```bash
+codeledger init
+```
+
+That sets up CodeLedger inside the repo by creating:
+- `.codeledger/` for project-local cache, bundles, sessions, and runtime data
+- `.codeledger/bin/` for the vendored standalone runtime
+- `.claude/hooks.json` for automatic integration
+- updates to `CLAUDE.md` so agents know how to use the context bundle
+
+Your normal flow after install is:
+
+1. Install CodeLedger
+```bash
+npm install -g @codeledger/cli
+```
+
+2. Go to your project
+```bash
+cd your-project
+```
+
+3. Initialize CodeLedger in that repo
+```bash
+codeledger init
+```
+
+4. Commit the vendored runtime if you want browser/cloud support
+```bash
+git add .codeledger/bin/ .gitignore
+git commit -m "chore: initialize codeledger"
+```
+
+5. Start using it
+```bash
+codeledger scan
+codeledger activate --task "your task here"
+```
+
+Important:
+- You do not need to keep a separate CodeLedger folder elsewhere on your machine.
+- The long-lived project state lives inside each repo in `.codeledger/`.
+- The global install is just the CLI entry point.
+- For browser/cloud environments, the committed `.codeledger/bin/` runtime is what makes CodeLedger portable.
+
 ---
 
 ## Why CodeLedger?
@@ -124,6 +173,14 @@ That's it. Start your agent and describe your task in plain English. The hooks w
 4. Write a context bundle for your agent to read
 
 No commands to memorize. Context is ready when your agent starts.
+
+Inside an initialized repo, prefer:
+
+```bash
+./.codeledger/bin/codeledger <command>
+```
+
+That repo-local wrapper prefers a newer global `codeledger` install on your machine and falls back to the vendored standalone runtime in browser, CI, and container environments.
 
 ## Agent Integration
 

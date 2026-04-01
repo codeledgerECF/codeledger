@@ -915,6 +915,22 @@ Status: verified
 Claims supported by diff: yes
 ```
 
+### `audit`
+
+Runs an adversarial audit over the current worktree.
+
+```bash
+npx codeledger audit --task "Ship 0.8.0" --summary "Updated release workflow and docs"
+```
+
+Example output:
+
+```text
+CodeLedger · Adversarial Audit
+Findings: 2
+Required documentation updates: changelog, public docs
+```
+
 ### `review-coverage`
 
 Shows current review coverage signals.
