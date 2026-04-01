@@ -322,6 +322,126 @@ Stopping daemon...
 ✓ Daemon stopped
 ```
 
+## Truth Control Plane
+
+### `drift`
+
+Projects reality drift from daemon event history.
+
+```bash
+npx codeledger drift --history --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Drift
+Mode: history
+Drift records: 3
+[HIGH] PREFLIGHT_WARNING  2026-03-31T...
+```
+
+### `outcome`
+
+Projects outcome memory from the ECL and learning signals.
+
+```bash
+npx codeledger outcome --pattern auth --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Outcome Memory
+Entries: 4
+Pass rate: 75%
+Trend: improving / stable
+```
+
+### `harvest`
+
+Turns recent truth into asset candidates for the existing lessons ledger.
+
+```bash
+npx codeledger harvest --preview --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Harvest
+Candidates: 2
+[guardrail] Capture drift guard for major intent changes
+```
+
+### `context-handoff`
+
+Builds an agent-agnostic handoff from the latest bundle.
+
+```bash
+npx codeledger context-handoff --target codex --verify-integrity
+```
+
+Example output:
+
+```text
+# CodeLedger Context Handoff — codex
+- Bundle: cl_bundle_...
+- Context: SUFFICIENT
+- Evidence: bundle:cl_bundle_...
+```
+
+### `snapshot`
+
+Persists a daemon snapshot descriptor.
+
+```bash
+npx codeledger snapshot --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Snapshot
+Snapshot: snapshot-...
+Event count: 12
+Branch: main
+```
+
+### `time-travel`
+
+Reconstructs daemon state from a snapshot and replay.
+
+```bash
+npx codeledger time-travel --to snapshot-... --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Time Travel
+Replayed events: 12
+Branch: main
+Recent bundles: 3
+```
+
+### `reality-check`
+
+Reconciles drift, outcomes, completion, and release state.
+
+```bash
+npx codeledger reality-check --verify-integrity
+```
+
+Example output:
+
+```text
+CodeLedger Reality Check
+Verdict: WARNING
+Completion: unknown
+Release: ready_conditional
+```
+
 ## Session and Checkpoints
 
 ### `session-init`

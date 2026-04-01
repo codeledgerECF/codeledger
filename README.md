@@ -23,6 +23,22 @@ Your agent reads the right files first. Every time.
 
 For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally. Inside a vendored repo, `./.codeledger/bin/codeledger <command>` is the easiest interactive entry point.
 
+### Truth Control Plane
+
+Once a repo is initialized, CodeLedger can reconcile reality across drift, outcomes, snapshots, handoffs, and release state:
+
+```bash
+codeledger drift --history --verify-integrity
+codeledger outcome --json --verify-integrity
+codeledger harvest --preview --verify-integrity
+codeledger context-handoff --target codex --verify-integrity
+codeledger snapshot --verify-integrity
+codeledger time-travel --to <snapshot-id> --verify-integrity
+codeledger reality-check --verify-integrity
+```
+
+These commands extend the existing daemon, ECL, lessons ledger, and release-check systems. They do not create a separate ledger or memory store.
+
 ### What Happens After Install
 
 Installing CodeLedger gives you the CLI. To use it in a project, initialize that project:
