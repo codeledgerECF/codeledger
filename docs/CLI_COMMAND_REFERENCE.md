@@ -121,6 +121,14 @@ Bundle written: .codeledger/active-bundle.md
 Agent run: launched
 ```
 
+Repo-local ambient wrapper:
+
+```bash
+./.codeledger/bin/codex "Harden auth middleware"
+```
+
+In non-hook environments this wrapper applies the same meaningful-task auto-refresh rule before launching the agent. Acknowledgement-only follow-ups like `Yes please` do not refresh context.
+
 ### `claude --task "..."`
 
 Shortcut for `task --agent claude`.
@@ -136,6 +144,14 @@ Using agent: claude
 Bundle written: .codeledger/active-bundle.md
 Agent run: launched
 ```
+
+Repo-local ambient wrapper:
+
+```bash
+./.codeledger/bin/claude "Fix webhook retry handling"
+```
+
+This wrapper mirrors hook-aware auto-refresh behavior in local non-hook sessions before handing off to Claude.
 
 ### `preflight "..."`
 
@@ -1546,6 +1562,40 @@ Example output:
 Broker preamble generated
 Key files: 4
 Key risks: 2
+```
+
+### `broker refresh`
+
+Refreshes or reuses active context for a live task shift and returns ranked files plus bundle delta.
+
+```bash
+npx codeledger broker refresh --task "Add auth middleware tests" --json
+```
+
+Example output:
+
+```json
+{
+  "decision": "refreshed",
+  "fallbackPolicy": "codeledger_first_then_search",
+  "relevantFiles": ["src/auth/middleware.ts", "tests/auth/middleware.test.ts"]
+}
+```
+
+### `broker current`
+
+Returns the current active bundle, latest bundle delta, and recent timeline tail.
+
+```bash
+npx codeledger broker current --json
+```
+
+### `broker timeline`
+
+Returns the recent truth-ledger tail without rereading the entire timeline.
+
+```bash
+npx codeledger broker timeline --limit 10 --json
 ```
 
 ## Licensing and Tiers

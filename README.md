@@ -217,10 +217,32 @@ See [examples/claude-code-hooks.json](examples/claude-code-hooks.json) for the h
 
 ### Cursor / Codex / Other Agents
 
-After `codeledger init`, your agent reads the `CLAUDE.md` instructions and `.codeledger/active-bundle.md` for context. For agents without hook support, refresh the bundle when switching tasks:
+After `codeledger init`, your agent reads the `CLAUDE.md` instructions and `.codeledger/active-bundle.md` for context. Hook-aware environments refresh automatically for new meaningful tasks. In local non-hook environments, the repo-local ambient wrappers now apply the same rule before handoff:
 
 ```bash
-codeledger activate --task "your new task"
+./.codeledger/bin/codex "your new task"
+./.codeledger/bin/claude "your new task"
+```
+
+Acknowledgement-only follow-ups like `Yes please` do not refresh context. If you need to trigger the rule directly, use:
+
+```bash
+./.codeledger/bin/codeledger auto-refresh --prompt "your new task"
+```
+
+For plugin-first, mid-session retrieval, ask CodeLedger for refreshed context before using raw search:
+
+```bash
+./.codeledger/bin/codeledger broker refresh --task "implement the related feature" --json
+```
+
+That returns the active bundle, top-ranked files, and bundle delta for the task shift. Use `rg` or manual file search only if the broker result is insufficient.
+
+For session-aware inspection during the same run:
+
+```bash
+./.codeledger/bin/codeledger broker current --json
+./.codeledger/bin/codeledger broker timeline --limit 10 --json
 ```
 
 ## CLI Commands
