@@ -1177,10 +1177,27 @@ npx codeledger serve --port 7400
 Example output:
 
 ```text
-CodeLedger API listening on http://localhost:7400
-GET /health
-POST /verify
-POST /bundle
+Usage:
+  codeledger serve [--port 7400]
+
+Endpoints:
+  GET  /health
+  POST /verify
+  POST /bundle
+  GET  /drift
+  GET  /outcome
+  POST /harvest
+  POST /context-handoff
+  POST /snapshot
+  POST /time-travel
+  GET  /reality-check
+  GET  /metrics
+  GET  /provenance
+  GET  /policy
+  GET  /architecture-health/*
+  POST /broker/resolve | /broker/validation | /broker/neighborhood
+  POST /broker/evidence | /broker/completion | /broker/preamble | /broker/refresh
+  GET  /broker/timeline | /broker/current
 ```
 
 ### `vendor`

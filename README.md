@@ -300,7 +300,12 @@ codeledger verify --task "…"             # CI enforcement: evaluate policy, em
 
 # ── API Server & Compliance ──────────────────────────────────
 codeledger serve                         # Start HTTP API server (default: port 7400)
-  --port 7400                            #   GET /health, POST /verify, POST /bundle
+  --port 7400                            #   GET /health, /drift, /outcome, /reality-check, /metrics, /provenance, /policy
+                                         #   GET /architecture-health/*, /broker/timeline, /broker/current
+                                         #   POST /verify, /bundle, /harvest, /snapshot, /time-travel, /context-handoff
+                                         #   POST /broker/resolve, /broker/validation, /broker/neighborhood,
+                                         #        /broker/evidence, /broker/completion, /broker/preamble, /broker/refresh
+                                         #   Use `codeledger serve --help` for the full endpoint list
 codeledger audit-export                  # Export ledger to JSON, CSV, or JSON Lines
   --format json|csv|jsonl                #   SIEM-compatible output
 
