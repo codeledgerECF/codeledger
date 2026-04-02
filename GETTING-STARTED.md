@@ -145,7 +145,7 @@ node .codeledger/bin/codeledger-standalone.cjs activate --task "your task"
 The `CLAUDE.md` instructions tell the agent to auto-activate. No npm install required.
 
 Packaging model:
-- `packages/cli/bin/codeledger-standalone.cjs` is the canonical built standalone artifact in the source repo.
+- The standalone runtime bundled with the release is the canonical browser/cloud artifact.
 - `.codeledger/bin/` is the deployed, repo-local runtime package committed for browser/cloud use.
 - `codeledger init` and `codeledger vendor` keep those aligned so the checked-in runtime matches the version you tested locally.
 - `./.codeledger/bin/codeledger` is the easiest interactive command inside a vendored repo.
@@ -390,8 +390,8 @@ codeledger activate --task "Fix auth for api-gateway"
 # Option B: explicit scope flag
 codeledger activate --task "Fix auth" --scope "services/api-gateway/"
 
-# Option C: initialize per-package
-cd packages/your-service
+# Option C: initialize inside a service subdirectory
+cd services/your-service
 codeledger init
 codeledger activate --task "your task"
 ```

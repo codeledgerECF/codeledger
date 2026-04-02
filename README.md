@@ -37,7 +37,7 @@ codeledger time-travel --to <snapshot-id> --verify-integrity
 codeledger reality-check --verify-integrity
 ```
 
-These commands extend the existing daemon, ECL, lessons ledger, and release-check systems. They do not create a separate ledger or memory store.
+These commands extend CodeLedger's existing verification and memory systems. They do not create a separate ledger or memory store.
 
 ### What Happens After Install
 

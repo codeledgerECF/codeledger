@@ -1,432 +1,102 @@
-# CODELEDGER — UNIFIED SYSTEM ARCHITECTURE SPEC
+# CodeLedger Architecture Overview
 
-> Canonical architecture document for CodeLedger's Architecture Governance Control Plane.
-
----
-
-## 1. System Purpose
-
-CodeLedger is an **Architecture Governance Control Plane** for AI-assisted software development.
-
-It ensures that:
-
-- AI agents use the right context
-- New code aligns with existing architecture
-- Duplicate systems are prevented
-- Architectural integrity is observable
-- Governance is configurable via policy
-- Teams are guided toward correct interventions
+> Public architecture summary for how CodeLedger fits into an AI-assisted development workflow.
 
 ---
 
-## 2. Core Architectural Layers
+## System Purpose
 
-The system is composed of 6 tightly integrated layers:
+CodeLedger is a local-first verification and context system for AI-assisted software development.
 
-| Layer | Name |
-|-------|------|
-| 1 | Discovery Layer |
-| 2 | Session Enforcement Layer |
-| 3 | CI / PR Enforcement Layer |
-| 4 | Architecture Health Layer |
-| 5 | Intervention Engine |
-| 6 | Policy Control Plane |
+It helps teams:
 
-Each layer feeds the next.
+- start with the right context
+- keep implementation aligned with existing code structure
+- detect risky drift before it lands
+- preserve evidence about what changed and what was verified
+- apply governance consistently across local work and CI
 
 ---
 
-## 3. System Control Loop
+## High-Level Flow
 
-This is the core flywheel:
+CodeLedger follows a simple product loop:
 
-```
-DISCOVER -> ENFORCE -> OBSERVE -> INTERVENE -> CONFIGURE -> (repeat)
-```
+1. **Discover** relevant code for a task
+2. **Guide** the agent toward the right files and constraints
+3. **Verify** changes against policy and evidence
+4. **Observe** outcomes and operational signals
+5. **Improve** future runs using those signals
 
-### Step-by-step
-
-1. **Discover** — Analyze the repo before coding. Identify source of truth. Detect overlap and duplication risk.
-2. **Enforce** — Block bad architecture before it's written. Constrain implementation to correct zones.
-3. **Observe** — Aggregate signals across the repo. Detect hotspots and drift.
-4. **Intervene** — Recommend actions (docs, refactor, platformize). Prioritize based on evidence.
-5. **Configure** — Adjust policy. Tune thresholds and strictness.
+This is the public-facing mental model: start with the right context, verify the work, and keep a durable record of what happened.
 
 ---
 
-## 4. Data Model (Shared Artifacts)
+## Core Capabilities
 
-All layers communicate via immutable artifacts.
+### Context Selection
 
-### Core Artifacts
+CodeLedger scans the repository, ranks likely files for a task, and writes a focused bundle for the agent to use first.
 
-#### 1. Discovery Artifact
+### Verification
 
-**Path:** `.codeledger/discovery/latest.json`
+CodeLedger checks claimed work against observable repo state, validation output, and policy.
 
-Contains:
+### Governance
 
-- Overlap analysis
-- Source of truth
-- Gap analysis
-- Insertion points
-- Prohibited files
-- Verdict (`GO_GENUINELY_NEW` | `GO_EXTENSION_ONLY` | `NO_GO_ALREADY_EXISTS`)
+CodeLedger can apply local or CI guardrails to discourage duplicate systems, risky edits, and out-of-scope changes.
 
-#### 2. Enforcement Report
+### Session Continuity
 
-**Path:** `.codeledger/reports/enforcement-<hash>.json`
+CodeLedger keeps lightweight session artifacts so agents and humans can recover context after compaction, interruptions, or task shifts.
 
-Contains:
+### Observability
 
-- Diff compliance results
-- Violations
-- Symbol growth analysis
-- Duplicate detection results
-- Final pass/warn/fail status
-
-#### 3. Override Artifact
-
-**Path:** `.codeledger/discovery/override.json`
-
-Contains:
-
-- Human approval
-- Reason
-- Scope
-- Linked discovery artifact
-
-#### 4. Architecture Health Records
-
-**Path:** `.codeledger/reports/<hash>.json`
-
-Append-only records containing:
-
-- Verdicts
-- Overlap signals
-- Drift indicators
-- Zone/system metadata
-
-#### 5. Intervention Report
-
-**Path:** `.codeledger/reports/interventions-<timestamp>.json`
-
-Contains:
-
-- Recommendations
-- Severity
-- Triggering signals
-- Suggested actions
-
-#### 6. Policy Files
-
-**Path:** `.codeledger/policies/*.json`
-
-Defines:
-
-- Governance rules
-- Thresholds
-- Ownership
-- Enforcement behavior
+CodeLedger tracks operational signals such as drift, validation outcomes, and intervention opportunities so teams can see whether workflows are improving.
 
 ---
 
-## 5. Layer 1 — Discovery
+## Public Artifacts
 
-**Purpose:** Understand the repo before any code is written.
+After initialization, CodeLedger stores repo-local artifacts under `.codeledger/`.
 
-**Key command:**
+Depending on the commands you use, these artifacts can include:
 
-```bash
-codeledger discover --task "<task>"
-```
+- active context bundles
+- repo index and cache data
+- policy files
+- validation reports
+- session summaries
+- append-only evidence records
 
-**8-stage pipeline:**
-
-1. Intent Decomposition — extract domain, operation, layer, entities from task
-2. Keyword Expansion — synonyms, domain terms, entity terms
-3. File Scanning + Reversed Scoring — discovery-adapted file scoring (routes/services/models weighted higher)
-4. Standards Discovery — find related repo-wide helper patterns
-5. Source-of-Truth Detection — identify canonical owner system
-6. Blast Radius Analysis — compute dependency impact for top systems
-7. Gap Analysis — coverage estimate, missing capabilities, extension targets
-8. Verdict Synthesis — overlap classification, posture, guardrails
-
-**Outputs:**
-
-- Source of truth
-- Duplication risk
-- Gap analysis
-- Insertion points
-- Prohibited files
-
-**Key concept:** *Do not build before understanding.*
+These artifacts are local to the repository and are designed to support deterministic, auditable operation.
 
 ---
 
-## 6. Layer 2 — Session Enforcement
+## Local and CI Use
 
-**Purpose:** Prevent bad architecture at the start of coding.
+CodeLedger is designed to work in both:
 
-**Mechanism:**
+- **local sessions**, where it helps an agent choose context and stay aligned during implementation
+- **CI workflows**, where it verifies outcomes, policy, and release readiness
 
-- `UserPromptSubmit` hook detects implementation tasks (build, implement, create, add, develop, write, introduce, scaffold, generate, construct, make, design, architect, setup, wire up, integrate, connect, extend, refactor)
-- Auto-runs discovery for matching tasks
-- Injects constraints into agent context
-
-**Behavior:**
-
-- Blocks strong overlap
-- Enforces extension mode when `GO_EXTENSION_ONLY`
-- Skips non-implementation prompts (questions, affirmatives, short inputs)
-- Deduplicates by task hash to avoid re-running discovery for the same task
-
-**Key concept:** *No coding before discovery.*
+This lets the same context and verification model span developer workflows and release workflows without relying on remote services.
 
 ---
 
-## 7. Layer 3 — CI / PR Enforcement
+## Design Principles
 
-**Purpose:** Prevent architectural drift from reaching main.
-
-**Key command:**
-
-```bash
-codeledger discover-check
-```
-
-**Mechanism:**
-
-- PR diff analysis
-- Discovery artifact validation
-
-**Key checks:**
-
-1. **Insertion-point alignment** — changes stay within declared insertion points
-2. **Prohibited file violations** — no edits to files marked off-limits
-3. **Symbol growth** — classifies new exports as expected/suspicious/unrelated vs gap analysis
-4. **Duplicate detection** — token-level Jaccard similarity against source-of-truth files
-5. **Override validation** — human-only (rejects bots), 7-day expiry, task matching
-
-**Key concept:** *Trust but verify — and block if necessary.*
+- **Local-first**: your code stays on your machine or in your CI environment
+- **Deterministic**: same repo state and same task should produce stable outputs
+- **Evidence-backed**: CodeLedger prefers observed repo state over agent self-reporting
+- **Append-only where it matters**: session, provenance, and value records are written as durable history
+- **Product-first docs**: this public document explains behavior, not internal implementation details
 
 ---
 
-## 8. Layer 4 — Architecture Health Dashboard
-
-**Purpose:** Make architectural pressure visible.
-
-**Key command:**
-
-```bash
-codeledger health
-```
-
-**Architecture Health Score (AHS)** — composite [0-100], graded A-F:
-
-| Metric | Name | Weight | What It Measures |
-|--------|------|--------|------------------|
-| DRI | Duplication Risk Index | 25% | % of discoveries with strong overlap (lower = better) |
-| EDS | Extension Discipline Score | 25% | % of verify checks that passed |
-| STS | Source-of-Truth Stability | 20% | Consistency of canonical system across runs |
-| OFS | Override Frequency Score | 15% | Inverse of override rate on NO_GO verdicts |
-| DCS | Discovery Coverage | 15% | % of implementation tasks that ran discovery |
-
-**Grades:** A (85+), B (70-84), C (55-69), D (40-54), F (<40)
-
-Includes trend detection, hotspot identification, and 5 named advisor rules: `PLATFORMIZATION`, `RIGID_EXTENSION_SEAM`, `DOCUMENTATION_HOTSPOT`, `OVERRIDE_ABUSE`, `SOT_CONFUSION`.
-
-**Key concept:** *Where is the architecture under stress?*
-
----
-
-## 9. Layer 5 — Intervention Engine
-
-**Purpose:** Translate signals into actions.
-
-**Key command:**
-
-```bash
-codeledger intervene
-```
-
-**Detects 6 categories:**
-
-- **Duplication pressure** — multiple tasks overlapping same system
-- **Drift spikes** — rapid task activation (formal Drift Velocity: `LOW` | `RISING` | `HIGH` | `CRITICAL`)
-- **Governance breakdowns** — invalid/expired overrides
-- **SoT instability** — source-of-truth changing across runs
-- **Coverage gaps** — low discovery adoption rate
-- **Extension failures** — `GO_EXTENSION_ONLY` with diff violations
-
-**Key outputs:**
-
-- Documentation interventions
-- Platformization recommendations
-- Extension seam fixes
-- Consolidation suggestions
-- Governance tightening
-- Drift spike alerts
-
-Each intervention includes suggested actions and agent execution templates.
-
-**Key concept:** *What should we do now?*
-
----
-
-## 10. Layer 6 — Policy Control Plane
-
-**Purpose:** Define governance behavior.
-
-**Key command:**
-
-```bash
-codeledger arch-policy
-```
-
-**6 policy domains:**
-
-- `discovery` — controls discovery behavior and thresholds
-- `enforcement` — controls CI/PR enforcement strictness
-- `source_of_truth` — controls canonical system detection and stability rules
-- `overrides` — controls override approval requirements and expiry
-- `interventions` — controls intervention triggers and severity thresholds
-- `dashboard` — controls health score weights and grading
-
-**4-level scope hierarchy** (strictest wins):
-
-1. **global** — `.codeledger/policies/global.json`
-2. **repo** — `.codeledger/policies/repo.json`
-3. **zone** — `.codeledger/policies/zones/*.json`
-4. **system** — `.codeledger/policies/systems/*.json`
-
-**Key capabilities:**
-
-- Layered policies (global -> system)
-- Deterministic resolution
-- Strictest-wins semantics
-- Simulation before activation (`arch-policy simulate`)
-- Fail-safe behavior
-- Enforcement modes: `block` | `warn` | `observe`
-- Policy lifecycle: `draft` -> `active` -> `deprecated`
-
-**Key concept:** *Governance is configurable.*
-
----
-
-## 11. Data Flow
-
-```
-Developer Task
-    |
-    v
-Discovery  -->  .codeledger/discovery/latest.json
-    |
-    v
-Session Hook (enforces constraints)
-    |
-    v
-Code changes
-    |
-    v
-CI Enforcement  -->  enforcement report
-    |
-    v
-Artifacts aggregated  -->  health records
-    |
-    v
-Dashboard  -->  metrics + trends
-    |
-    v
-Intervention Engine  -->  recommendations
-    |
-    v
-Policy System  -->  adjusts behavior
-    |
-    v
-(Loop continues)
-```
-
----
-
-## 12. Key System Capabilities
-
-### 1. Pre-build architectural awareness
-
-Agents cannot act blindly. Discovery runs before implementation begins.
-
-### 2. Deterministic enforcement
-
-No reliance on "best effort." All checks are deterministic, reproducible, and auditable.
-
-### 3. Drift detection (with velocity)
-
-Detects both:
-
-- **Slow decay** — gradual architectural erosion
-- **Rapid spikes** — sudden bursts of overlapping changes (measured by Drift Velocity)
-
-### 4. Anti-duplication guarantees
-
-Prevents:
-
-- Parallel systems
-- Renamed copies
-- Hidden logic duplication
-
-### 5. Human-in-the-loop governance
-
-Overrides must be:
-
-- Explicit
-- Attributable (human-only, rejects bots)
-- Auditable (7-day expiry, task-scoped)
-
-### 6. Governance-as-Code
-
-All rules are:
-
-- Versioned
-- Testable (via `arch-policy simulate`)
-- Explainable
-
----
-
-## 13. Implementation Principles
-
-1. **Reuse existing primitives** — scoring engine, dependency graph, CLI structure
-2. **Deterministic > probabilistic** — no LLM dependency for core logic
-3. **Immutable data model** — all artifacts are append-only and replayable
-4. **Explainability everywhere** — every decision must answer: *"why?"*
-5. **Progressive adoption** — supports individual dev, team, and enterprise tiers
-
----
-
-## 14. System Differentiation
-
-CodeLedger is **not**:
-
-- A linter
-- A static analyzer
-- A code search tool
-- An AI assistant
-
-It **is**: an Architecture Governance Control Plane for AI-native development.
-
----
-
-## 15. Final State
-
-When fully implemented, CodeLedger:
-
-- Prevents architectural drift before it happens
-- Continuously monitors system integrity
-- Explains pressure and failure modes
-- Recommends high-ROI interventions
-- Allows governance to evolve safely
-
----
-
-## 16. North Star
-
-> *No duplicate architecture reaches main. No architectural pressure goes unseen. No intervention lacks clarity.*
+## Further Reading
+
+- [README](../README.md)
+- [Getting Started](../GETTING-STARTED.md)
+- [CLI Command Reference](./CLI_COMMAND_REFERENCE.md)
+- [Security](../SECURITY.md)

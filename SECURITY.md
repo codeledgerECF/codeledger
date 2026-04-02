@@ -39,7 +39,7 @@ Pro licenses are cryptographically signed and verified locally — no network ca
 
 - **Algorithm:** Ed25519 digital signatures via Node.js `node:crypto`
 - **Format:** `CL-PRO.<base64url-payload>.<base64url-signature>`
-- **Verification:** Payload verified against embedded public keys with key rotation support (each key has `keyId`, `algorithm`, `activeFrom`, optional `retiredAt`)
+- **Verification:** Payload verified locally against trusted public keys with rotation support
 - **Claims validation:** Enforces plan, feature set, license ID, and expiry date
 - **Expired licenses** return null immediately and are never honored
 - **Fully offline** — verification is local and deterministic
@@ -49,18 +49,18 @@ Pro licenses are cryptographically signed and verified locally — no network ca
 Context manifests can be cryptographically signed for tamper evidence.
 
 - **Algorithm:** HMAC-SHA256 via Node.js `node:crypto`
-- **Canonicalization:** RFC 8785 (JSON Canonicalization Scheme) — deterministic serialization with lexicographically sorted keys, shortest numeric form, no whitespace
-- **Key management:** Signing secret sourced from `CODELEDGER_SIGNING_SECRET` environment variable (never logged, never committed)
-- **Output:** `SignedManifestV1` wrapper with algorithm identifier (`HS256`) and key ID
+- **Canonicalization:** RFC 8785 (JSON Canonicalization Scheme)
+- **Key management:** Signing material is supplied locally at runtime and is never committed
+- **Output:** Signed manifest metadata with algorithm identifier and key ID
 - **File digests:** SHA-256 hashes computed for each file in the manifest
 
 ### Provenance Graph (Append-Only Audit Trail)
 
 For regulated industries, CodeLedger maintains a tamper-evident causal chain from task to outcome.
 
-- **Storage:** `.codeledger/provenance/` — JSONL format, append-only (data only added, never modified or deleted)
-- **Graph structure:** Nodes (task, intent, bundle, file, edit, commit, outcome) and edges (causal relationships), each with timestamps and metadata
-- **Tracing:** BFS graph traversal reconstructs the full causal chain for any task: Task → Context → Files → Edits → Commits → Tests → Outcome
+- **Storage:** local append-only records
+- **Graph structure:** timestamped task, context, change, and validation lineage
+- **Tracing:** reconstructs a causal chain from task to outcome for audit use
 - **Export:** Full graph exportable for compliance audits via `codeledger audit-export`
 
 ---
@@ -79,7 +79,7 @@ All shell command construction follows these rules:
 
 ### SQL Injection
 
-All SQLite operations use parameterized queries via `better-sqlite3`'s prepared statement API. No string concatenation is used in SQL construction.
+All database operations use parameterized queries. No string concatenation is used in SQL construction.
 
 ### Path Traversal
 
@@ -117,7 +117,7 @@ CodeLedger includes a built-in credential scanner (`codeledger detect-secrets`) 
 | Git output buffer | 10 MB | `git diff`, `git log` operations |
 | Agent command timeout | 1,800s (30 min) default, configurable | Benchmark execution |
 | Hook timeouts | 3–30s depending on hook type | Claude Code lifecycle hooks |
-| ECL-Lite ledger | 2,000 entries max, auto-pruned | Local outcome ledger |
+| Local outcome ledger | 2,000 entries max, auto-pruned | Local outcome tracking |
 | Glob regex hardening | Patterns escaped before regex conversion | Prevents ReDoS |
 
 ---
@@ -152,12 +152,12 @@ CodeLedger's Review Intelligence layer detects architectural violations that lin
 
 | Module | Priority | What It Detects |
 |--------|----------|----------------|
-| `runtime_validation` | P1 | Missing runtime validation on typed routes |
-| `outbound_io` | P1 | HTTP calls without timeouts |
-| `architecture_graph` | P1/P2 | Circular dependencies, boundary violations |
-| `platform_helpers` | P2 | Bypass of shared helper functions |
-| `test_integrity` | P2 | Brittle test patterns |
-| `build_runtime` | P2 | Runtime safety checks |
+| Runtime validation | P1 | Missing runtime validation on typed routes |
+| Outbound I/O | P1 | HTTP calls without timeouts |
+| Architecture graph | P1/P2 | Circular dependencies, boundary violations |
+| Shared helper usage | P2 | Bypass of shared helper functions |
+| Test integrity | P2 | Brittle test patterns |
+| Build/runtime safety | P2 | Runtime safety checks |
 
 **Disposition system:** Every finding is classified as `new`, `baselined`, or `suppressed`. Only **new** P0/P1 findings block CI.
 
@@ -172,10 +172,9 @@ CodeLedger's Review Intelligence layer detects architectural violations that lin
 CodeLedger integrates with Claude Code via lifecycle hooks (`.claude/hooks.json`).
 
 **Resilience guarantees:**
-- All hooks guarantee **exit code 0** — they never break the agent session, even when the CLI is missing, config is corrupted, or the directory is not a git repo
-- 5-level CLI resolution fallback chain ensures hooks work in any environment (local, browser, CI)
-- Non-fatal errors are logged but never interrupt agent execution
-- Contract tested in `tests/verify-hooks-contract.test.ts`
+- Hooks are designed not to break the agent session, even when local setup is incomplete
+- They resolve the local CLI safely across supported environments
+- Non-fatal errors are logged but do not interrupt agent execution
 
 **Hook behaviors:**
 - **PreToolUse:** On Edit/Write, checks discovery cache — blocks writes when verdict is `NO_GO_ALREADY_EXISTS`, warns when writing outside approved insertion points
@@ -211,12 +210,12 @@ CodeLedger uses minimal runtime dependencies:
 
 | Dependency | Purpose | Risk Profile |
 |-----------|---------|-------------|
-| `better-sqlite3` | Embedded SQLite database | Native addon, well-audited, no network |
+| Embedded SQLite runtime | Local database storage | Native addon, local-only |
 | Node.js built-ins | `crypto`, `fs`, `path`, `child_process` | Part of Node.js runtime |
 | `typescript` | Build-time only | No runtime risk |
 | `vitest` | Test-time only | No runtime risk |
 
-No runtime dependencies beyond `better-sqlite3` and Node.js built-ins. No packages with network access are used at runtime.
+No runtime services beyond local dependencies and Node.js built-ins. No packages with network access are used at runtime.
 
 ---
 

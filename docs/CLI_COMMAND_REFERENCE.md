@@ -1481,7 +1481,7 @@ Example output:
 ```json
 {
   "task": "Fix release messaging",
-  "top_targets": ["packages/cli/src/commands/license.ts"]
+  "top_targets": ["src/billing/license.ts"]
 }
 ```
 
@@ -1490,7 +1490,7 @@ Example output:
 Produces validation-oriented broker output.
 
 ```bash
-npx codeledger broker validation --target "packages/cli/src/commands/license.ts"
+npx codeledger broker validation --target "src/billing/license.ts"
 ```
 
 Example output:
@@ -1506,15 +1506,15 @@ Validation targets
 Shows nearby files and dependencies.
 
 ```bash
-npx codeledger broker neighborhood --target "packages/cli/src/commands/license.ts"
+npx codeledger broker neighborhood --target "src/billing/license.ts"
 ```
 
 Example output:
 
 ```text
 Neighborhood
-- packages/cli/src/commands/upgrade.ts
-- packages/cli/src/commands/features.ts
+- src/billing/upgrade.ts
+- src/billing/features.ts
 ```
 
 ### `broker evidence`

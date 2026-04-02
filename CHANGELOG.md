@@ -5,10 +5,10 @@
 Hardening, adversarial audit remediation, and GTM polish.
 
 ### Fixed
-- `activate` no-task mode now preserves existing task bundles instead of overwriting with a placeholder. Only writes placeholder when no valid bundle exists.
-- `bundle --near-misses` and `bundle --blast-radius` now correctly suppress output when arrays are empty (instead of silently accepting the flag with no output).
+- `activate` no-task mode now preserves existing task bundles instead of overwriting with a placeholder. Only writes a placeholder when no valid bundle exists.
+- `bundle --near-misses` and `bundle --blast-radius` now correctly suppress output when arrays are empty.
 - `session-cleanup` flag corrected to `--session` (was documented as `--session-id` in older guides).
-- Removed duplicate type declarations in `packages/types/src/index.ts` (`HealthRating`, `PolicyDomain`, `PolicyDomainDefinition`, `PolicyFieldDefinition`, `PolicyValidationError`, `PolicyCheckResult`, `RealtimePolicyContext`, `PolicyDiffEntry`). Reconciled `PolicyFieldDefinition.resolution` to `'strictest' | 'union' | 'loosest' | 'override'`.
+- Removed duplicate public type declarations and reconciled policy resolution behavior.
 
 ### Changed
 - Removed protected internal term from README architecture diagram and ContextECF mapping table.
@@ -23,9 +23,9 @@ Hardening, adversarial audit remediation, and GTM polish.
 
 A pre-context certification layer that evaluates task prompt quality **before** context construction begins. Vague prompts are blocked or penalised before tokens are spent.
 
-#### ISC scoring engine (`packages/engine/src/isc/score.ts`)
-- `checkIntentSufficiency(task: string): IntentSufficiencyCheck`
-- Five deterministic factors (no ML, no external calls): token signal (0.20), operation clarity (0.30), domain clarity (0.25), target specificity (0.15), constraint presence (0.10)
+#### Intent sufficiency scoring
+- Deterministic scoring with no ML or external calls
+- Five factors: token signal, operation clarity, domain clarity, target specificity, constraint presence
 - Decision thresholds: ≥ 75% → SUFFICIENT, 50–74% → WEAK, < 50% → INSUFFICIENT
 
 | Score | Decision | Effect |
@@ -43,7 +43,7 @@ A pre-context certification layer that evaluates task prompt quality **before** 
 - `--force` bypasses INSUFFICIENT block; `--json` output includes `isc` field
 
 #### Tests
-- `tests/isc.test.ts` — 46 tests covering all decision paths, JSON contract, edge cases, and determinism verification
+- Coverage added for decision paths, JSON contract, edge cases, and determinism verification
 
 ---
 
@@ -53,21 +53,18 @@ A pre-context certification layer that evaluates task prompt quality **before** 
 
 Closes the feedback loop: every execution cycle now informs future context selection.
 
-#### ECL-Lite — Local Context Ledger (`packages/engine/src/ecl/ledger.ts`)
-- Persistent append-only JSONL ledger at `.codeledger/ecl-lite.jsonl`; no SQLite dependency
-- `recordExecution()` — appends intent signature, files, symbols, expansion level, outcome, CCS score, failure vector, and SHA-256 context hash
-- `buildWeightIndex()` — integer success/failure counters per intent signature
-- `buildFailureHotspots()` — files ranked by failure implication rate
-- `pruneLedger()` — bounded to 2000 most recent entries
+#### ECL-Lite — Local Context Ledger
+- Persistent append-only JSONL ledger at `.codeledger/ecl-lite.jsonl`
+- Tracks outcomes, context signals, and bounded historical summaries
 
-#### CCS — Context Confidence Score (`packages/engine/src/ccs/score.ts`)
+#### CCS — Context Confidence Score
 - Pre-execution certification: deterministic `[0,1]` score from 5 weighted factors
 - Weights: dependency coverage (0.30), test coverage (0.25), historical success (0.20), symbol completeness (0.15), expansion efficiency (0.10)
 - Thresholds: ≥ 0.75 → HIGH (proceed), ≥ 0.50 → MEDIUM, < 0.35 → block
 
-#### Intent Decomposition (`packages/engine/src/iole/intent-decomposition.ts`)
-- `decomposeIntent()` — converts task string to structured `IntentObject` with domain, operation, layer, entities, and constraints
-- `compareIntentObjects()` — weighted semantic similarity scoring (0–1)
+#### Intent Decomposition
+- Converts task strings into structured intent objects
+- Supports weighted semantic similarity scoring
 
 #### SCE Execution Path Signals
 - Hotspot boosting: failure hotspots from ECL-Lite boost seed discovery and relevance scoring
@@ -84,7 +81,7 @@ Closes the feedback loop: every execution cycle now informs future context selec
 - JSON output now includes `{ validation, ccs }` object
 
 #### New types
-`EclLiteEntry`, `EclWeightEntry`, `FailureHotspot`, `EclLiteStatus`, `CcsRecommendation`, `CcsFactors`, `ContextConfidenceScore`, `IntentObject`
+- Added typed support for ledger entries, hotspot signals, confidence scoring, and structured intent
 
 ---
 
