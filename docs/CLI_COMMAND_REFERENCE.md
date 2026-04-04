@@ -25,10 +25,10 @@ npx codeledger init
 Example output:
 
 ```text
-CodeLedger v0.8.x
+CodeLedger vX.Y.Z
 
-⚠️  .codeledger/ already exists (repo-local CodeLedger v0.6.8).
-   You are running CodeLedger v0.8.8.
+⚠️  .codeledger/ already exists (repo-local CodeLedger vA.B.C).
+   You are running CodeLedger vX.Y.Z.
    Why upgrade: newer scan intelligence, sharper policy heuristics, and safer ambient behavior.
    What will refresh: vendored CLI, hooks, and ambient wrappers.
    Next: codeledger init --force

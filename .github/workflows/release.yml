@@ -1,6 +1,6 @@
 name: Create Release
 
-# Trigger: push a tag like v0.1.0
+# Trigger: push a tag like vX.Y.Z
 on:
   push:
     tags:
@@ -155,17 +155,10 @@ jobs:
           To verify the v${VERSION} feature set is present in your installed CLI:
 
           \`\`\`bash
-          # Multi-language detection (v0.5.0+)
-          codeledger scan    # Should index .py, .go, .rs, .java files (not just .ts/.js)
-
-          # Auto-scope inference (v0.5.0+)
+          codeledger --version       # Should show: ${VERSION}
+          codeledger doctor          # Runs health checks on your installation
+          codeledger scan            # Should index files across all supported languages
           codeledger activate --task "Fix auth for api-gateway"
-          # Should auto-scope to api-gateway/ directory if it exists
-
-          # Agent governance (v0.4.0+)
-          codeledger intent init --objective "test"
-          codeledger checkpoint list
-          codeledger shared-summary
           \`\`\`
 
           ## npm package contents

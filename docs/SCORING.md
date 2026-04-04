@@ -14,13 +14,13 @@ Before scoring, CodeLedger generates a candidate set through five stages:
 
 2. **Hot-Zone Inclusion** — Includes the most-churned files from git history. Files that change frequently are often central to the codebase and relevant to many tasks.
 
-3. **Dependency Expansion** — Walks the import/require graph to include files that the keyword matches depend on, and files that depend on them. Catches indirectly relevant code. Supports JS/TS imports, Python relative/absolute imports, and Go module-local imports (v0.5.0).
+3. **Dependency Expansion** — Walks the import/require graph to include files that the keyword matches depend on, and files that depend on them. Catches indirectly relevant code. Supports JS/TS imports, Python relative/absolute imports, and Go module-local imports.
 
 4. **Fan-Out Detection** — For cross-cutting tasks (like "rename the logger everywhere"), detects when many files share a common dependency and includes the full set.
 
-5. **Test Neighborhood Pairing** — Pairs source files with their test files (and vice versa). Supports `*.test.*`/`*.spec.*` (JS/TS), `test_*`/`*_test.py` (Python), and `*_test.go` (Go) conventions (v0.5.0).
+5. **Test Neighborhood Pairing** — Pairs source files with their test files (and vice versa). Supports `*.test.*`/`*.spec.*` (JS/TS), `test_*`/`*_test.py` (Python), and `*_test.go` (Go) conventions.
 
-**Auto-Scope Inference (v0.5.0):** Before candidate generation, CodeLedger checks the task description for compound identifiers (e.g., `api-gateway`, `stripe_billing`) that match directory names. If found, candidate generation is automatically restricted to that scope — no `--scope` flag needed. Fallback order: CLI `--scope` > config `default_scope` > auto-inference > no scope.
+**Auto-Scope Inference:** Before candidate generation, CodeLedger checks the task description for compound identifiers (e.g., `api-gateway`, `stripe_billing`) that match directory names. If found, candidate generation is automatically restricted to that scope — no `--scope` flag needed. Fallback order: CLI `--scope` > config `default_scope` > auto-inference > no scope.
 
 ## Scoring Signals
 
