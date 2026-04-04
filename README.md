@@ -1,8 +1,46 @@
 # CodeLedger
 
-**The engineering truth layer for AI coding agents — context truth, completion truth, release truth.**
+CodeLedger turns every coding action into a persistent, compounding asset.
 
-Works with: **Claude Code** | **Cursor** | **Codex** | **GitHub Copilot** via the generic/CLI path | **Gemini CLI** | Any CLI-based agent
+Without CodeLedger:
+- Context is lost between agents
+- Every task starts from scratch
+- Failures repeat
+
+With CodeLedger:
+- Context persists across sessions and agents
+- Success patterns compound
+- Engineering becomes measurable and auditable
+
+This is not another AI tool. This is a **Context Control Plane** for your repo.
+
+Works with: **Claude Code** | **Cursor** | **Codex** | **GitHub Copilot** | **Gemini CLI** | Any CLI-based agent
+
+---
+
+## What happens when you use CodeLedger?
+
+1. You run a task
+2. CodeLedger selects context deterministically
+3. The outcome is recorded
+4. Future tasks improve automatically
+
+Over time, your repo builds its own intelligence layer.
+
+---
+
+## Why this matters
+
+CodeLedger is built on a local-first Context Ledger:
+
+- Append-only memory of engineering activity
+- Outcome-linked learning (what worked vs what failed)
+- Cross-agent continuity
+- Deterministic context selection
+
+Your repo becomes an evolving system — not just code.
+
+---
 
 ### Get CodeLedger
 
