@@ -2,7 +2,7 @@
 
 **The engineering truth layer for AI coding agents — context truth, completion truth, release truth.**
 
-Works with: **Claude Code** | **Cursor** | **Codex** | **Gemini CLI** | Any CLI-based agent
+Works with: **Claude Code** | **Cursor** | **Codex** | **GitHub Copilot** via the generic/CLI path | **Gemini CLI** | Any CLI-based agent
 
 ### Get CodeLedger
 
@@ -14,8 +14,8 @@ cd your-project
 codeledger init
 git add .codeledger/bin/ .gitignore
 git commit -m "chore: init codeledger"
-./.codeledger/bin/codeledger activate --task "Fix null handling in user service"
-codeledger activate --task "Fix null handling in user service"
+./.codeledger/bin/codeledger task --task "Fix null handling in user service"
+codeledger task --task "Fix null handling in user service"
 # Your agent now has .codeledger/active-bundle.md with the right context
 ```
 
@@ -81,6 +81,74 @@ git commit -m "chore: initialize codeledger"
 codeledger scan
 codeledger activate --task "your task here"
 ```
+
+## 🌐 Beyond CodeLedger
+
+CodeLedger is just the beginning.
+
+It’s built on a broader system called the **Enterprise Context Fabric (ContextECF)** — a new way to make AI systems **deterministic, auditable, and cumulative** instead of probabilistic and forgetful.
+
+At the core is a simple idea:
+
+> Every interaction with AI should make the system smarter, more reliable, and more accountable over time.
+
+---
+
+## 🧠 What This Means (In Practice)
+
+While you’re using CodeLedger for development, the same foundation extends to:
+
+- 🧑‍💻 Engineering → Shared memory across agents, verified execution, no rework  
+- 📊 Decision-making → Faster, context-rich executive decisions  
+- 🗂️ Knowledge → Institutional memory that doesn’t disappear  
+- 🤖 AI agents → Coordinated, governed, and trustworthy systems  
+- 💬 Communication → Smarter meetings, better alignment  
+- 📈 Revenue → Relationship intelligence and proactive insights  
+- 🔐 Governance → Built-in auditability and compliance  
+
+---
+
+## 🚀 Why It Matters
+
+Most AI tools:
+- Recompute context every time  
+- Lose what they learned  
+- Can’t prove what happened  
+
+ContextECF + CodeLedger:
+- Remember  
+- Verify  
+- Compound value over time  
+
+What you’re building isn’t just output.
+
+> You’re building a **long-term context asset** for yourself — and potentially your entire organization.
+
+---
+
+## 🤝 Share This
+
+If CodeLedger is helping you, it’s worth a quick share with:
+
+- CTO / VP Engineering  
+- Platform / DevEx teams  
+- AI / Data leaders  
+
+---
+
+## 🏢 About
+
+**Intelligent Context AI Inc** is the creator of CodeLedger and the Enterprise Context Fabric.
+
+If your team is exploring AI at scale, agent systems, or enterprise context management:
+
+📩 customersuccess@intelligentcontext.ai  
+📞 916-753-7432  
+
+---
+
+> CodeLedger helps you capture truth in code.  
+> ContextECF helps you scale that truth across the enterprise.
 
 Important:
 - You do not need to keep a separate CodeLedger folder elsewhere on your machine.
@@ -245,6 +313,41 @@ For session-aware inspection during the same run:
 ./.codeledger/bin/codeledger broker timeline --limit 10 --json
 ```
 
+`codeledger scan` ends with a compact executive summary, grouped policy recommendations, and suggested next commands. Use `codeledger scan --full-policy` when you want the full override list instead of the compact default view.
+
+For relevance-managed architectural memory:
+
+```bash
+codeledger memory status
+codeledger memory explain --id <artifact-id>
+codeledger memory inject --task "Fix auth regression" --paths "src/auth/login.ts"
+codeledger memory compact --dry-run
+codeledger memory prune --dry-run
+```
+
+Policy memory is stored under `.codeledger/memory/policy-artifacts.json` and keeps HOT/WARM/COLD/ARCHIVED artifacts deterministic, compact, and auditable.
+`codeledger memory inject` builds the bounded task-start injection bundle that sits on top of DRS: HOT is eligible, not automatically injected.
+
+Task-start injection is driven by a deterministic taxonomy classifier. Before injection, CodeLedger classifies the task into one primary type such as `bug_fix`, `auth_change`, `migration`, `infra_change`, `dependency_change`, `api_change`, `ui_change`, `docs_only`, or `unknown`. It also emits secondary tags like `high_risk`, `shared_core`, `auth_sensitive`, `schema_sensitive`, `customer_visible`, and `incident_related`, plus a confidence score, risk level, complexity, and evidence trace.
+
+If you need repo-specific tuning, add `.codeledger/taxonomy.yaml`:
+
+```yaml
+overrides:
+  paths:
+    "services/legacy/**":
+      boost:
+        refactor: 0.30
+      add_tags:
+        - high_risk
+  keywords:
+    "decommission":
+      set_type: migration
+      weight: 1.5
+```
+
+This lets you bias classification deterministically without changing the global defaults.
+
 ## CLI Commands
 
 ```bash
@@ -267,6 +370,26 @@ codeledger activate --task "…"           # Scan-if-stale + bundle + write acti
 codeledger refine --learned "…"          # Re-score with new context mid-session
   --drop "file1.ts,file2.ts"             #   Remove specific files
   --add-keywords "pool,cache"            #   Inject new search terms
+
+Command-driven activation is now deterministic:
+- CodeLedger now uses a single ambient activation policy table for task-bearing commands
+- pre-refresh commands such as `codeledger context --task "..."`, `codeledger broker refresh --task "..."`, `codeledger memory inject --task "..."`, `codeledger complete-check --task "..."`, and `codeledger audit --task "..."` establish or refresh task context in the background before they run
+- command-managed commands such as `codeledger task`, `codeledger codex`, `codeledger claude`, `codeledger preflight`, `codeledger bundle`, `codeledger manifest`, `codeledger verify`, and `codeledger activate` establish task context themselves, so the CLI avoids duplicate activation in the same invocation
+- help, version, and status-style commands do not trigger ambient activation
+- `codeledger activate --task "..."` remains the explicit/manual fallback and power-user entrypoint
+
+GitHub Copilot support is available through the existing generic task runtime:
+- `codeledger task --agent copilot --agent-bin "<copilot-compatible command>" --task "..."`
+- for GitHub-hosted Copilot coding agent sessions, use CodeLedger to prepare and verify context around the agent with `bundle` and `verify`
+
+Multi-agent repo coordination is now repo-native:
+- `codeledger claim <paths...>` records active file or directory claims before edits happen
+- `codeledger preflight-edit <path>` checks a target path against active claims and policy before you modify it
+- `codeledger leases`, `codeledger release`, and `codeledger coordination` expose active leases, stale claims, and overlap summaries
+- validation records bind decisions to commit hash, repo fingerprint, session ID, and claimed scopes
+
+Product promise:
+- Git tells you after two agents collided. CodeLedger tells you before they do.
 
 # ── Session Management ────────────────────────────────────────
 codeledger session-init                  # Initialize a new session (returns session ID)
@@ -308,6 +431,11 @@ codeledger serve                         # Start HTTP API server (default: port 
                                          #   Use `codeledger serve --help` for the full endpoint list
 codeledger audit-export                  # Export ledger to JSON, CSV, or JSON Lines
   --format json|csv|jsonl                #   SIEM-compatible output
+  --output <path>                        #   Write to file (default: stdout)
+  --table runs|events|bundles|coverage   #   Filter to one table
+  --raw                                  #   Opt into privileged raw export; default output is sanitized
+codeledger provenance trace --task "…"   # Trace provenance for one task
+codeledger provenance export --json      # Export provenance graph (sanitized by default)
 
 # ── Cowork (Knowledge Mode) ──────────────────────────────────
 codeledger cowork-start --intent "…"     # Scan workspace + generate context bundle

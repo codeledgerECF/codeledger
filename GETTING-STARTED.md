@@ -1,6 +1,7 @@
 # Getting Started with CodeLedger
 
 Need a command-by-command walkthrough with example output? See [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md).
+Looking beyond developer workflow? See [Beyond CodeLedger](docs/context-ecf.md).
 
 CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
 

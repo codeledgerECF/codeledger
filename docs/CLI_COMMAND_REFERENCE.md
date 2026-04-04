@@ -25,12 +25,13 @@ npx codeledger init
 Example output:
 
 ```text
-CodeLedger v0.7.x
+CodeLedger v0.8.x
 
-✓ Initialized .codeledger/
-✓ Wrote config.json
-✓ Wrote starter scenarios
-✓ Vendored standalone CLI
+⚠️  .codeledger/ already exists (repo-local CodeLedger v0.6.8).
+   You are running CodeLedger v0.8.8.
+   Why upgrade: newer scan intelligence, sharper policy heuristics, and safer ambient behavior.
+   What will refresh: vendored CLI, hooks, and ambient wrappers.
+   Next: codeledger init --force
 ```
 
 ### `scan`
@@ -45,10 +46,73 @@ Example output:
 
 ```text
 Scanning repository...
-✓ Indexed 1,248 files
-✓ Built dependency graph
-✓ Built churn map
-✓ Built test map
+
+Executive summary
+  Repo size: 4,963 files · 434 modules · 3,142 entrypoints
+  Key risks: 27 high-impact zones · 4 auth-critical areas · 513 low-test modules
+  Policy posture: observe by default with 27 block overrides and 101 warn overrides
+  Recommended next step: Review critical zones with `codeledger policy review`, then apply the recommendation in observe mode.
+
+Recommended policy
+  Block: auth-critical and security-sensitive
+    Why: These paths hold authentication or security-critical logic where mistakes turn into incidents quickly.
+    - src/auth/** → block
+      Why this path matters: contains auth-sensitive logic.
+
+Suggested next commands
+  - codeledger apply-policy
+  - codeledger policy review
+  - codeledger policy review --json
+```
+
+### `memory status`
+
+Shows HOT/WARM/COLD/ARCHIVED counts for relevance-managed policy memory.
+
+```bash
+npx codeledger memory status
+```
+
+Example output:
+
+```text
+CodeLedger Memory — Policy Relevance Status
+
+Task clock: 12
+HOT: 3  WARM: 5  COLD: 2  ARCHIVED: 1
+
+Top retained artifacts:
+  - [HOT] path_policy_record 3b6f2f0a  drs=0.88
+    Frequently useful, high-blast-radius policy memory retained in HOT tier.
+```
+
+### `memory explain --id <artifact-id>`
+
+Shows the factor breakdown for one policy memory artifact.
+
+```bash
+npx codeledger memory explain --id 3b6f2f0a --json
+```
+
+Example output:
+
+```json
+{
+  "artifact_id": "3b6f2f0a",
+  "drs": 0.78,
+  "tier": "HOT",
+  "factors": {
+    "recency": 0.92,
+    "frequency": 0.67,
+    "success_quality": 0.83,
+    "scope_importance": 0.9,
+    "maturity": 0.74,
+    "supersession_penalty": 0,
+    "inactivity_penalty": -0.07
+  },
+  "retention_reason": "Frequently useful, high-blast-radius policy memory retained in HOT tier.",
+  "archive_eligible": false
+}
 ```
 
 ### `bundle --task "..."`
@@ -96,6 +160,12 @@ Runs the full ambient task flow: scan-if-stale, bundle, preflight, and agent lau
 npx codeledger task --agent codex --task "Refactor order placement flow"
 ```
 
+`copilot` is also accepted here as an alias to the existing generic runtime path:
+
+```bash
+npx codeledger task --agent copilot --agent-bin "<copilot-compatible command>" --task "Refactor order placement flow"
+```
+
 Example output:
 
 ```text
@@ -104,6 +174,8 @@ Bundle written: .codeledger/active-bundle.md
 Preflight: ready
 Agent run: launched (codex)
 ```
+
+For GitHub-hosted Copilot coding agent sessions, use CodeLedger to prepare and verify context around the agent instead of trying to launch it directly.
 
 ### `codex --task "..."`
 
@@ -1115,10 +1187,11 @@ Findings: 0 high severity
 
 ### `audit-export`
 
-Exports ledger/audit data.
+Exports ledger/audit data. Output is sanitized by default; use `--raw` only for privileged internal workflows.
 
 ```bash
 npx codeledger audit-export --format jsonl --output audit.jsonl
+npx codeledger audit-export --format json --raw
 ```
 
 Example output:
@@ -1126,6 +1199,15 @@ Example output:
 ```text
 Audit export written: audit.jsonl
 Format: jsonl
+```
+
+### `provenance`
+
+Traces or exports provenance data. JSON output is sanitized by default; add `--raw` for privileged local access.
+
+```bash
+npx codeledger provenance trace --task "task-id" --json
+npx codeledger provenance export --json --raw
 ```
 
 ### `release-check`
@@ -1378,7 +1460,7 @@ missing: none
 
 ### `memory preamble`
 
-Generates a memory preamble for a task.
+Generates a memory preamble for a task. When a task is provided, the preamble now uses the Context Injection Controller to inject only the bounded, task-relevant subset of retained policy memory.
 
 ```bash
 npx codeledger memory preamble --task "Release 0.7.11"
@@ -1390,6 +1472,87 @@ Example output:
 Generated memory preamble
 Relevant prior lessons: 3
 ```
+
+### `memory inject --task "..."`
+
+Builds the deterministic task-start injection bundle on top of policy-memory DRS and tiering.
+Before selection, CodeLedger classifies the task into one primary task type, secondary tags, confidence, risk level, complexity, and an evidence trace. Path and zone signals dominate generic keywords, metadata acts as a tie-breaker, and low-confidence cases fall back to `unknown`.
+
+```bash
+npx codeledger memory inject --task "Fix auth regression" --paths "src/auth/login.ts" --json
+```
+
+Example output:
+
+```json
+{
+  "bundle": {
+    "task_type": "auth_change",
+    "complexity": "medium",
+    "bundle_confidence": 0.82,
+    "repo_posture": "Default observe. 4 block overrides and 12 warn overrides shape the starting posture.",
+    "relevant_constraints": [
+      "BLOCK src/auth/** — contains auth-sensitive logic"
+    ]
+  },
+  "explain": {
+    "included": [],
+    "excluded": [],
+    "budget": {
+      "soft_cutoff_applied": false,
+      "hard_cutoff_applied": false
+    }
+  }
+}
+```
+
+Supported primary task types include:
+- `bug_fix`
+- `feature`
+- `refactor`
+- `test_repair`
+- `migration`
+- `auth_change`
+- `infra_change`
+- `config_change`
+- `dependency_change`
+- `performance_change`
+- `security_change`
+- `docs_only`
+- `observability_change`
+- `ui_change`
+- `api_change`
+- `data_model_change`
+- `unknown`
+
+Representative secondary tags include:
+- `high_risk`
+- `shared_core`
+- `auth_sensitive`
+- `schema_sensitive`
+- `ci_sensitive`
+- `deployment_sensitive`
+- `customer_visible`
+- `backward_compatibility_risk`
+- `incident_related`
+
+Repo-local overrides are supported through `.codeledger/taxonomy.yaml`:
+
+```yaml
+overrides:
+  paths:
+    "services/legacy/**":
+      boost:
+        refactor: 0.30
+      add_tags:
+        - high_risk
+  keywords:
+    "decommission":
+      set_type: migration
+      weight: 1.5
+```
+
+This lets a repo bias deterministic classification without changing the shared classifier defaults.
 
 ### `lessons list`
 
@@ -1580,6 +1743,36 @@ Broker preamble generated
 Key files: 4
 Key risks: 2
 ```
+
+### Command-driven activation
+
+Background activation now follows explicit command policy, not loose prompt guessing.
+
+- CodeLedger now uses a single ambient activation policy table for task-bearing commands
+- pre-refresh commands such as `codeledger context --task "..."`, `codeledger broker refresh --task "..."`, `codeledger memory inject --task "..."`, `codeledger complete-check --task "..."`, and `codeledger audit --task "..."` establish or refresh task context in the background before execution
+- command-managed commands such as `codeledger task`, `codeledger codex`, `codeledger claude`, `codeledger preflight`, `codeledger bundle`, `codeledger manifest`, `codeledger verify`, and `codeledger activate` establish task context themselves, so the CLI does not trigger duplicate activation in the same invocation
+- non-task commands such as help, version, and status flows do not trigger ambient activation
+- `codeledger activate --task "..."` remains the explicit/manual fallback
+- status/help commands like `codeledger license status`, `codeledger context --help`, and `codeledger broker timeline` do not activate in the background
+
+### Repo coordination
+
+CodeLedger can now coordinate multiple agent windows in the same repo before edits collide.
+
+- `codeledger claim <paths...>` records active file or directory claims with policy checks
+- `codeledger leases` lists active or stale leases
+- `codeledger preflight-edit <path>` checks a path before you edit it
+- `codeledger release` releases claims by session, claim ID, or all
+- `codeledger coordination` summarizes active sessions, overlaps, and hot surfaces
+
+Validation records bind each preflight result to:
+- current commit hash
+- repo fingerprint
+- session ID
+- claimed scopes
+
+Product promise:
+- Git tells you after two agents collided. CodeLedger tells you before they do.
 
 ### `broker refresh`
 

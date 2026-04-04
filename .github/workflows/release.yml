@@ -223,6 +223,21 @@ jobs:
           echo "ZIP_VERSIONED=codeledger-${VERSION}.zip" >> "$GITHUB_ENV"
           echo "ZIP_LATEST=codeledger.zip" >> "$GITHUB_ENV"
 
+      - name: Remove previous releases (keep only the latest)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Cleaning up previous releases..."
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          # List all releases, delete any that aren't the current one
+          gh release list --limit 50 --json tagName -q '.[].tagName' | while read -r tag; do
+            if [ "$tag" != "$CURRENT_TAG" ]; then
+              echo "  Deleting release $tag..."
+              gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+            fi
+          done
+          echo "✓ Only v${VERSION} release will remain"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
