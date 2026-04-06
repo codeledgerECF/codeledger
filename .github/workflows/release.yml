@@ -68,6 +68,48 @@ jobs:
             exit 1
           fi
 
+      - name: Strip source maps and proprietary declarations from package
+        run: |
+          echo "Stripping IP-sensitive files from npm tarball..."
+          TARBALL="${NPM_TARBALL}"
+          WORK_DIR=$(mktemp -d)
+
+          # Extract tarball
+          tar xzf "$TARBALL" -C "$WORK_DIR"
+
+          # Remove source maps (reveal internal structure)
+          MAP_COUNT=$(find "$WORK_DIR" -name '*.js.map' | wc -l)
+          find "$WORK_DIR" -name '*.js.map' -delete
+          echo "  Removed $MAP_COUNT source map files"
+
+          # Remove declaration files for proprietary internals
+          # Keep: types/dist (public API types customers import)
+          # Remove: everything else (internal implementation types)
+          DECL_COUNT=0
+          for pkg in cli core engine selector repo instrument harness cowork core-engine; do
+            count=$(find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" 2>/dev/null | wc -l)
+            find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" -delete 2>/dev/null
+            DECL_COUNT=$((DECL_COUNT + count))
+          done
+          echo "  Removed $DECL_COUNT internal declaration files"
+
+          # Remove sourceMappingURL comments from JS files
+          find "$WORK_DIR" -name '*.js' -exec sed -i 's|//# sourceMappingURL=.*||g' {} +
+          echo "  Stripped sourceMappingURL comments"
+
+          # Remove protected-runtime fallback paths that expose imports
+          # Stub the unprotected fallback so it doesn't reveal @codeledger/engine paths
+          find "$WORK_DIR" -name 'protected-shell.js' -exec sed -i \
+            's|require("@codeledger/engine")|require("./core")|g' {} +
+
+          # Repack tarball
+          cd "$WORK_DIR"
+          tar czf "$OLDPWD/$TARBALL" package/
+          cd "$OLDPWD"
+          rm -rf "$WORK_DIR"
+
+          echo "✓ Tarball hardened: removed $MAP_COUNT maps, $DECL_COUNT declarations"
+
       - name: Verify CLI works
         run: |
           npm install -g "./${NPM_TARBALL}"
@@ -78,6 +120,61 @@ jobs:
             echo "::error::Version mismatch — expected $VERSION, got $INSTALLED_VERSION"
             exit 1
           fi
+
+      - name: Verify no IP leakage in shipped package
+        run: |
+          echo "Running IP leak detection on shipped tarball..."
+          WORK_DIR=$(mktemp -d)
+          tar xzf "${NPM_TARBALL}" -C "$WORK_DIR"
+          FAIL=0
+
+          # Check 1: No source maps
+          MAP_COUNT=$(find "$WORK_DIR" -name '*.js.map' | wc -l)
+          if [ "$MAP_COUNT" -gt 0 ]; then
+            echo "::error::FAIL: $MAP_COUNT source map files found in package"
+            FAIL=1
+          else
+            echo "  ✓ No source maps"
+          fi
+
+          # Check 2: No proprietary declaration files
+          # @codeledger/types declarations are OK (public API)
+          DECL_LEAK=0
+          for pkg in cli core engine selector repo instrument harness cowork core-engine; do
+            count=$(find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" 2>/dev/null | wc -l)
+            DECL_LEAK=$((DECL_LEAK + count))
+          done
+          if [ "$DECL_LEAK" -gt 0 ]; then
+            echo "::error::FAIL: $DECL_LEAK proprietary declaration files found"
+            FAIL=1
+          else
+            echo "  ✓ No proprietary declarations"
+          fi
+
+          # Check 3: No sourceMappingURL comments
+          URL_COUNT=$(grep -rl 'sourceMappingURL=' "$WORK_DIR" --include='*.js' | wc -l)
+          if [ "$URL_COUNT" -gt 0 ]; then
+            echo "::error::FAIL: $URL_COUNT files contain sourceMappingURL comments"
+            FAIL=1
+          else
+            echo "  ✓ No sourceMappingURL comments"
+          fi
+
+          # Check 4: No test files
+          TEST_COUNT=$(find "$WORK_DIR" -name '*.test.*' -o -name '*.spec.*' | wc -l)
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "::warning::$TEST_COUNT test files found in package"
+          else
+            echo "  ✓ No test files"
+          fi
+
+          rm -rf "$WORK_DIR"
+
+          if [ "$FAIL" -gt 0 ]; then
+            echo "::error::IP leak detection failed — package is not safe to ship"
+            exit 1
+          fi
+          echo "✓ All IP leak checks passed"
 
       - name: Generate MANIFEST.md
         run: |
@@ -188,13 +285,36 @@ jobs:
           # Clean leading whitespace from heredoc indentation
           sed -i 's/^          //' MANIFEST.md
 
+      - name: Extract standalone CLI from package
+        run: |
+          # Extract the standalone .cjs from the npm tarball for zero-dependency usage
+          WORK_DIR=$(mktemp -d)
+          tar xzf "${NPM_TARBALL}" -C "$WORK_DIR"
+          STANDALONE=$(find "$WORK_DIR" -name 'codeledger-standalone.cjs' | head -1)
+          if [ -n "$STANDALONE" ]; then
+            cp "$STANDALONE" codeledger-standalone.cjs
+            echo "✓ Extracted standalone CLI ($(du -h codeledger-standalone.cjs | cut -f1))"
+            echo "HAS_STANDALONE=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Standalone CLI not found in package — zip will work via npm install only"
+            echo "HAS_STANDALONE=false" >> "$GITHUB_ENV"
+          fi
+          rm -rf "$WORK_DIR"
+
       - name: Gather release assets
         run: |
           STAGING="codeledger-${VERSION}"
           mkdir -p "$STAGING"
 
-          # Copy the actual npm package
+          # Copy the npm package (for npm install -g)
           cp "${NPM_TARBALL}" "$STAGING/"
+
+          # Copy standalone CLI if available (for zero-dependency usage)
+          if [ "$HAS_STANDALONE" = "true" ]; then
+            mkdir -p "$STAGING/bin"
+            cp codeledger-standalone.cjs "$STAGING/bin/"
+            echo "  ✓ Standalone CLI included in bin/"
+          fi
 
           # Copy distribution files
           cp install.sh "$STAGING/"
