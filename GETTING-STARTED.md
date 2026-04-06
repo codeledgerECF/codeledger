@@ -275,22 +275,11 @@ Edit `.codeledger/config.json` to tune:
 
 ### Scoring Weights
 
-```json
-{
-  "selector": {
-    "weights": {
-      "keyword": 0.30,
-      "centrality": 0.15,
-      "churn": 0.15,
-      "recent_touch": 0.10,
-      "test_relevance": 0.10,
-      "size_penalty": 0.10,
-      "success_prior": 0.05,
-      "fail_prior": 0.05
-    }
-  }
-}
-```
+CodeLedger uses configurable weights for multi-signal file scoring. The defaults are tuned for general-purpose codebases. You can adjust them in `.codeledger/config.json` under `selector.weights`.
+
+Available signals: `keyword`, `centrality`, `churn`, `recent_touch`, `test_relevance`, `size_penalty`, `success_prior`, `fail_prior`.
+
+Run `codeledger activate --task "..." --explain` to see how each signal contributes to file selection.
 
 ### Budget
 

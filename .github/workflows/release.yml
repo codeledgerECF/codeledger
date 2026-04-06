@@ -160,12 +160,47 @@ jobs:
             echo "  ✓ No sourceMappingURL comments"
           fi
 
-          # Check 4: No test files
+          # Check 4: No test files (may contain architecture-revealing comments)
           TEST_COUNT=$(find "$WORK_DIR" -name '*.test.*' -o -name '*.spec.*' | wc -l)
           if [ "$TEST_COUNT" -gt 0 ]; then
-            echo "::warning::$TEST_COUNT test files found in package"
+            echo "::error::FAIL: $TEST_COUNT test files found in package"
+            FAIL=1
           else
             echo "  ✓ No test files"
+          fi
+
+          # Check 5: No crown-jewel algorithm names in open standalone
+          OPEN_CJS=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
+          if [ -n "$OPEN_CJS" ]; then
+            ALGO_HITS=$(grep -c 'computeCcs\|checkIntentSufficiency\|verifySignedLicense\|parseLicenseKey\|buildFailureHotspots\|analyzeSessionDensity\|scoreCandidate\|rankFiles\|shadowScoring\|buildMinimalSlice\|buildSymbolG\|assessRisk\|detectCollisions\|tagSensitiveLines\|regressionWarningsToFindings' "$OPEN_CJS" || true)
+            if [ "$ALGO_HITS" -gt 0 ]; then
+              echo "::error::FAIL: $ALGO_HITS crown-jewel function names found in open standalone"
+              FAIL=1
+            else
+              echo "  ✓ No crown-jewel function names in open standalone"
+            fi
+          fi
+
+          # Check 6: No scoring weight literals in open standalone
+          if [ -n "$OPEN_CJS" ]; then
+            WEIGHT_HITS=$(grep -c 'keyword:0\.3\|centrality:0\.15\|sufficiency_threshold:0\.85\|task_distance_half_life' "$OPEN_CJS" || true)
+            if [ "$WEIGHT_HITS" -gt 0 ]; then
+              echo "::error::FAIL: Scoring weight literals found in open standalone"
+              FAIL=1
+            else
+              echo "  ✓ No scoring weight literals in open standalone"
+            fi
+          fi
+
+          # Check 7: No @codeledger/engine imports in open standalone
+          if [ -n "$OPEN_CJS" ]; then
+            ENGINE_HITS=$(grep -c '@codeledger/engine\|@codeledger/selector\|protected-runtime' "$OPEN_CJS" || true)
+            if [ "$ENGINE_HITS" -gt 0 ]; then
+              echo "::error::FAIL: Engine/selector/protected-runtime references in open standalone"
+              FAIL=1
+            else
+              echo "  ✓ No engine/selector imports in open standalone"
+            fi
           fi
 
           rm -rf "$WORK_DIR"
@@ -174,7 +209,7 @@ jobs:
             echo "::error::IP leak detection failed — package is not safe to ship"
             exit 1
           fi
-          echo "✓ All IP leak checks passed"
+          echo "✓ All IP leak checks passed (7 checks)"
 
       - name: Generate MANIFEST.md
         run: |
@@ -285,18 +320,25 @@ jobs:
           # Clean leading whitespace from heredoc indentation
           sed -i 's/^          //' MANIFEST.md
 
-      - name: Extract standalone CLI from package
+      - name: Extract open standalone CLI from package
         run: |
-          # Extract the standalone .cjs from the npm tarball for zero-dependency usage
+          # Extract the open standalone .cjs from the npm tarball
+          # This is the thin open build — safe commands only, no proprietary logic
           WORK_DIR=$(mktemp -d)
           tar xzf "${NPM_TARBALL}" -C "$WORK_DIR"
-          STANDALONE=$(find "$WORK_DIR" -name 'codeledger-standalone.cjs' | head -1)
-          if [ -n "$STANDALONE" ]; then
-            cp "$STANDALONE" codeledger-standalone.cjs
-            echo "✓ Extracted standalone CLI ($(du -h codeledger-standalone.cjs | cut -f1))"
+          # Prefer the open build; fall back to full standalone if open not present
+          OPEN_STANDALONE=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
+          FULL_STANDALONE=$(find "$WORK_DIR" -name 'codeledger-standalone.cjs' | head -1)
+          if [ -n "$OPEN_STANDALONE" ]; then
+            cp "$OPEN_STANDALONE" codeledger-standalone.cjs
+            echo "✓ Using open standalone CLI ($(du -h codeledger-standalone.cjs | cut -f1) — safe commands only)"
+            echo "HAS_STANDALONE=true" >> "$GITHUB_ENV"
+          elif [ -n "$FULL_STANDALONE" ]; then
+            cp "$FULL_STANDALONE" codeledger-standalone.cjs
+            echo "::warning::Open standalone not found, falling back to full standalone"
             echo "HAS_STANDALONE=true" >> "$GITHUB_ENV"
           else
-            echo "::warning::Standalone CLI not found in package — zip will work via npm install only"
+            echo "::warning::No standalone CLI found in package — zip will work via npm install only"
             echo "HAS_STANDALONE=false" >> "$GITHUB_ENV"
           fi
           rm -rf "$WORK_DIR"
