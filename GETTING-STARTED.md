@@ -434,6 +434,45 @@ npm uninstall -g @codeledger/cli
 - Run `codeledger verify --task "..."` to catch architectural violations before merge
 - Run `codeledger compare --scenario "..."` to benchmark agent performance with vs without CodeLedger
 - Run `codeledger stats` to see cumulative value across all sessions
+
+### New in v0.9.2
+
+#### Engineering Dashboard
+```bash
+codeledger dashboard build    # Generate static dashboard from local evidence
+codeledger dashboard open     # Open in browser (no server needed)
+```
+Shows system health, quality metrics, pattern reuse, and engineering value. Requires Team tier.
+
+#### MCP Server (AI Agent Integration)
+```bash
+codeledger mcp start          # Launch MCP server for Claude/Cursor/Windsurf
+codeledger mcp status         # Check readiness + connection instructions
+```
+Gives AI agents direct access to repo memory. Requires Team tier.
+
+#### Semantic Fortress (Merge Safety)
+```bash
+codeledger merge-check --save-baseline    # Capture semantic contract
+codeledger merge-check --verify           # Verify after merge + regression guard
+codeledger merge-check                    # Quick health check
+```
+Three-layer merge safety: semantic merge verification (catches removed types, config drift, name collisions), Intent-Lock Registry (cross-session collision detection), and Hallucination Guard (regression watch on verified bug-fix lines). Intent-Lock and Hallucination Guard require Team tier.
+
+#### Pattern Sync
+```bash
+codeledger sync push          # Stage + push patterns to GitHub mirror
+codeledger sync pull          # Pull latest from team mirror
+codeledger sync hydrate       # Pull golden patterns (new team members)
+```
+Share verified patterns across the team. Requires Team tier.
+
+#### Feature Discovery
+```bash
+codeledger features           # See what's available at your tier
+codeledger upgrade            # Explore Team / Enterprise
+```
+
 - Visit [codeledger.dev](https://codeledger.dev) for the latest releases
 - Visit [timetocontext.co](https://timetocontext.co) for enterprise features
 

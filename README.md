@@ -29,6 +29,92 @@ Over time, your repo builds its own intelligence layer.
 
 ---
 
+## The Two-Loop Model
+
+CodeLedger helps in two ways:
+
+**⚡ Now** — Assembles the minimal context needed for your current task. Fewer irrelevant files, fewer retries, faster execution.
+
+**💎 Next** — Captures what worked and builds reusable memory so future tasks start smarter. Successful patterns compound into institutional knowledge.
+
+```
+⚡ Now                          💎 Next
+Select context → Execute →      Record evidence → Promote patterns →
+                                Future tasks start smarter
+```
+
+---
+
+## AI Agent Integration (MCP)
+
+CodeLedger includes an MCP server that gives Claude, Cursor, and Windsurf direct access to your repo's memory:
+
+```bash
+codeledger mcp start     # Launch MCP server (stdio transport)
+codeledger mcp status    # Check readiness + connection instructions
+```
+
+**Tools available to agents:**
+- `query_ledger` — Search for verified patterns before coding
+- `get_active_context` — Get the task-specific context bundle
+- `record_interaction` — Report outcomes for memory compounding
+
+> MCP integration requires Team or Enterprise tier. See [Feature Tiers](#feature-tiers).
+
+---
+
+## Engineering Dashboard
+
+Generate a repo-local engineering dashboard from your Context Ledger:
+
+```bash
+codeledger dashboard build    # Generate static HTML dashboard
+codeledger dashboard open     # Open in browser (no server needed)
+```
+
+The dashboard shows: system health, integrity signals, quality metrics, pattern reuse intelligence, and estimated engineering value — all derived from real execution evidence.
+
+> Full dashboard requires Team or Enterprise tier. Individual tier receives a placeholder with teaser stats.
+
+---
+
+## Semantic Merge Verification
+
+Prevent silent merge failures where code compiles but types or config are semantically broken:
+
+```bash
+codeledger merge-check --save-baseline    # Before parallel work
+codeledger merge-check --verify           # After pulling a merge
+codeledger merge-check                    # Quick health check
+```
+
+Catches removed types with active importers, config fields accessed but missing from defaults, and name collisions across packages.
+
+---
+
+## Feature Tiers
+
+| Feature | Individual (Free) | Team | Enterprise |
+|---------|:-:|:-:|:-:|
+| Context selection + scanning | ✅ | ✅ | ✅ |
+| Prompt coaching (automatic) | ✅ | ✅ | ✅ |
+| CI enforcement (`ci check --json`) | ✅ | ✅ | ✅ |
+| Local evidence + pattern capture | ✅ | ✅ | ✅ |
+| Semantic merge verification | ✅ | ✅ | ✅ |
+| **Full Engineering Dashboard** | 🔒 | ✅ | ✅ |
+| **MCP Server** (AI agent memory) | 🔒 | ✅ | ✅ |
+| **Team coordination** (claims, leases) | 🔒 | ✅ | ✅ |
+| **Pattern sync** (GitHub mirror) | 🔒 | ✅ | ✅ |
+| **Provenance** (causal traceability) | 🔒 | 🔒 | ✅ |
+| **Audit export** (SIEM-ready) | 🔒 | 🔒 | ✅ |
+
+```bash
+codeledger features           # See what's available at your tier
+codeledger upgrade            # Explore Team / Enterprise
+```
+
+---
+
 ## Why this matters
 
 CodeLedger is built on a local-first Context Ledger:

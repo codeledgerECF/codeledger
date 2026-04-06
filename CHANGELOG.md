@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.9.2 (2026-04-05)
+
+Context Fabric release — MCP server, engineering dashboard, pattern lifecycle, Semantic Fortress, merge verification.
+
+### Added
+- **Semantic Fortress** — three-layer merge safety system:
+  - **Semantic Merge Verification** — `codeledger merge-check` catches silent contract breaks: removed exports with importers, config fields accessed but missing from defaults, name collisions.
+  - **Intent-Lock Registry** — cross-session collision detection. Warns when two sessions target the same directories. Stale detection via heartbeat + PID check.
+  - **Hallucination Guard** — sensitive line tracking for verified bug fixes. Warns/blocks when touching regression-verified lines. Uses git blame for provenance.
+- **MCP Server** — `codeledger mcp start` exposes repo memory to Claude, Cursor, and Windsurf via MCP protocol. Tools: `query_ledger`, `get_active_context`, `record_interaction`. (Team tier)
+- **Engineering Dashboard** — `codeledger dashboard build` generates a static, self-contained HTML dashboard from local evidence. File:// compatible, no server needed. Feature-gated: Individual tier gets branded placeholder, Team/Enterprise gets full dashboard.
+- **Prompt Coach** — automatic repo-aware prompt refinement. 4-level interaction model: auto-pass, suggest, warn, escalate. Ghost suggestion for nearly-precise tasks.
+- **Context Density Analysis** — automatically identifies which files actually mattered in successful sessions and promotes high-value patterns.
+- **Pattern Lifecycle** — patterns move through: emerging → validated → mixed → stale → retired. Confidence scoring. Anti-pattern detection from repeated failures.
+- **Evidence Hash Chain** — every evidence entry includes `prevHash` (SHA-256 of previous entry). Tamper-evident append-only log.
+- **Sync Commands** — `codeledger sync push/pull/hydrate` for team pattern sharing via GitHub shadow repo. Staging-only for v0.9.2.
+- **Two-Loop UX** — all CLI commands show ⚡ Now (immediate value) + 💎 Next (compounding value).
+
+### Improved
+- **CI Contract** — `ci check --json` rebuilt as first-class structured API (no stdout hijacking)
+- **Atomic Writes** — all evidence, episode, and pattern writes use temp→fsync→rename
+- **Coordination** — explicitly labeled "advisory". Lock mechanism is age-aware (no blind force-acquire)
+- **Dashboard** — signal synthesis header, contextual metric help, stale-data graceful degradation, deep-linkable evidence, full-page evidence view
+- **IP Protection** — 14 crown-jewel modules, 30+ function names in binary denylist
+- **Config Hardening** — memory defaults extracted into `@codeledger/types` shared constants; weight-sum validation test prevents drift
+
+### Fixed
+- ECL-Lite write path deprecated (evidence layer is canonical)
+- `pruneLedger` uses atomic temp→fsync→rename
+- `loadEntries` warns on malformed JSONL lines
+- `setup-ci` generates vendored CLI path with npx fallback
+- SQLite graceful fallback for standalone/container dashboard
+
 ## 0.7.2 (2026-03-24)
 
 Hardening, adversarial audit remediation, and GTM polish.
