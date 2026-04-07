@@ -82,25 +82,27 @@ jobs:
           find "$WORK_DIR" -name '*.js.map' -delete
           echo "  Removed $MAP_COUNT source map files"
 
-          # Remove declaration files for proprietary internals
-          # Keep: types/dist (public API types customers import)
-          # Remove: everything else (internal implementation types)
+          # Remove declaration files for internal packages.
+          # Only the public types package should ship declarations.
           DECL_COUNT=0
-          for pkg in cli core engine selector repo instrument harness cowork core-engine; do
-            count=$(find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" 2>/dev/null | wc -l)
-            find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" -delete 2>/dev/null
-            DECL_COUNT=$((DECL_COUNT + count))
-          done
+          while IFS= read -r dts_file; do
+            # Keep declarations for the public types package only
+            case "$dts_file" in
+              */types/dist/*) : ;;
+              *) rm -f "$dts_file"; DECL_COUNT=$((DECL_COUNT + 1)) ;;
+            esac
+          done < <(find "$WORK_DIR" -name '*.d.ts' 2>/dev/null)
           echo "  Removed $DECL_COUNT internal declaration files"
 
           # Remove sourceMappingURL comments from JS files
           find "$WORK_DIR" -name '*.js' -exec sed -i 's|//# sourceMappingURL=.*||g' {} +
           echo "  Stripped sourceMappingURL comments"
 
-          # Remove protected-runtime fallback paths that expose imports
-          # Stub the unprotected fallback so it doesn't reveal @codeledger/engine paths
-          find "$WORK_DIR" -name 'protected-shell.js' -exec sed -i \
-            's|require("@codeledger/engine")|require("./core")|g' {} +
+          # Stub internal fallback paths in any shipped shell files
+          # (pattern source is internal; decoded at runtime to avoid publishing it)
+          FROM=$(echo "cmVxdWlyZSgiQGNvZGVsZWRnZXIvZW5naW5lIik=" | base64 -d)
+          TO=$(echo "cmVxdWlyZSgiLi9jb3JlIik=" | base64 -d)
+          find "$WORK_DIR" -name '*shell*.js' -exec sed -i "s|${FROM}|${TO}|g" {} + 2>/dev/null || true
 
           # Repack tarball
           cd "$WORK_DIR"
@@ -137,18 +139,19 @@ jobs:
             echo "  ✓ No source maps"
           fi
 
-          # Check 2: No proprietary declaration files
-          # @codeledger/types declarations are OK (public API)
+          # Check 2: No internal declaration files (public types package excepted)
           DECL_LEAK=0
-          for pkg in cli core engine selector repo instrument harness cowork core-engine; do
-            count=$(find "$WORK_DIR" -path "*/$pkg/dist/*.d.ts" 2>/dev/null | wc -l)
-            DECL_LEAK=$((DECL_LEAK + count))
-          done
+          while IFS= read -r dts_file; do
+            case "$dts_file" in
+              */types/dist/*) : ;;
+              *) DECL_LEAK=$((DECL_LEAK + 1)) ;;
+            esac
+          done < <(find "$WORK_DIR" -name '*.d.ts' 2>/dev/null)
           if [ "$DECL_LEAK" -gt 0 ]; then
-            echo "::error::FAIL: $DECL_LEAK proprietary declaration files found"
+            echo "::error::FAIL: $DECL_LEAK internal declaration files found"
             FAIL=1
           else
-            echo "  ✓ No proprietary declarations"
+            echo "  ✓ No internal declarations"
           fi
 
           # Check 3: No sourceMappingURL comments
@@ -169,37 +172,57 @@ jobs:
             echo "  ✓ No test files"
           fi
 
-          # Check 5: No crown-jewel algorithm names in open standalone
+          # Check 5: No proprietary identifiers in open standalone
+          # Patterns are base64-encoded to avoid publishing the denylist in a
+          # public workflow file. Decoded at runtime, matched against the bundle.
           OPEN_CJS=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
           if [ -n "$OPEN_CJS" ]; then
-            ALGO_HITS=$(grep -c 'computeCcs\|checkIntentSufficiency\|verifySignedLicense\|parseLicenseKey\|buildFailureHotspots\|analyzeSessionDensity\|scoreCandidate\|rankFiles\|shadowScoring\|buildMinimalSlice\|buildSymbolG\|assessRisk\|detectCollisions\|tagSensitiveLines\|regressionWarningsToFindings' "$OPEN_CJS" || true)
+            # Base64-encoded newline-separated pattern list (opaque to casual reading)
+            PATTERNS_B64="Y29tcHV0ZUNjcwpjaGVja0ludGVudFN1ZmZpY2llbmN5CnZlcmlmeVNpZ25lZExpY2Vuc2UKcGFyc2VMaWNlbnNlS2V5CmJ1aWxkRmFpbHVyZUhvdHNwb3RzCmFuYWx5emVTZXNzaW9uRGVuc2l0eQpzY29yZUNhbmRpZGF0ZQpyYW5rRmlsZXMKc2hhZG93U2NvcmluZwpidWlsZE1pbmltYWxTbGljZQpidWlsZFN5bWJvbEcKYXNzZXNzUmlzawpkZXRlY3RDb2xsaXNpb25zCnRhZ1NlbnNpdGl2ZUxpbmVzCnJlZ3Jlc3Npb25XYXJuaW5nc1RvRmluZGluZ3M="
+            PATTERNS=$(echo "$PATTERNS_B64" | base64 -d 2>/dev/null || echo "$PATTERNS_B64" | base64 --decode)
+            ALGO_HITS=0
+            while IFS= read -r pattern; do
+              [ -z "$pattern" ] && continue
+              hits=$(grep -c "$pattern" "$OPEN_CJS" 2>/dev/null || echo 0)
+              ALGO_HITS=$((ALGO_HITS + hits))
+            done <<< "$PATTERNS"
             if [ "$ALGO_HITS" -gt 0 ]; then
-              echo "::error::FAIL: $ALGO_HITS crown-jewel function names found in open standalone"
+              echo "::error::FAIL: proprietary identifiers found in open standalone"
               FAIL=1
             else
-              echo "  ✓ No crown-jewel function names in open standalone"
+              echo "  ✓ No proprietary identifiers in open standalone"
             fi
           fi
 
-          # Check 6: No scoring weight literals in open standalone
+          # Check 6: Open standalone size limit (proxy for leak detection)
+          # A clean open build should be under 100KB. Any larger suggests
+          # proprietary logic leaked in via transitive imports.
           if [ -n "$OPEN_CJS" ]; then
-            WEIGHT_HITS=$(grep -c 'keyword:0\.3\|centrality:0\.15\|sufficiency_threshold:0\.85\|task_distance_half_life' "$OPEN_CJS" || true)
-            if [ "$WEIGHT_HITS" -gt 0 ]; then
-              echo "::error::FAIL: Scoring weight literals found in open standalone"
+            SIZE=$(wc -c < "$OPEN_CJS" | tr -d ' ')
+            if [ "$SIZE" -gt 102400 ]; then
+              echo "::error::FAIL: open standalone exceeds size limit ($SIZE bytes)"
               FAIL=1
             else
-              echo "  ✓ No scoring weight literals in open standalone"
+              echo "  ✓ Open standalone size OK ($SIZE bytes)"
             fi
           fi
 
-          # Check 7: No @codeledger/engine imports in open standalone
+          # Check 7: No internal package references in open standalone
           if [ -n "$OPEN_CJS" ]; then
-            ENGINE_HITS=$(grep -c '@codeledger/engine\|@codeledger/selector\|protected-runtime' "$OPEN_CJS" || true)
+            # Internal package references (base64-encoded, decoded at runtime)
+            PKG_B64="QGNvZGVsZWRnZXIvZW5naW5lCkBjb2RlbGVkZ2VyL3NlbGVjdG9yCnByb3RlY3RlZC1ydW50aW1l"
+            PKG_PATTERNS=$(echo "$PKG_B64" | base64 -d 2>/dev/null || echo "$PKG_B64" | base64 --decode)
+            ENGINE_HITS=0
+            while IFS= read -r pattern; do
+              [ -z "$pattern" ] && continue
+              hits=$(grep -c "$pattern" "$OPEN_CJS" 2>/dev/null || echo 0)
+              ENGINE_HITS=$((ENGINE_HITS + hits))
+            done <<< "$PKG_PATTERNS"
             if [ "$ENGINE_HITS" -gt 0 ]; then
-              echo "::error::FAIL: Engine/selector/protected-runtime references in open standalone"
+              echo "::error::FAIL: internal package references in open standalone"
               FAIL=1
             else
-              echo "  ✓ No engine/selector imports in open standalone"
+              echo "  ✓ No internal package references in open standalone"
             fi
           fi
 
@@ -295,19 +318,7 @@ jobs:
 
           ## npm package contents
 
-          The \`@codeledger/cli\` npm package includes all compiled packages:
-
-          | Package | Description |
-          |---------|-------------|
-          | \`@codeledger/cli\` | CLI entry point and all commands |
-          | \`@codeledger/types\` | Shared TypeScript types |
-          | \`@codeledger/core\` | SQLite ledger for event recording |
-          | \`@codeledger/core-engine\` | Scoring engine (compiled) |
-          | \`@codeledger/repo\` | Repository scanning, dependency graph, language detection |
-          | \`@codeledger/selector\` | File scoring, selection, governance features |
-          | \`@codeledger/instrument\` | Runtime instrumentation |
-          | \`@codeledger/harness\` | Benchmark execution engine |
-          | \`@codeledger/cowork\` | Cowork session integration |
+          The \`@codeledger/cli\` npm package is self-contained and includes everything needed to run CodeLedger. No separate installs required.
 
           ## v${VERSION} features
           ${CHANGELOG_SECTION}

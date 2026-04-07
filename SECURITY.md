@@ -129,7 +129,7 @@ CodeLedger includes a built-in credential scanner (`codeledger detect-secrets`) 
 Risky agent actions can be governed via formal approval workflows:
 
 - **State machine:** draft → pending_policy → pending_approval → approved → executing → completed/failed
-- **5-factor risk scoring:** scope, dependency, novelty, failure history, authority — each scored and combined
+- **Multi-factor risk scoring:** combines multiple signals about action scope, novelty, and history
 - **Self-approval prevention:** Configurable policy enforces approver ≠ creator
 - **Delegation depth limit:** Default max 2 levels, prevents infinite delegation chains
 - **Authority matching:** File-pattern globs matched against approval scopes (any_peer, team_lead, security, owner)

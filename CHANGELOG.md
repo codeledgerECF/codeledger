@@ -12,7 +12,7 @@ Context Fabric release — MCP server, engineering dashboard, pattern lifecycle,
 - **MCP Server** — `codeledger mcp start` exposes repo memory to Claude, Cursor, and Windsurf via MCP protocol. Tools: `query_ledger`, `get_active_context`, `record_interaction`. (Team tier)
 - **Engineering Dashboard** — `codeledger dashboard build` generates a static, self-contained HTML dashboard from local evidence. File:// compatible, no server needed. Feature-gated: Individual tier gets branded placeholder, Team/Enterprise gets full dashboard.
 - **Prompt Coach** — automatic repo-aware prompt refinement. 4-level interaction model: auto-pass, suggest, warn, escalate. Ghost suggestion for nearly-precise tasks.
-- **Context Density Analysis** — automatically identifies which files actually mattered in successful sessions and promotes high-value patterns.
+- **Pattern Distillation** — automatically identifies high-value patterns from successful sessions and promotes them for reuse.
 - **Pattern Lifecycle** — patterns move through: emerging → validated → mixed → stale → retired. Confidence scoring. Anti-pattern detection from repeated failures.
 - **Evidence Hash Chain** — every evidence entry includes `prevHash` (SHA-256 of previous entry). Tamper-evident append-only log.
 - **Sync Commands** — `codeledger sync push/pull/hydrate` for team pattern sharing via GitHub shadow repo. Staging-only for v0.9.2.
@@ -52,28 +52,22 @@ Hardening, adversarial audit remediation, and GTM polish.
 
 ## 0.6.9 (2026-03-20)
 
-### Added: Intent Sufficiency Check (ISC) — DCOL v2.2
+### Added: Prompt Quality Gate
 
 A pre-context certification layer that evaluates task prompt quality **before** context construction begins. Vague prompts are blocked or penalised before tokens are spent.
 
-#### Intent sufficiency scoring
+#### Prompt quality scoring
 - Deterministic scoring with no ML or external calls
-- Five factors: token signal, operation clarity, domain clarity, target specificity, constraint presence
-- Decision thresholds: ≥ 75% → SUFFICIENT, 50–74% → WEAK, < 50% → INSUFFICIENT
-
-| Score | Decision | Effect |
-|-------|----------|--------|
-| ≥ 75% | SUFFICIENT | CCS gets `intentConfidence = isc.score` |
-| 50–74% | WEAK | CCS gets `intentConfidence = max(0, isc.score - 0.05)` |
-| < 50% | INSUFFICIENT | Pipeline blocked; CCS skipped |
+- Multi-factor analysis of task specificity
+- Three decision tiers: SUFFICIENT / WEAK / INSUFFICIENT
 
 #### CLI: `codeledger intent check "<task>" [--json]`
 - Prints per-factor breakdown with human-readable issues and recommendations
 - `--json` for machine-readable output; exits 1 on INSUFFICIENT
 
 #### `codeledger context validate` upgrade
-- ISC now runs as the first gate before structural validation and CCS
-- `--force` bypasses INSUFFICIENT block; `--json` output includes `isc` field
+- Prompt quality check now runs as the first gate before structural validation
+- `--force` bypasses blocking; `--json` output includes quality tier
 
 #### Tests
 - Coverage added for decision paths, JSON contract, edge cases, and determinism verification
@@ -90,18 +84,15 @@ Closes the feedback loop: every execution cycle now informs future context selec
 - Persistent append-only JSONL ledger at `.codeledger/ecl-lite.jsonl`
 - Tracks outcomes, context signals, and bounded historical summaries
 
-#### CCS — Context Confidence Score
-- Pre-execution certification: deterministic `[0,1]` score from 5 weighted factors
-- Weights: dependency coverage (0.30), test coverage (0.25), historical success (0.20), symbol completeness (0.15), expansion efficiency (0.10)
-- Thresholds: ≥ 0.75 → HIGH (proceed), ≥ 0.50 → MEDIUM, < 0.35 → block
+#### Context Confidence Score
+- Pre-execution certification: deterministic `[0,1]` score from multiple weighted factors
+- Three tiers: HIGH (proceed), MEDIUM (advisory), LOW (block)
 
 #### Intent Decomposition
-- Converts task strings into structured intent objects
-- Supports weighted semantic similarity scoring
+- Converts task strings into structured intent objects for downstream matching
 
-#### SCE Execution Path Signals
-- Hotspot boosting: failure hotspots from ECL-Lite boost seed discovery and relevance scoring
-- Linear boost: 0% → 0, 100% → +0.5 (capped at 1.0)
+#### Execution Path Signals
+- Failure pattern detection from history boosts discovery of relevant files
 
 #### CLI: `codeledger ledger`
 - `ledger status` — ledger health: entry count, pass rates, top 10 failure hotspots with bar chart
@@ -131,10 +122,10 @@ Enterprise infrastructure, Review Intelligence, Shadow Files, and deployment fle
 - **Dispositions** — Every finding classified as `new`, `baselined`, or `suppressed`. CI blocks only on new P0/P1 findings.
 - **Flags** — `--explain` (richer reasoning), `--json` (machine-readable for AI repair loops), `--debug-review` (internals), `--invariant <name>` (filter), `--show-triaged` (show hidden findings).
 
-#### Shadow Files (Temporal Co-Commit Expansion)
-- **`buildTemporalCoCommitIndex()`** — Mines git history for files frequently committed together. Builds a sparse adjacency graph with recency-weighted scoring and commit-size penalties.
+#### Shadow Files (Historical Co-Change Expansion)
+- **Git history mining** — Identifies files frequently changed together, with time-weighted scoring.
 - **Bundle expansion** — High-affinity neighbors (types ↔ tests, schema ↔ migration) are added to bundles automatically. No keyword or import edge needed.
-- **Configurable** — `shadow.minAffinity`, `shadow.minCoCommitCount`, `shadow.maxShadowAdds`, `shadow.recencyHalfLifeDays`, `shadow.commitSizePenaltyThreshold` in config.
+- **Configurable** — tunable thresholds in `.codeledger/config.json` under `selector.shadow_files`.
 
 #### Enterprise Infrastructure
 - **Multi-CI provider support** — `setup-ci --provider github|gitlab|circleci|azure` generates workflows for GitHub Actions, GitLab CI, CircleCI, and Azure Pipelines.
@@ -187,7 +178,7 @@ Multi-language scanning, auto-scope inference, CI governance pipeline, and onboa
 
 ### Fixed
 
-- **Test-task scoring** — "Run tests" and similar execution-verb tasks now correctly prioritize test files. `test_relevance` weight boosted 2.5×, test file patterns added to acceptance surface.
+- **Test-task scoring** — "Run tests" and similar execution-verb tasks now correctly prioritize test files.
 
 ### Test Coverage
 - 167 adversarial smoke tests covering all CLI commands and edge cases
@@ -214,7 +205,7 @@ Agent governance layer: Phase 2 + Phase 3 + Intent Governance.
 - **`codeledger intent show`** — Display baseline vs current contract with per-field drift distances.
 - **`codeledger intent set`** — Update contract fields mid-session with automatic drift event logging.
 - **`codeledger intent ack`** — Acknowledge drift (accept as new baseline or as known deviation).
-- **Deterministic drift scoring** — Weighted Jaccard + set distance across 7 contract fields. Thresholds: NONE (<0.10), MINOR (0.10-0.24), MAJOR (0.25-0.44), CRITICAL (>=0.45).
+- **Deterministic drift scoring** — Multi-field comparison across the intent contract with graduated severity tiers (NONE, MINOR, MAJOR, CRITICAL).
 - **Auto-initialization** — Intent contract created automatically on first `activate` from task text.
 - **Soft-blocking** — CRITICAL drift blocks `activate`/`refine` until acknowledged.
 - **Integrated** into activate, session-summary, session-progress, and bundle injection.

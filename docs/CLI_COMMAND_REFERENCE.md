@@ -99,18 +99,9 @@ Example output:
 ```json
 {
   "artifact_id": "3b6f2f0a",
-  "drs": 0.78,
+  "score": 0.78,
   "tier": "HOT",
-  "factors": {
-    "recency": 0.92,
-    "frequency": 0.67,
-    "success_quality": 0.83,
-    "scope_importance": 0.9,
-    "maturity": 0.74,
-    "supersession_penalty": 0,
-    "inactivity_penalty": -0.07
-  },
-  "retention_reason": "Frequently useful, high-blast-radius policy memory retained in HOT tier.",
+  "retention_reason": "Frequently useful policy memory retained in HOT tier.",
   "archive_eligible": false
 }
 ```
@@ -1475,8 +1466,8 @@ Relevant prior lessons: 3
 
 ### `memory inject --task "..."`
 
-Builds the deterministic task-start injection bundle on top of policy-memory DRS and tiering.
-Before selection, CodeLedger classifies the task into one primary task type, secondary tags, confidence, risk level, complexity, and an evidence trace. Path and zone signals dominate generic keywords, metadata acts as a tie-breaker, and low-confidence cases fall back to `unknown`.
+Builds the deterministic task-start injection bundle from policy memory.
+Before selection, CodeLedger classifies the task into one primary task type, secondary tags, confidence, risk level, complexity, and an evidence trace. Low-confidence cases fall back to `unknown`.
 
 ```bash
 npx codeledger memory inject --task "Fix auth regression" --paths "src/auth/login.ts" --json
@@ -1543,7 +1534,7 @@ overrides:
   paths:
     "services/legacy/**":
       boost:
-        refactor: 0.30
+        refactor: 0.5
       add_tags:
         - high_risk
   keywords:

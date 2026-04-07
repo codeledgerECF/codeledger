@@ -290,22 +290,22 @@ AI coding agents are powerful, but on real codebases they waste time, tokens, an
 
 | Pain Point (Without CodeLedger) | Feature (With CodeLedger) | How It Works | Benefit |
 |:-|:-|:-|:-|
-| Agent reads 30-50 files before finding the right ones | **Deterministic file selection** | Scores every file across 10 weighted signals (keyword, centrality, churn, recency, test relevance, size, priors, error infra, branch changes) and selects the top-ranked set within a token budget | Agent starts with the right files from the first turn |
+| Agent reads 30-50 files before finding the right ones | **Deterministic file selection** | Scores every file across multiple weighted signals and selects the top-ranked set within a token budget | Agent starts with the right files from the first turn |
 | Irrelevant context burns tokens and degrades model accuracy | **Bounded token budgets** | Stop-rule algorithm packs files greedily until the budget is full; `--expand` doubles when you need more | 60-99% context reduction — pay only for what matters |
 | Agent edits files in package A when the task is in package B | **Monorepo scope restriction** (`--scope`) + **Auto-scope inference** | Constrains candidate generation to specified path prefixes. Auto-detects service names in the task (e.g., "fix auth for api-gateway") and scopes automatically — no `--scope` flag needed | No cross-package pollution; bundles stay focused |
-| Compound tasks ("fix auth and add tests") miss half the files | **Task decomposition** | Splits compound tasks into clauses, runs keyword matching per-clause, then unions results | Every clause gets its own file discovery pass |
+| Compound tasks ("fix auth and add tests") miss half the files | **Task decomposition** | Splits compound tasks into sub-clauses and unions the discovery results | Every clause gets its own file discovery pass |
 | Agent doesn't know which tests to run after a change | **Blast radius annotation** (`--blast-radius`) | Traces direct dependents, transitive dependents, and impacted test files for each bundle file via the dependency graph | Agent knows exactly what to test and what might break |
 | Hard to tell if the bundle actually covers the task | **Confidence scoring with actionable UX** | Assesses keyword coverage, score distribution, and reason diversity; suggests improvements when confidence is low | Low-confidence bundles come with specific "try this" guidance |
 | No visibility into files that almost made the cut | **Near-miss explanation** (`--near-misses`) | Reports the top N excluded files with scores, ranks, budget gaps, and keyword suggestions | Refine your task description or bump budget with precision |
 | "Add a new endpoint" tasks lack structural examples | **Pattern exemplars** | Detects creation-intent tasks and includes sibling files from the same directory as structural templates | Agent sees how existing endpoints are built before writing new ones |
-| Bundle scores feel like a black box | **Explain mode** (`--explain`) | Dumps the full per-file feature vector (keyword, centrality, churn, etc.) for every selected file | Full transparency into why each file was chosen |
+| Bundle scores feel like a black box | **Explain mode** (`--explain`) | Shows the per-file scoring breakdown for every selected file | Full transparency into why each file was chosen |
 | Agent loses context after compaction or long sessions | **Session continuity** (`session-progress`, `session-summary`) | Writes ground-truth snapshots from git (commits, changed files, remaining bundle files) before compaction; session-end recall/precision metrics | Re-orient after compaction without redoing work |
 | Mid-session learning can't feed back into context | **Mid-session refine** (`refine --learned "..."`) | Re-scores the bundle with new learned context, extra keywords (`--add-keywords`), and file exclusions (`--drop`); recomputes all derived metadata | Bundle evolves as the agent learns, without starting over |
 | Manually figuring out which files changed on the current branch | **Branch-aware scoring** (`--branch-aware`) | Detects uncommitted and branch-diffed files and boosts their scores automatically | Work-in-progress files float to the top |
 | Config files, type definitions, and contracts get missed | **Surface-aware auto-inclusion** | Automatically includes config files, type definitions, and API contracts that match task keywords | Critical context files never fall through the cracks |
 | Agent reads files in random order, missing structural context | **Architectural layer ordering** (`--layer-order`) | Sorts bundle files by architectural layer (types, models, services, routes, tests) | Agent reads contracts before implementations, just like a human would |
 | Only works on TypeScript/JavaScript repos | **Language-agnostic scanning** | Built-in language registry for 42 file extensions across 15 language families. Python and Go get full deep support (import resolution, test conventions, keyword extraction). Any language works out of the box | Polyglot and multi-language monorepos just work |
-| Co-changed files missing from the bundle | **Shadow Files** | Mines git history for temporal co-commit affinity. Expands bundle with high-affinity neighbors using recency-weighted scoring and commit-size penalties | Cross-cutting companions (types ↔ tests, schema ↔ migration) included automatically |
+| Co-changed files missing from the bundle | **Shadow Files** | Mines git history to find files that commonly change together and expands the bundle accordingly | Cross-cutting companions (types ↔ tests, schema ↔ migration) included automatically |
 | Agent introduces architectural violations that linters miss | **Review Intelligence** | 5 invariant modules detect missing runtime validation (P1), unguarded outbound HTTP (P1), helper bypass (P2). Baselines, inline suppressions, disposition tracking | Catches architectural risks — not just syntax issues — deterministically |
 | Token estimates are wildly inaccurate across languages | **Language-aware token calibration** | Uses per-language token/line rates (TypeScript 3.5, Python 3.2, Java 4.5, etc.) instead of a flat 4.0 | Budgets are accurate; no over- or under-packing |
 | Task type doesn't influence which files are prioritized | **Task-type inference** | Auto-detects bug fix, feature add, refactor, test update, or config task and adjusts scoring weights accordingly | Bug fixes emphasize error infrastructure; test tasks heavily prioritize test files |
@@ -376,7 +376,7 @@ codeledger init
 
 That's it. Start your agent and describe your task in plain English. The hooks will:
 1. Extract your intent and scan the repo automatically
-2. Score every file across 10 weighted signals
+2. Score every file across multiple weighted signals
 3. Select the most relevant files within a token budget
 4. Write a context bundle for your agent to read
 
@@ -461,7 +461,7 @@ overrides:
   paths:
     "services/legacy/**":
       boost:
-        refactor: 0.30
+        refactor: 0.5
       add_tags:
         - high_risk
   keywords:
@@ -597,16 +597,11 @@ codeledger clean                         # Remove orphaned worktrees
 
 CodeLedger uses a multi-stage candidate pipeline and a ten-signal scorer:
 
-**Candidate Generation (6 stages):**
-1. Per-clause keyword matching (with IDF weighting and plural tolerance)
-2. Hot-zone inclusion (most-churned files from git history)
-3. Scope-aware dependency expansion (imports + dependents of matched files)
-4. Fan-out detection (cross-cutting changes like "rename everywhere")
-5. Test neighborhood pairing (source + test files together)
-6. Shadow Files — temporal co-commit expansion (files frequently committed together in git history)
+**Candidate Generation:**
+Multi-stage pipeline combining keyword analysis, graph traversal, test pairing, and git history signals.
 
-**Scoring Signals (10 dimensions):**
-`keyword` | `centrality` | `churn` | `recency` | `test_relevance` | `size_penalty` | `success_prior` | `fail_prior` | `error_infrastructure` | `branch_changed`
+**Scoring:**
+Deterministic weighted combination of positive and negative signals, configurable in `.codeledger/config.json`.
 
 **Post-Selection Enrichment:**
 - Confidence assessment with actionable suggestions
@@ -725,7 +720,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 | | **Individual (Free)** | **Team** | **Organization** |
 |---|---|---|---|
 | **Who** | Solo devs, personal projects, OSS | Dev teams (>1 developer), commercial | Engineering orgs, enterprise, regulated |
-| **Context selection** | Full (10 signals, Shadow Files, auto-scope) | Same | Same |
+| **Context selection** | Full (multi-signal, Shadow Files, auto-scope) | Same | Same |
 | **Agent governance** | Full (scope, loops, intent, checkpoints) | Same | Same |
 | **Review Intelligence** | Full (5 invariant modules) | Same | Same |
 | **Multi-session coordination** | — | Conflict zones, shared summary | Same |

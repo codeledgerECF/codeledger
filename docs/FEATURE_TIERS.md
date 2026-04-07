@@ -19,7 +19,7 @@
 | Episode generation (session summaries) | ✅ | ✅ | ✅ |
 | Pattern promotion (harvest) | ✅ | ✅ | ✅ |
 | Pattern lifecycle (scoring, retirement) | ✅ | ✅ | ✅ |
-| Context density analysis | ✅ | ✅ | ✅ |
+| Pattern distillation from successful sessions | ✅ | ✅ | ✅ |
 | Golden patterns (cold-start memory) | ✅ | ✅ | ✅ |
 | **Dashboard** | | | |
 | Dashboard placeholder (teaser stats) | ✅ | ✅ | ✅ |
