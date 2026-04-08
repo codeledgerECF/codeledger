@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.2 (2026-04-08)
+
+Critical hotfix for v0.10.0 and v0.10.1.
+
+### Fixed
+- **`@codeledger/engine` missing runtime dependency on `typescript`** — the symbol-level graph parser added in v0.10.0 imports the TypeScript compiler API at runtime, but `typescript` was declared as a devDependency. The bug only manifested on fresh npm installs (monorepo users were unaffected because pnpm hoists dependencies). Symptom: `ERR_MODULE_NOT_FOUND: Cannot find package 'typescript'` when running `codeledger --version` after `npm install -g @codeledger/cli@0.10.0` or `@0.10.1`. Fixed by promoting `typescript ^5.4.0` to a runtime dependency of `@codeledger/engine`.
+
+**Users on v0.10.0 or v0.10.1 should upgrade immediately:**
+```bash
+npm install -g @codeledger/cli@0.10.2
+```
+
 ## 0.10.1 (2026-04-08)
 
 Security patch on top of 0.10.0. No behavior changes.
