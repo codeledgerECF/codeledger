@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.10.1 (2026-04-08)
+
+Security patch on top of 0.10.0. No behavior changes.
+
+### Security
+- **GHSA-vvjj-xcjg-gr5g** — nodemailer SMTP command injection via CRLF in the transport `name` option. Fixed by bumping nodemailer to 8.0.5 in the license-issuer scaffold.
+
+---
+
+## 0.10.0 (2026-04-08)
+
+Cross-layer intelligence release — Coach, Symbol Graph, Institutional Memory, and cross-repo Fleet insights with deterministic risk-spike alerts. No LLM in the scoring path.
+
+### Added
+
+- **Cross-Layer Coach** — `codeledger coach --intent "<goal>"` produces a deterministic guided implementation plan by fusing structural context (symbol graph), behavioral context (local outcomes), and institutional context (team lessons). Every advice item cites a verifiable evidence string. The coach refuses to give structural advice when the graph is stale relative to HEAD.
+- **Symbol-Level Graph** — `codeledger graph index` builds a symbol-level structural snapshot of the repo using the TypeScript compiler API. Extracts top-level exported functions, classes, interfaces, types, enums, and import edges. Writes to `.codeledger/graph/` with a HEAD pointer the Coach reads for freshness. Auto-prunes to the most recent snapshots.
+- **Institutional Memory (Tier 3 ECL)** — `codeledger ecl sync --seed | --from <dir>` and `codeledger ecl status`. A schema for cross-project "lessons learned" lives under `.codeledger/ecl/remote/`. The current transport is committed JSON files (offline, no network); the schema is ready for future GitHub-based transports.
+- **Golden Pattern Extraction** — `codeledger memory seed-patterns [--from ecl|lessons|all] [--dry-run] [--json]` extracts "Institutional North Star" patterns from successful task history. The Prompt Coach surfaces matched patterns inline when a new task arrives: *"Looks like you're doing this; typically we follow [pattern]."* Cold-start onboarding for new team members gets the benefit of every successful execution that came before them.
+- **Change Capsule "block" recommendation** — the `recommended_action` union on `ChangeCapsule` now includes `"block"` for cases of very low fused confidence or critical risk. Named thresholds are exposed via `CodeLedgerConfig` for projects that want to tune the gating to their own policy. Every boundary is unit-tested.
+- **Fleet (Enterprise tier)** — cross-repo enterprise insights for the "one trust boundary, many repos" case. Subcommands:
+  - `fleet sync --from-github <owner>/<repo>` — pull a fleet manifest from a GitHub source of truth (recommended: `<your-org>/.github/codeledger-fleet.json`) via the operator's existing `gh` CLI auth
+  - `fleet status` — per-repo health line for the whole fleet
+  - `fleet aggregate` — roll up per-team totals, first-pass success, golden pattern counts, prevented issues, and fleet-wide hotspots
+  - `fleet compare --team-a A --team-b B` — side-by-side team comparison with a deterministic delta column and headline insights on meaningful gaps
+  - `fleet hotspots --top N` — top failing files unioned across every repo, tagged by repo
+  - `fleet dashboard` — self-contained dark-theme HTML dashboard
+  - `fleet insights [--window 24h|7d|30d]` — time-windowed release-truth fleet rollup
+  - `fleet alerts` — deterministic risk-spike + concentration detection that persists `RISK_ALERT` events back into each affected repo
+  - Help (`fleet help` / `fleet --help`) is free; running the feature requires an Enterprise license.
+- **Release Truth (per-repo)** — `codeledger release-truth`, `release-history`, and `release-insights` expose the append-only stream of `verify` outcomes per commit. Each run emits a structured PASS / WARN / FAIL event. On the Enterprise tier these events compound into the Fleet insights/alerts rollup so that a failing release in one repo becomes a visible fleet alert the next day — and the alert then flows back into per-repo developer warnings. One closed loop at the org level.
+- **`audit --run-tests` + `--test-cmd`** — the adversarial audit can now execute a configured test command (defaulting to `pnpm test`), capture its exit code and duration, render a Test Run section in the report, and flip the audit verdict on failure.
+
+### Fixed
+
+- **`policy validate` / `diff` / `merge`** — the CLI dispatcher now routes all three subcommands. They were previously unreachable from the CLI even though the implementations existed.
+- **`memory status` ESM crash** — a `require()` call in an ESM module caused a "require is not defined" crash after the status output completed. Converted to static imports.
+- **Global `--help` short-circuit** — commands like `pre-pr --help` used to execute the full pre-PR integrity stack instead of showing help. The dispatcher now short-circuits to the help banner unless the command implements its own subcommand-aware help.
+- **`fleet help` tier-gate carve-out** — help text is reachable on the Free tier so prospective customers can evaluate the feature without an Enterprise license.
+- **ECL path canonicalization** — the local behavioral ledger is now stored at `.codeledger/ecl.jsonl`. The legacy `.codeledger/ecl-lite.jsonl` path is still read transparently as a fallback, so existing repos keep working with no migration step.
+
+### Security
+
+- **vite GHSA-4w7w-66w2-5vf9** (path traversal in optimized-deps `.map` handling) — closed by bumping vitest to 3.x and forcing a patched vite resolution across the workspace. Applied to both the root workspace and the license-issuer scaffold.
+- **hono family** (6 moderate CVEs — GHSA-r5rp-j6wh-rvv4, GHSA-xpcf-pg52-r92g, GHSA-26pp-8wgv-hjvm, GHSA-wmmm-f939-6g9c, GHSA-xf4j-xp2r-rqqx, GHSA-92pp-h63x-v22m) — closed by bumping hono and `@hono/node-server` to their patched versions. Both are transitive via the MCP SDK; no SDK upgrade required.
+
+### Testing
+
+- Test suite: **~3,076 tests**, 145 test files, ~125 seconds wall time on a developer laptop. Zero network access required for any test.
+- New test coverage for the Cross-Layer Coach, institutional ECL, symbol parser, Golden Pattern matching, Change Capsule block recommendation, fleet aggregator, and policy dispatcher.
+
+### Documentation
+
+- Refreshed `docs/CLI_COMMAND_REFERENCE.md` with the new v0.10 commands (Coach, Fleet, ECL, Symbol Graph, Release Truth, Memory seed-patterns).
+
+---
+
 ## 0.9.2 (2026-04-05)
 
 Context Fabric release — MCP server, engineering dashboard, pattern lifecycle, Semantic Fortress, merge verification.

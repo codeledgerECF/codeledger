@@ -1799,6 +1799,196 @@ Returns the recent truth-ledger tail without rereading the entire timeline.
 npx codeledger broker timeline --limit 10 --json
 ```
 
+## Cross-Layer Intelligence (v0.10)
+
+These commands fuse the structural graph, local behavioral outcomes, and institutional / team lessons into deterministic, evidence-cited guidance. No LLM in the scoring path.
+
+### `coach --intent "<goal>"`
+
+Cross-layer guided implementation plan. Reads the current graph snapshot, local outcome history, and any institutional lessons synced into the repo, and emits a structured plan with advice items that each cite a verifiable evidence string.
+
+```bash
+npx codeledger coach --intent "Add OIDC support to auth login"
+npx codeledger coach --intent "..." --json
+```
+
+The coach refuses to give structural advice when the graph snapshot is stale relative to the current HEAD. Run `graph index` first in that case.
+
+### `graph index`
+
+Builds a symbol-level structural snapshot of the repository using the TypeScript compiler API. Extracts top-level exported functions, classes, interfaces, types, enums, and import edges, and writes a commit-SHA-stamped snapshot plus a HEAD pointer under `.codeledger/graph/`. Auto-prunes to the most recent snapshots.
+
+```bash
+npx codeledger graph index
+npx codeledger graph index --json
+```
+
+### `graph architecture`
+
+Explicit alias for the legacy package-level architecture graph view.
+
+```bash
+npx codeledger graph architecture
+```
+
+### `ecl sync`
+
+Manage the institutional / remote ECL — a schema for cross-project "lessons learned" at `.codeledger/ecl/remote/`. The current transport is committed JSON files; the schema is ready for future network-based transports.
+
+```bash
+npx codeledger ecl sync --seed            # write a deterministic seed fixture
+npx codeledger ecl sync --from <dir>      # copy outcomes.jsonl/lessons.jsonl from a local dir
+```
+
+### `ecl status`
+
+Show the remote ECL manifest + record counts.
+
+```bash
+npx codeledger ecl status
+npx codeledger ecl status --json
+```
+
+### `memory seed-patterns`
+
+Extract "Institutional North Star" patterns from successful task history. Filters your outcome ledger for consistently successful, high-confidence execution groups and promotes them into the Golden Patterns ledger. The Prompt Coach then surfaces matched patterns inline when a new task arrives — the cold-start fix for new team members.
+
+```bash
+npx codeledger memory seed-patterns                  # all sources
+npx codeledger memory seed-patterns --from ecl
+npx codeledger memory seed-patterns --dry-run --json
+```
+
+## Release Truth
+
+An append-only stream of `verify` outcomes per commit. Each run emits a structured PASS / WARN / FAIL event with traceable findings.
+
+### `release-truth`
+
+Show raw release-truth events for a commit.
+
+```bash
+npx codeledger release-truth                        # latest commit
+npx codeledger release-truth --commit <sha>
+npx codeledger release-truth --commit <sha> --json
+```
+
+### `release-history`
+
+Show release-truth aggregates and recent verify history for the current repo.
+
+```bash
+npx codeledger release-history
+```
+
+### `release-insights`
+
+Narrative + aggregate release-truth insights for the current repo over a time window.
+
+```bash
+npx codeledger release-insights
+```
+
+## Fleet — Cross-Repo Enterprise Insights (Enterprise tier)
+
+Phase 1 cross-repo insights for enterprise customers with multiple CodeLedger-instrumented repos. Same trust boundary, many repos. The manifest is the source of truth for which repos belong to the fleet; data is read from each repo's local `.codeledger/` on the operator's filesystem.
+
+**Manifest schema** (recommended location: `<your-org>/.github/codeledger-fleet.json`):
+
+```json
+{
+  "schema_version": "codeledger/fleet/v1",
+  "name": "Acme Engineering",
+  "repos": [
+    { "id": "payments",   "local_path": "/repos/payments-service",   "team": "fintech-alpha" },
+    { "id": "checkout",   "local_path": "/repos/checkout-service",   "team": "fintech-alpha" },
+    { "id": "design-sys", "local_path": "/repos/design-system",      "team": "frontend-platform" }
+  ]
+}
+```
+
+**Manifest resolution order:** `--manifest <path>` → `./codeledger-fleet.json` → `./.codeledger/fleet.json` → `~/.codeledger/fleet.cache.json`.
+
+**Help is free; running the feature requires an Enterprise license.** `codeledger fleet help` and `codeledger fleet --help` always work; the other subcommands are tier-gated.
+
+### `fleet sync`
+
+Pull a fleet manifest into the local cache (`~/.codeledger/fleet.cache.json`).
+
+```bash
+npx codeledger fleet sync --from-github acme-corp/.github
+npx codeledger fleet sync --from-github acme-corp/codeledger-config:fleet.json
+npx codeledger fleet sync --from /path/to/local/codeledger-fleet.json
+```
+
+GitHub mode uses the operator's existing `gh` CLI authentication — no new auth surface.
+
+### `fleet status`
+
+Per-repo health line for every repo in the fleet manifest.
+
+```bash
+npx codeledger fleet status
+npx codeledger fleet status --json
+```
+
+### `fleet aggregate`
+
+Walk every repo and produce a cross-fleet report with per-team totals, first-pass success rates, golden pattern counts, prevented-issue totals, and the union of fleet-wide hotspots.
+
+```bash
+npx codeledger fleet aggregate
+npx codeledger fleet aggregate --json
+npx codeledger fleet aggregate --out fleet-report.json
+```
+
+### `fleet compare --team-a A --team-b B`
+
+Side-by-side metric comparison for two teams in the fleet. Surfaces deltas in outcome volume, first-pass success rate, golden pattern adoption, and prevented issues, with a deterministic delta column and a headline insight when the first-pass gap is meaningful.
+
+```bash
+npx codeledger fleet compare --team-a fintech-alpha --team-b fintech-beta
+```
+
+### `fleet hotspots`
+
+Top failing files unioned across the entire fleet, ranked and tagged by repo so the platform team can see where tech debt is accumulating fastest across the org.
+
+```bash
+npx codeledger fleet hotspots --top 10
+npx codeledger fleet hotspots --top 25 --json
+```
+
+### `fleet dashboard`
+
+Render a self-contained HTML fleet dashboard (dark theme, no external dependencies, no JavaScript). Output defaults to `.codeledger/fleet-dashboard.html`.
+
+```bash
+npx codeledger fleet dashboard
+npx codeledger fleet dashboard --out /tmp/fleet-dashboard.html
+```
+
+### `fleet insights`
+
+Time-windowed Release Truth fleet rollup. Aggregates PASS/WARN/FAIL rates and high-risk repo count across every repo in the manifest.
+
+```bash
+npx codeledger fleet insights                    # default window: 7d
+npx codeledger fleet insights --window 24h
+npx codeledger fleet insights --window 30d --json
+```
+
+### `fleet alerts`
+
+Deterministic risk-spike and concentration alerts. Compares recent vs baseline windows of release-truth data; for every detected spike, persists a `RISK_ALERT` event back into the affected repo's local release-truth log so the next developer in that repo sees the same warning that the VP saw in the fleet view.
+
+```bash
+npx codeledger fleet alerts
+npx codeledger fleet alerts --json
+```
+
+This is the closed loop at the org level: a failing release in one repo becomes a visible fleet alert, and the alert then flows back into per-repo developer warnings. No human in the relay.
+
 ## Licensing and Tiers
 
 ### `upgrade`
