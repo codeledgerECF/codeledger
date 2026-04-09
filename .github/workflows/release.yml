@@ -172,27 +172,37 @@ jobs:
             echo "  ✓ No test files"
           fi
 
-          # Check 5: No proprietary identifiers in open standalone
-          # Patterns are base64-encoded to avoid publishing the denylist in a
-          # public workflow file. Decoded at runtime, matched against the bundle.
-          OPEN_CJS=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
-          if [ -n "$OPEN_CJS" ]; then
-            # Base64-encoded newline-separated pattern list (opaque to casual reading)
-            PATTERNS_B64="Y29tcHV0ZUNjcwpjaGVja0ludGVudFN1ZmZpY2llbmN5CnZlcmlmeVNpZ25lZExpY2Vuc2UKcGFyc2VMaWNlbnNlS2V5CmJ1aWxkRmFpbHVyZUhvdHNwb3RzCmFuYWx5emVTZXNzaW9uRGVuc2l0eQpzY29yZUNhbmRpZGF0ZQpyYW5rRmlsZXMKc2hhZG93U2NvcmluZwpidWlsZE1pbmltYWxTbGljZQpidWlsZFN5bWJvbEcKYXNzZXNzUmlzawpkZXRlY3RDb2xsaXNpb25zCnRhZ1NlbnNpdGl2ZUxpbmVzCnJlZ3Jlc3Npb25XYXJuaW5nc1RvRmluZGluZ3M="
-            PATTERNS=$(echo "$PATTERNS_B64" | base64 -d 2>/dev/null || echo "$PATTERNS_B64" | base64 --decode)
-            ALGO_HITS=0
-            while IFS= read -r pattern; do
-              [ -z "$pattern" ] && continue
-              hits=$(grep -c "$pattern" "$OPEN_CJS" 2>/dev/null || echo 0)
-              ALGO_HITS=$((ALGO_HITS + hits))
-            done <<< "$PATTERNS"
-            if [ "$ALGO_HITS" -gt 0 ]; then
-              echo "::error::FAIL: proprietary identifiers found in open standalone"
-              FAIL=1
-            else
-              echo "  ✓ No proprietary identifiers in open standalone"
+          # Check 5: No proprietary identifiers ANYWHERE in the package
+          #
+          # The 2026-04-08 adversarial audit proved that a narrow check
+          # (scanning a single known bundle file) misses leaks that live
+          # in node_modules transitives. v0.10.5's @codeledger/engine and
+          # @codeledger/selector shipped the full scoring engine via the
+          # @codeledger/cli workspace-dep tree, and the prior single-file
+          # check could not see it. This broadened check greps every .js
+          # file in the tarball for crown-jewel tokens.
+          #
+          # Denylist is base64-encoded so this public workflow file doesn't
+          # publish the crown-jewel naming roadmap. Decoded at runtime.
+          PATTERNS_B64="Y29tcHV0ZUNjcwpjaGVja0ludGVudFN1ZmZpY2llbmN5CnZlcmlmeVNpZ25lZExpY2Vuc2UKcGFyc2VMaWNlbnNlS2V5CmJ1aWxkRmFpbHVyZUhvdHNwb3RzCmFuYWx5emVTZXNzaW9uRGVuc2l0eQpzY29yZUNhbmRpZGF0ZQpzY29yZUZpbGUKcmFua0ZpbGVzCnNoYWRvd1Njb3JpbmcKYnVpbGRNaW5pbWFsU2xpY2UKYnVpbGRTeW1ib2xHCmFzc2Vzc1Jpc2sKZGV0ZWN0Q29sbGlzaW9ucwp0YWdTZW5zaXRpdmVMaW5lcwpyZWdyZXNzaW9uV2FybmluZ3NUb0ZpbmRpbmdzCkRFRkFVTFRfS05PV0xFREdFX1dFSUdIVFMKREVGQVVMVF9TRVZFUklUWV9XRUlHSFRTCktOT1dMRURHRV9GT0xERVJfUFJJT1JTCkRPQ19UWVBFX1BSSU9SUwpnYXRlVGVtcG9yYWxGZWF0dXJlcwpjbGFzc2lmeVNldmVyaXR5CldFQUtfU0lHTkFMX0NBUFMKV19ERVBFTkRFTkNZX0NPVkVSQUdFCldfVEVTVF9DT1ZFUkFHRQpXX0hJU1RPUklDQUxfU1VDQ0VTUwpXX1NZTUJPTF9DT01QTEVURU5FU1MKV19FWFBBTlNJT05fRUZGSUNJRU5DWQpXX1RPS0VOX1NJR05BTApXX09QRVJBVElPTl9DTEFSSVRZCldfRE9NQUlOX0NMQVJJVFkKV19UQVJHRVRfU1BFQ0lGSUNJVFkKV19DT05TVFJBSU5UX1BSRVNFTkNFCkNDU19QUk9DRUVEX1RIUkVTSE9MRApJU0NfU1VGRklDSUVOVF9USFJFU0hPTEQKX19DT0RFTEVER0VSX1BST1RFQ1RFRF9NT0RVTEVfQ0FDSEVfXwpfX2NvZGVsZWRnZXJfcHJvdGVjdGVkX3J1bnRpbWVfXwp2YWxpZGF0ZUxlZGdlcldyaXRlRmllbGQ="
+          PATTERNS=$(echo "$PATTERNS_B64" | base64 -d 2>/dev/null || echo "$PATTERNS_B64" | base64 --decode)
+          ALGO_HITS=0
+          while IFS= read -r pattern; do
+            [ -z "$pattern" ] && continue
+            # Fixed-string recursive grep across every .js file in the extracted tarball
+            if grep -rF -l "$pattern" "$WORK_DIR" --include='*.js' >/dev/null 2>&1; then
+              ALGO_HITS=$((ALGO_HITS + 1))
             fi
+          done <<< "$PATTERNS"
+          if [ "$ALGO_HITS" -gt 0 ]; then
+            echo "::error::FAIL: ${ALGO_HITS} proprietary identifier(s) found in package tarball"
+            FAIL=1
+          else
+            echo "  ✓ No proprietary identifiers found in any .js file"
           fi
+
+          # Legacy narrow check on the open standalone, kept as a redundancy.
+          OPEN_CJS=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
 
           # Check 6: Open standalone size limit (proxy for leak detection)
           # A clean open build should be under 100KB. Any larger suggests
