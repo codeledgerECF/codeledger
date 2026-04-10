@@ -112,16 +112,33 @@ jobs:
 
           echo "✓ Tarball hardened: removed $MAP_COUNT maps, $DECL_COUNT declarations"
 
-      - name: Verify CLI works
+      - name: Verify wrapper installs
+        # CRITICAL — chicken-and-egg note (added 2026-04-09 after run 24220954958):
+        #
+        # As of v0.10.6, @codeledger/cli is a thin wrapper. Its postinstall
+        # script downloads the hardened binary from THIS public release. But
+        # this workflow IS the workflow that creates the public release, so
+        # the binary URL doesn't exist yet at this point — postinstall would
+        # 404 and fail, killing release.yml before it can `gh release create`.
+        # That deadlock prevents v0.10.6 from ever publishing.
+        #
+        # Fix: set CODELEDGER_SKIP_POSTINSTALL=1 to skip the binary download
+        # entirely, then verify the wrapper installed correctly via npm list
+        # (no binary invocation needed). The downstream IP leak detection +
+        # promote_binaries job in release-dispatch.yml handle the binary side
+        # separately.
+        env:
+          CODELEDGER_SKIP_POSTINSTALL: "1"
         run: |
           npm install -g "./${NPM_TARBALL}"
-          INSTALLED_VERSION=$(codeledger --version 2>/dev/null | grep -oE '^[[:alpha:]-]+ v?[0-9]+\.[0-9]+\.[0-9]+$' | tail -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
-          echo "Installed CLI version: $INSTALLED_VERSION"
+          INSTALLED_VERSION=$(npm list -g @codeledger/cli --depth=0 2>/dev/null | grep -oE '@codeledger/cli@[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/.*@//')
+          echo "Installed wrapper: @codeledger/cli@${INSTALLED_VERSION:-unknown}"
 
           if [ "$INSTALLED_VERSION" != "$VERSION" ]; then
-            echo "::error::Version mismatch — expected $VERSION, got $INSTALLED_VERSION"
+            echo "::error::Version mismatch — expected $VERSION, got ${INSTALLED_VERSION:-unknown}"
             exit 1
           fi
+          echo "✓ Wrapper installed cleanly (binary fetch skipped — see comment above)"
 
       - name: Verify no IP leakage in shipped package
         run: |
