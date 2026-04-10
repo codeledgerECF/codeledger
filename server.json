@@ -6,12 +6,12 @@
     "url": "https://github.com/codeledgerECF/codeledger",
     "source": "github"
   },
-  "version": "0.10.6",
+  "version": "0.10.7",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@codeledger/cli",
-      "version": "0.10.6",
+      "version": "0.10.7",
       "transport": {
         "type": "stdio"
       },
