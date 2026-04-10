@@ -1,4 +1,4 @@
-# Getting Started with CodeLedger
+# Getting Started with ContextECF CodeLedger
 
 Need a command-by-command walkthrough with example output? See [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md).
 Looking beyond developer workflow? See [Beyond CodeLedger](docs/context-ecf.md).
@@ -6,6 +6,8 @@ Looking beyond developer workflow? See [Beyond CodeLedger](docs/context-ecf.md).
 CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
 
 It works with every major AI coding agent, in every environment: desktop apps, browser-based IDEs, CLI terminals, and as a plugin.
+
+It is built on the **Enterprise Context Fabric** solution from Intelligent Context AI Inc. You can learn more about other use cases at **https://timetocontext.co**
 
 ---
 
