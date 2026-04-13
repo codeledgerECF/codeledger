@@ -747,7 +747,7 @@ Start free. Tier up when your team — or your compliance team — needs more.
 - [CodeLedger](https://codeledger.dev)
 - [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
 - [ContextECF Enterprise](https://timetocontext.co)
-
+[![codeledger MCP server](https://glama.ai/mcp/servers/codeledgerECF/codeledger/badges/score.svg)](https://glama.ai/mcp/servers/codeledgerECF/codeledger)
 ## Philosophy
 
 Large context windows are not the answer.
