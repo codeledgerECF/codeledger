@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10.7 (Unreleased)
+
+### Added
+- **`codeledger refresh`** — explicit in-session alias for `scan` when you want to force the repo index and graph current before continuing work.
+- **`codeledger init` initial scan** — init now warms the repo index automatically so new repos do not need a separate first `scan` step. Use `--no-scan` to skip that work.
+
+### Changed
+- **Smarter activation refresh** — `codeledger activate` still rescans when the index is time-stale and now also rescans when structural repo changes are detected, such as added/deleted/renamed source files or important config/workspace files.
+- **Automatic runtime pattern promotion** — `session-summary --final` now records deterministic promotion decisions, skips duplicate silent promotions, and exposes the current promoted patterns plus recent decisions via `codeledger memory patterns`.
+- **Pattern retrieval trust ordering** — close pattern matches now break ties using conservative trust signals such as lifecycle status, reuse, confidence, and merge history instead of relying on topical relevance alone.
+- **Human-readable trust output** — `broker refresh`, `broker current`, and `memory patterns` now explain pattern strength directly in CLI output instead of requiring `--json`.
+
+### Fixed
+- **Claude hook auto-refresh reliability** — fixed the generated `UserPromptSubmit` hook so meaningful-task refresh runs correctly in hook-aware Claude sessions instead of failing on malformed shell.
+
 ## 0.10.2 (2026-04-08)
 
 Critical hotfix for v0.10.0 and v0.10.1.
@@ -84,7 +99,7 @@ Context Fabric release — MCP server, engineering dashboard, pattern lifecycle,
 - **Pattern Distillation** — automatically identifies high-value patterns from successful sessions and promotes them for reuse.
 - **Pattern Lifecycle** — patterns move through: emerging → validated → mixed → stale → retired. Confidence scoring. Anti-pattern detection from repeated failures.
 - **Evidence Hash Chain** — every evidence entry includes `prevHash` (SHA-256 of previous entry). Tamper-evident append-only log.
-- **Sync Commands** — `codeledger sync push/pull/hydrate` for team pattern sharing via GitHub shadow repo. Staging-only for v0.9.2.
+- **Sync Commands** — `codeledger sync push/pull/hydrate` for team pattern sharing via GitHub shadow repo. Staging is privacy-sanitized by default and preserves repo-relative paths when safe. Staging-only for v0.9.2.
 - **Two-Loop UX** — all CLI commands show ⚡ Now (immediate value) + 💎 Next (compounding value).
 
 ### Improved

@@ -16,7 +16,7 @@ node .codeledger/bin/codeledger-standalone.cjs <command>
 
 ### `init`
 
-Initializes `.codeledger/` in the current repository.
+Initializes `.codeledger/` in the current repository and warms the initial repo index.
 
 ```bash
 npx codeledger init
@@ -64,6 +64,17 @@ Suggested next commands
   - codeledger policy review
   - codeledger policy review --json
 ```
+
+### `refresh`
+
+Explicit in-session alias for `scan`.
+
+```bash
+npx codeledger refresh
+```
+
+Use this when you want to force the repo graph and index current before continuing.
+Structural repo changes still trigger automatic rescans during activation, so `refresh` is mainly the explicit "make it current now" option.
 
 ### `memory status`
 
@@ -560,6 +571,8 @@ Shows end-of-session value metrics.
 ```bash
 npx codeledger session-summary --final
 ```
+
+On `--final`, high-density successful sessions can auto-promote into reusable runtime patterns. CodeLedger records the promotion decision either way so you can inspect why a session was promoted or skipped.
 
 Example output:
 
@@ -1178,7 +1191,7 @@ Findings: 0 high severity
 
 ### `audit-export`
 
-Exports ledger/audit data. Output is sanitized by default; use `--raw` only for privileged internal workflows.
+Exports ledger/audit data. Output is sanitized by default; repo-local paths stay repo-relative when possible and raw machine paths are abstracted. Use `--raw` only for privileged internal workflows.
 
 ```bash
 npx codeledger audit-export --format jsonl --output audit.jsonl
@@ -1783,6 +1796,8 @@ Example output:
 }
 ```
 
+Without `--json`, the command also prints a `Matched patterns:` section that explains why a reusable pattern ranked highly, including lifecycle status, confidence, reuse count, promotion state, merge count, keyword/file hits, and the last promotion reason when available.
+
 ### `broker current`
 
 Returns the current active bundle, latest bundle delta, and recent timeline tail.
@@ -1790,6 +1805,8 @@ Returns the current active bundle, latest bundle delta, and recent timeline tail
 ```bash
 npx codeledger broker current --json
 ```
+
+Without `--json`, the command prints the current ranked files plus the same matched-pattern trust summary used by `broker refresh`.
 
 ### `broker timeline`
 
@@ -1858,6 +1875,17 @@ npx codeledger memory seed-patterns                  # all sources
 npx codeledger memory seed-patterns --from ecl
 npx codeledger memory seed-patterns --dry-run --json
 ```
+
+### `memory patterns`
+
+Shows promoted runtime patterns plus recent automatic promotion decisions.
+
+```bash
+npx codeledger memory patterns
+npx codeledger memory patterns --json
+```
+
+The human-readable view shows each pattern's lifecycle status, confidence, trust basis (`reuse` and occurrences), promotion state, and latest promotion reason.
 
 ## Release Truth
 
@@ -1935,6 +1963,7 @@ npx codeledger fleet status --json
 ### `fleet aggregate`
 
 Walk every repo and produce a cross-fleet report with per-team totals, first-pass success rates, golden pattern counts, prevented-issue totals, and the union of fleet-wide hotspots.
+Saved and JSON reports sanitize repo-local filesystem paths by default so shareable reports do not leak operator machine structure.
 
 ```bash
 npx codeledger fleet aggregate
@@ -1996,7 +2025,7 @@ This is the closed loop at the org level: a failing release in one repo becomes 
 Shows what Pro unlocks and how to activate it.
 
 ```bash
-npx codeledger upgrade
+./.codeledger/bin/codeledger upgrade
 ```
 
 Example output:
@@ -2005,7 +2034,8 @@ Example output:
 Upgrading to CodeLedger Pro...
 One Pro license unlocks both Team and Enterprise.
 After checkout, activate your license with one of:
-  npx codeledger license activate <your-key>
+  Repo-local: ./.codeledger/bin/codeledger license activate <your-key>
+  Global: codeledger license activate <your-key>
   Browser/cloud: node .codeledger/bin/codeledger-standalone.cjs license activate <your-key>
 ```
 
@@ -2014,7 +2044,7 @@ After checkout, activate your license with one of:
 Activates a Pro license key locally.
 
 ```bash
-npx codeledger license activate CL-PRO-TEST-AAAA-BBBB
+codeledger license activate CL-PRO-TEST-AAAA-BBBB
 ```
 
 Example output:
@@ -2030,7 +2060,7 @@ Plan: Pro
 Shows current license state.
 
 ```bash
-npx codeledger license status
+codeledger license status
 ```
 
 Example output:
@@ -2039,7 +2069,8 @@ Example output:
 CodeLedger Free
 Status: Not activated
 Run one of:
-  npx codeledger upgrade
+  Repo-local: ./.codeledger/bin/codeledger upgrade
+  Global: codeledger upgrade
 ```
 
 ### `license deactivate --yes`
@@ -2047,7 +2078,7 @@ Run one of:
 Removes the active license and returns to free mode.
 
 ```bash
-npx codeledger license deactivate --yes
+codeledger license deactivate --yes
 ```
 
 Example output:
@@ -2062,7 +2093,7 @@ CodeLedger is now in Individual (free) mode.
 Turns on Team mode after licensing.
 
 ```bash
-npx codeledger enable team
+codeledger enable team
 ```
 
 Example output:
@@ -2079,7 +2110,7 @@ You now have access to:
 Turns on Enterprise mode after licensing.
 
 ```bash
-npx codeledger enable enterprise
+codeledger enable enterprise
 ```
 
 Example output:

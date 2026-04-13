@@ -55,7 +55,7 @@ CodeLedger solves the problem of **agents reading the wrong files first** in rep
 2. Drag `install.sh` from the extracted folder into your terminal window
 3. Press Enter
 
-The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry lookup needed.
+The installer uses the bundled package from the zip, so the installed wrapper version matches the release. The wrapper then fetches the matching hardened binary from the GitHub release unless your environment already provides it.
 
 ### Option B: Install from npm
 
@@ -252,6 +252,7 @@ This generates two files in one command:
 | `codeledger activate --task "..." --explain` | See why each file was selected |
 | `codeledger activate --task "..." --expand` | Double the budget for broader coverage |
 | `codeledger scan` | Force rebuild the repo index |
+| `codeledger refresh` | In-session alias for `scan` |
 | `codeledger refine --learned "..."` | Re-score mid-session with new context |
 | `codeledger session-summary` | Check recall/precision after commits |
 | `codeledger session-progress` | Snapshot progress (survives compaction) |
@@ -308,7 +309,7 @@ CodeLedger auto-detects 42 file extensions across 15 language families (JS/TS, P
 
 ### "No .codeledger/config.json found"
 
-Run `codeledger init` first. This creates the config and directory structure.
+Run `codeledger init` first. This creates the config and directory structure and warms the initial repo index.
 
 ### "Repo index is empty"
 

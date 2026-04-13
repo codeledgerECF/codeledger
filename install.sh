@@ -3,7 +3,8 @@
 #  CodeLedger — Install Script
 #
 #  This script installs CodeLedger from a local zip distribution.
-#  It installs from the bundled .tgz package (no internet required).
+#  It installs from the bundled .tgz package when present.
+#  The wrapper may fetch the matching hardened binary from the release.
 #  Falls back to npm registry if the .tgz is missing.
 #
 #  Usage:

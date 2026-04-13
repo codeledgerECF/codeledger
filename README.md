@@ -343,7 +343,7 @@ For a command-by-command walkthrough with example output, see **[docs/CLI_COMMAN
 
 ### Alternative: Download from GitHub Releases
 
-**[Download the latest release](https://github.com/codeledgerECF/codeledger/releases/latest)** — extract the zip, then drag `install.sh` into your terminal and press Enter. The installer uses the bundled package from the zip, so the installed version always matches the release — no npm registry required.
+**[Download the latest release](https://github.com/codeledgerECF/codeledger/releases/latest)** — extract the zip, then drag `install.sh` into your terminal and press Enter. The installer uses the bundled package from the zip, so the installed wrapper version matches the release. The wrapper then fetches the matching hardened binary from the GitHub release unless your environment already provides it.
 
 ## Best For
 
@@ -394,7 +394,7 @@ That repo-local wrapper prefers a newer global `codeledger` install on your mach
 
 ### Claude Code (Zero Setup)
 
-CodeLedger ships with Claude Code hooks. Just run `codeledger init` and start Claude Code — the SessionStart hook handles activation automatically.
+CodeLedger ships with Claude Code hooks. Just run `codeledger init` and start Claude Code — `init` warms the repo index, and the SessionStart hook handles activation automatically.
 
 | Hook | When | What |
 |------|------|------|
@@ -429,6 +429,7 @@ For plugin-first, mid-session retrieval, ask CodeLedger for refreshed context be
 ```
 
 That returns the active bundle, top-ranked files, and bundle delta for the task shift. Use `rg` or manual file search only if the broker result is insufficient.
+Human-readable broker output also includes matched runtime patterns with ranking reasons like lifecycle status, confidence, reuse count, promotion state, merge count, and the most recent promotion rationale.
 
 For session-aware inspection during the same run:
 
@@ -438,6 +439,8 @@ For session-aware inspection during the same run:
 ```
 
 `codeledger scan` ends with a compact executive summary, grouped policy recommendations, and suggested next commands. Use `codeledger scan --full-policy` when you want the full override list instead of the compact default view.
+`codeledger refresh` is an in-session alias for the same rebuild when you want an explicit “make the repo graph current now” command.
+`codeledger memory patterns` shows promoted runtime patterns along with trust basis and promotion state for quick inspection.
 
 For relevance-managed architectural memory:
 
@@ -481,6 +484,7 @@ codeledger doctor                        # Integration health check (config, hoo
 
 # ── Context Selection (daily use) ─────────────────────────────
 codeledger scan                          # Build repo index (dep graph, churn, test map)
+codeledger refresh                       # Explicit in-session refresh alias for scan
 codeledger bundle --task "…"             # Generate a deterministic context bundle
   --scope "src/auth/,src/api/"           #   Restrict to path prefixes (monorepo-friendly)
   --near-misses                          #   Show files that almost made the cut
@@ -747,7 +751,7 @@ Start free. Tier up when your team — or your compliance team — needs more.
 - [CodeLedger](https://codeledger.dev)
 - [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
 - [ContextECF Enterprise](https://timetocontext.co)
-[![codeledger MCP server](https://glama.ai/mcp/servers/codeledgerECF/codeledger/badges/score.svg)](https://glama.ai/mcp/servers/codeledgerECF/codeledger)
+
 ## Philosophy
 
 Large context windows are not the answer.
