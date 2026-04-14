@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.10.10 (Unreleased)
+
+### Added
+- **Unified TaskContext** — single context object that flows through the entire activate → execute → verify → learn lifecycle. Replaces the pattern of each stage independently reading from disk.
+- **ActivationGate middleware** — single chokepoint for activation enforcement across CLI, MCP, and Broker surfaces. Feature-flagged (`CODELEDGER_ACTIVATION_GATE`), enabled by default.
+- **TIE visibility** — `activate` and `broker refresh` now show a "Task Intelligence" block with ISC scores, prompt lift percentage, task type, and refinement mode.
+- **StorageAdapter + EventBus** — unified persistence interface for lifecycle events. `WorkspaceStorageAdapter` backs onto existing JSONL files. `EventBus` provides synchronous event routing for downstream consumers.
+- **Cross-platform verification** — Docker audit battery tests across 4 Linux distros (Debian 12, Alpine 3.23, Node 18/20/22). Windows CI workflow enhanced with MCP enforcement and auto-refresh tests.
+- **MCP activation enforcement tests** — 6 new handler-level tests verifying degraded mode, task type classification, and prompt lift in MCP tool calls.
+
+### Changed
+- **Task type persists through lifecycle** — `transitionLifecyclePhase` records now carry `task_type`, `task_type_confidence`, `activation_source`, and `activation_state` (previously only activation records had these).
+- **Prompt lift in session summary** — ISC delta now shown in the receipt block (`Prompt lift: +50% (ISC 0.25 -> 0.75)`).
+- **Broker deduplication** — broker refresh skips its own activation when ambient pre-refresh already refreshed context for the same task. Provisional activation writes are deferred to avoid duplicate lifecycle records.
+- **Drift-aware confidence gate** — auto-refresh bypasses the ISC confidence gate when drift detection already validated the intent shift (MAJOR/CRITICAL drift from an existing task).
+
+### Fixed
+- **`buildMissingActivationQuality` crash** — no longer throws when called without optional `task`/`reason` args. Added null-coalescing guards for `finalPrompt`/`originalPrompt`.
+- **`session-summary` crash on bare config** — gracefully handles missing `config.workspace.artifacts_dir` and `cache_dir` with defaults.
+- **ESM `require` crash in `hydrateFromTaskHistory`** — restored proper ESM `import` for `node:fs` (the `require` call broke in ESM modules).
+- **Auto-refresh imperative follow-on rejection** — prompts like "Please make sure we have this happening in all environments" are no longer rejected when they follow an existing task with meaningful drift.
+
 ## 0.10.7 (Unreleased)
 
 ### Added

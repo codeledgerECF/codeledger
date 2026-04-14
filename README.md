@@ -367,6 +367,12 @@ Same task + same repo state = same file rankings and content. Every time.
 
 See [SCORING.md](docs/SCORING.md) for details on how files are scored.
 
+## Installation Note
+
+After a new release, `npm install -g @codeledger/cli` automatically fetches the hardened platform binary from GitHub Releases. For the first ~10 minutes following a release, the binary may still be uploading. The installer retries automatically with backoff — this is expected behavior, not an error.
+
+If you see "Binary pending" messages during install, simply wait. The installer handles the timing automatically and will complete within a few minutes.
+
 ## Quick Start
 
 ```bash
