@@ -32,27 +32,85 @@ This is the public-facing mental model: start with the right context, verify the
 
 ---
 
+## Task Lifecycle
+
+Every task follows a unified lifecycle: **Activate > Execute > Verify > Learn**. A single TaskContext object flows through all four phases, ensuring no metadata is lost between stages.
+
+| Phase | What happens | Key outputs |
+|-------|-------------|-------------|
+| **Activate** | Scan repo, score files, refine task prompt, generate context bundle | Context bundle, ISC score, task type classification |
+| **Execute** | Agent works within bundle. Broker delivers context to any surface. Discovery Gate checks for existing code. | Evidence records, read logs, drift detection |
+| **Verify** | Review Intelligence checks architecture. Completion Integrity Check verifies claims against diff. | Verification report, finding dispositions |
+| **Learn** | Session summary computes recall/precision. Patterns promoted or retired. Anti-patterns detected. | Session metrics, pattern candidates, episode records |
+
 ## Core Capabilities
 
 ### Context Selection
 
-CodeLedger scans the repository, ranks likely files for a task, and writes a focused bundle for the agent to use first.
+CodeLedger scans the repository and ranks files using 12 weighted scoring signals: keyword match, dependency centrality, git churn, recent touch, test relevance, size penalty, success/failure priors, error infrastructure, branch changes, co-commit affinity, and shadow file expansion.
+
+The result is a deterministic context bundle — same task, same repo state, same bundle.
+
+### Task Intelligence Engine (TIE)
+
+The TIE evaluates task prompt quality using Intent Sufficiency Check (ISC) scoring, refines vague prompts into scoped tasks, and reports prompt lift. A prompt like "fix the auth thing" (ISC 0.25) becomes "Fix authentication middleware in packages/cli to handle expired tokens" (ISC 0.75) — a 50% prompt lift that also produces a sharper, smaller bundle.
+
+The TIE surfaces its work in CLI output:
+```
+Task Intelligence
+  ISC: 0.25 -> 0.75 (+50% prompt lift)
+  Type: bug_fix (confidence: 0.87)
+  Refinement: silent (auto-scoped to packages/cli)
+```
+
+### Review Intelligence
+
+Architectural verification that detects:
+- Missing runtime validation on typed routes (P1)
+- Outbound HTTP calls without timeouts (P1)
+- Bypass of shared helpers (P2)
+- Circular dependencies and boundary violations via architecture graph (P1/P2)
+- Brittle test patterns (P2)
+
+Supports auto-fix (`codeledger fix`), invariant packs (`codeledger pack`), and convention learning (`codeledger learn`). Runs with zero configuration.
+
+### Discovery Gate
+
+Pre-build intelligence that scans the repo for existing capabilities before implementation begins. 8-stage pipeline producing one of three verdicts:
+- **GO_GENUINELY_NEW** — no overlap, safe to build
+- **GO_EXTENSION_ONLY** — overlap detected, extend the existing system
+- **NO_GO_ALREADY_EXISTS** — capability exists, use it
+
+Runs automatically during activation for implementation tasks.
 
 ### Verification
 
-CodeLedger checks claimed work against observable repo state, validation output, and policy.
+CodeLedger checks claimed work against observable repo state, validation output, and policy. The Completion Integrity Check (CIC) verifies claims against the git diff, runs ghost file detection, and evaluates neighborhood dependencies.
 
 ### Governance
 
-CodeLedger can apply local or CI guardrails to discourage duplicate systems, risky edits, and out-of-scope changes.
+CodeLedger applies local or CI guardrails including architecture policy (4-level scope hierarchy), discovery enforcement, and zone-based access control. The intervention engine detects duplication pressure, drift spikes, and governance breakdowns.
 
 ### Session Continuity
 
-CodeLedger keeps lightweight session artifacts so agents and humans can recover context after compaction, interruptions, or task shifts.
+CodeLedger keeps lightweight session artifacts so agents and humans can recover context after compaction, interruptions, or task shifts. The unified TaskContext enables fast hydration from context snapshots without JSONL scanning.
 
 ### Observability
 
-CodeLedger tracks operational signals such as drift, validation outcomes, and intervention opportunities so teams can see whether workflows are improving.
+CodeLedger tracks operational signals including drift, validation outcomes, and intervention opportunities. The Engineering Intelligence Dashboard provides outcome truth, agent scorecards, destabilization metrics, and value compounding — all grounded in deterministic evidence.
+
+### MCP Integration
+
+The MCP server exposes CodeLedger as tools for Claude Desktop, Cursor, and Windsurf. An ActivationGate ensures no context is delivered without task linkage — every MCP tool call either activates a task or surfaces degraded state honestly.
+
+### Insight System
+
+Three interrogation commands answer: Why did this happen? What patterns are emerging? What should I do next?
+- `codeledger explain` — structured narrative for the latest run
+- `codeledger learnings` — recurring patterns and hotspots
+- `codeledger next` — ranked action recommendations
+
+All deterministic. No LLMs.
 
 ---
 

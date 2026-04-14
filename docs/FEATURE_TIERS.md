@@ -5,15 +5,30 @@
 | Feature | Individual (Free) | Team | Enterprise |
 |---------|:-:|:-:|:-:|
 | **Context Selection** | | | |
-| activate — deterministic context selection | ✅ | ✅ | ✅ |
+| activate — deterministic context selection (12 signals) | ✅ | ✅ | ✅ |
 | bundle — task-specific file scoring | ✅ | ✅ | ✅ |
 | refine — mid-session re-scoring | ✅ | ✅ | ✅ |
+| Shadow file expansion (co-commit graph) | ✅ | ✅ | ✅ |
+| **Task Intelligence Engine** | | | |
 | Prompt Coach (4-level interaction) | ✅ | ✅ | ✅ |
+| ISC scoring (Intent Sufficiency Check) | ✅ | ✅ | ✅ |
+| Prompt lift reporting | ✅ | ✅ | ✅ |
+| Task type classification | ✅ | ✅ | ✅ |
+| Activation confidence gate (ambient/assisted/intercept) | ✅ | ✅ | ✅ |
 | **Verification & CI** | | | |
 | verify — architectural verification | ✅ | ✅ | ✅ |
+| Review Intelligence (6 invariant modules) | ✅ | ✅ | ✅ |
+| complete-check — completion integrity verification | ✅ | ✅ | ✅ |
 | ci check --json — stable CI contract | ✅ | ✅ | ✅ |
 | setup-ci — generate CI workflows | ✅ | ✅ | ✅ |
 | fix — auto-fix architectural violations | ✅ | ✅ | ✅ |
+| pre-pr — 10-check integrity stack | ✅ | ✅ | ✅ |
+| **Discovery & Architecture** | | | |
+| discover — pre-build duplicate detection | ✅ | ✅ | ✅ |
+| discover-check — PR diff compliance | ✅ | ✅ | ✅ |
+| Architecture Health Dashboard (AHS) | 🔒 | ✅ | ✅ |
+| Intervention Engine | 🔒 | ✅ | ✅ |
+| Architecture Policy (4-level governance) | 🔒 | ✅ | ✅ |
 | **Local Memory** | | | |
 | Evidence capture (session outcomes) | ✅ | ✅ | ✅ |
 | Episode generation (session summaries) | ✅ | ✅ | ✅ |
@@ -21,14 +36,26 @@
 | Pattern lifecycle (scoring, retirement) | ✅ | ✅ | ✅ |
 | Pattern distillation from successful sessions | ✅ | ✅ | ✅ |
 | Golden patterns (cold-start memory) | ✅ | ✅ | ✅ |
+| 5-ledger memory system (truth, validation, ontology, structure, evidence) | ✅ | ✅ | ✅ |
+| **Insight System** | | | |
+| explain — structured run narrative | ✅ | ✅ | ✅ |
+| learnings — recurring patterns and hotspots | ✅ | ✅ | ✅ |
+| next — ranked action recommendations | ✅ | ✅ | ✅ |
+| Value dashboard (prevented issues, work avoided) | ✅ | ✅ | ✅ |
+| Insight Packs (tiered knowledge packs) | ✅ | ✅ | ✅ |
 | **Dashboard** | | | |
 | Dashboard placeholder (teaser stats) | ✅ | ✅ | ✅ |
-| Full Engineering Dashboard | 🔒 | ✅ | ✅ |
+| Full Engineering Intelligence Dashboard | 🔒 | ✅ | ✅ |
+| Outcome Truth Engine | 🔒 | ✅ | ✅ |
+| Agent Scorecards | 🔒 | ✅ | ✅ |
+| Destabilization Metrics | 🔒 | ✅ | ✅ |
+| Value Compound (hours saved, dollar savings) | 🔒 | ✅ | ✅ |
+| Proof of Capability layer | 🔒 | ✅ | ✅ |
 | Static dashboard build (file:// compatible) | 🔒 | ✅ | ✅ |
-| Evidence drilldowns + full-page view | 🔒 | ✅ | ✅ |
-| Signal synthesis (executive TL;DR) | 🔒 | ✅ | ✅ |
 | **AI Agent Integration** | | | |
 | MCP server (Claude/Cursor/Windsurf) | 🔒 | ✅ | ✅ |
+| ActivationGate enforcement (unified) | ✅ | ✅ | ✅ |
+| Broker context API (refresh, current, timeline) | ✅ | ✅ | ✅ |
 | Skill manifest (.codeledger/skill.md) | ✅ | ✅ | ✅ |
 | **Team Coordination** | | | |
 | Claims + leases (advisory) | 🔒 | ✅ | ✅ |
@@ -46,6 +73,7 @@
 | Audit export (SIEM-ready JSON/CSV) | 🔒 | 🔒 | ✅ |
 | Multi-agent orchestration | 🔒 | 🔒 | ✅ |
 | Policy simulation | 🔒 | 🔒 | ✅ |
+| Fleet aggregation (cross-repo) | 🔒 | 🔒 | ✅ |
 
 ## Gating Implementation
 

@@ -139,20 +139,35 @@ Top files:
 
 ### `activate --task "..."`
 
-Creates or refreshes `.codeledger/active-bundle.md`.
+Creates or refreshes `.codeledger/active-bundle.md`. Runs the Task Intelligence Engine to evaluate prompt quality and optionally refine vague tasks.
 
 ```bash
-npx codeledger activate --task "Add pagination to products API"
+codeledger activate --task "Fix auth middleware to handle expired JWT tokens"
 ```
 
 Example output:
 
 ```text
-Repo index is fresh
-Bundle written: .codeledger/active-bundle.md
-Selected 14 files (5,120 tokens)
-Next: read the active bundle before editing
+Generating context bundle for: "Fix auth middleware to handle expired JWT tokens"
+Bundle: 11 files, ~8508 tokens | Confidence: HIGH
+Task bundle created.
+Written to .codeledger/active-bundle.md
+
+  Task Intelligence
+    ISC: 0.97 [##########] sufficient
+    Type: auth_change (confidence: 0.50)
+
+   Top files:
+     0.492  packages/cli/src/guardrails/workspace-validation.ts
+     0.489  packages/cli/src/memory/validation-ledger.ts
+     ... and 9 more
 ```
+
+The Task Intelligence block shows:
+- **ISC score**: Intent Sufficiency Check (0.00-1.00). Scores below 0.50 trigger interactive clarification.
+- **Prompt lift**: when the Prompt Coach refines a vague prompt, shows the ISC improvement (e.g., "+50% prompt lift")
+- **Task type**: classified task type (bug_fix, feature, refactor, auth_change, etc.)
+- **Refinement mode**: silent (auto-refined), assisted (user-confirmed), or none
 
 ### `task --task "..."`
 
@@ -1814,6 +1829,39 @@ Returns the recent truth-ledger tail without rereading the entire timeline.
 
 ```bash
 npx codeledger broker timeline --limit 10 --json
+```
+
+## Insight System (v0.10)
+
+Phase 2 insight commands make the system interrogable. All deterministic, no LLMs.
+
+### `explain`
+
+Explain the latest run using evidence, scoring signals, and prior outcome patterns.
+
+```bash
+codeledger explain
+codeledger explain --json
+codeledger explain --surface ide
+```
+
+### `learnings`
+
+Show recurring patterns, hotspots, and trend learnings from recent runs.
+
+```bash
+codeledger learnings
+codeledger learnings --limit 5
+codeledger learnings --surface markdown
+```
+
+### `next`
+
+Recommend the next best actions based on current signals and historical outcomes.
+
+```bash
+codeledger next
+codeledger next --limit 3 --json
 ```
 
 ## Cross-Layer Intelligence (v0.10)

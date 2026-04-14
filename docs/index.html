@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodeLedger — Deterministic Context Selection for AI Coding Agents</title>
-  <meta name="description" content="Give your AI coding agent the right files first. Deterministic, local, zero cloud dependencies. Works with Claude Code, Cursor, Codex, and any CLI-based agent.">
+  <title>CodeLedger — The Context Control Plane for AI Coding Agents</title>
+  <meta name="description" content="Deterministic context selection, task intelligence, and architectural verification for AI coding agents. Local-first. No cloud. No telemetry. Works with Claude Code, Cursor, Codex, and any CLI-based agent.">
   <style>
     :root {
       --bg: #0a0a0f;
@@ -16,6 +16,7 @@
       --accent-hover: #818cf8;
       --green: #22c55e;
       --orange: #f59e0b;
+      --red: #ef4444;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +30,6 @@
 
     .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
 
-    /* Header */
     header {
       padding: 20px 0;
       border-bottom: 1px solid var(--border);
@@ -54,7 +54,6 @@
     }
     .nav-links a:hover { color: var(--text); }
 
-    /* Hero */
     .hero {
       padding: 80px 0 60px;
       text-align: center;
@@ -72,7 +71,7 @@
     .hero .subtitle {
       font-size: 18px;
       color: var(--text-dim);
-      max-width: 560px;
+      max-width: 600px;
       margin: 0 auto 12px;
     }
     .agents {
@@ -82,7 +81,6 @@
     }
     .agents strong { color: var(--text); }
 
-    /* Download card */
     .download-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -91,107 +89,42 @@
       max-width: 480px;
       margin: 0 auto;
     }
-    .download-card h2 {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-    .download-card p {
-      color: var(--text-dim);
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
-    .form-group {
-      margin-bottom: 16px;
-      text-align: left;
-    }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      color: var(--text-dim);
-      margin-bottom: 6px;
-    }
+    .download-card h2 { font-size: 20px; margin-bottom: 8px; }
+    .download-card p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
     .form-group input, .form-group select {
-      width: 100%;
-      padding: 10px 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
+      width: 100%; padding: 10px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 15px; outline: none;
     }
-    .form-group input:focus, .form-group select:focus {
-      border-color: var(--accent);
-    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
     .form-group select option { background: var(--bg); }
-    .optional {
-      color: var(--text-dim);
-      font-size: 11px;
-      font-weight: normal;
-    }
+    .optional { color: var(--text-dim); font-size: 11px; font-weight: normal; }
 
     .btn-download {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
+      display: block; width: 100%; padding: 14px;
+      background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
     }
     .btn-download:hover { background: var(--accent-hover); }
-    .btn-download:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .skip-link {
-      display: block;
-      margin-top: 16px;
-      color: var(--text-dim);
-      font-size: 13px;
-      text-decoration: none;
-    }
+    .skip-link { display: block; margin-top: 16px; color: var(--text-dim); font-size: 13px; text-decoration: none; }
     .skip-link:hover { color: var(--text); }
+    .privacy-note { margin-top: 12px; font-size: 12px; color: var(--text-dim); }
 
-    .privacy-note {
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--text-dim);
-    }
+    .download-success { display: none; text-align: center; padding: 20px 0; }
+    .download-success .checkmark { font-size: 48px; margin-bottom: 12px; }
+    .download-success h3 { font-size: 18px; margin-bottom: 8px; }
+    .download-success p { color: var(--text-dim); font-size: 14px; }
 
-    /* Success state */
-    .download-success {
-      display: none;
-      text-align: center;
-      padding: 20px 0;
-    }
-    .download-success .checkmark {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    .download-success h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-    .download-success p {
-      color: var(--text-dim);
-      font-size: 14px;
-    }
+    /* Sections */
+    section { padding: 60px 0; }
+    section h2 { text-align: center; font-size: 28px; margin-bottom: 12px; }
+    section .section-sub { text-align: center; color: var(--text-dim); font-size: 15px; max-width: 560px; margin: 0 auto 40px; }
 
-    /* How it works */
-    .how-it-works {
-      padding: 60px 0;
-    }
-    .how-it-works h2 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 40px;
-    }
     .steps {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -204,26 +137,33 @@
       padding: 24px;
     }
     .step-num {
-      display: inline-block;
-      width: 28px;
-      height: 28px;
-      line-height: 28px;
-      text-align: center;
-      background: var(--accent);
-      color: white;
-      border-radius: 50%;
-      font-size: 14px;
-      font-weight: 700;
+      display: inline-block; width: 28px; height: 28px;
+      line-height: 28px; text-align: center;
+      background: var(--accent); color: white;
+      border-radius: 50%; font-size: 14px; font-weight: 700;
       margin-bottom: 12px;
     }
-    .step h3 {
-      font-size: 16px;
-      margin-bottom: 6px;
+    .step h3 { font-size: 16px; margin-bottom: 6px; }
+    .step p { font-size: 14px; color: var(--text-dim); }
+
+    /* Capabilities grid */
+    .capabilities {
+      border-top: 1px solid var(--border);
     }
-    .step p {
-      font-size: 14px;
-      color: var(--text-dim);
+    .cap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
     }
+    .cap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .cap-icon { font-size: 24px; margin-bottom: 12px; }
+    .cap h3 { font-size: 16px; margin-bottom: 6px; }
+    .cap p { font-size: 14px; color: var(--text-dim); }
 
     /* Stats */
     .stats {
@@ -237,16 +177,8 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 24px;
     }
-    .stat-num {
-      font-size: 36px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .stat-label {
-      font-size: 14px;
-      color: var(--text-dim);
-      margin-top: 4px;
-    }
+    .stat-num { font-size: 36px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
 
     /* Code block */
     .code-block {
@@ -258,32 +190,49 @@
     }
     .code-block pre {
       font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 14px;
-      line-height: 1.8;
-      overflow-x: auto;
+      font-size: 14px; line-height: 1.8; overflow-x: auto;
     }
     .code-comment { color: var(--text-dim); }
     .code-cmd { color: var(--green); }
+    .code-output { color: var(--orange); }
 
-    /* Footer */
+    /* Lifecycle section */
+    .lifecycle { border-top: 1px solid var(--border); }
+    .lifecycle-flow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .lifecycle-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .lifecycle-step.active { border-color: var(--accent); color: var(--accent); }
+    .lifecycle-arrow { color: var(--text-dim); font-size: 18px; }
+
     footer {
       padding: 40px 0;
       text-align: center;
       color: var(--text-dim);
       font-size: 13px;
     }
-    footer a {
-      color: var(--text-dim);
-      text-decoration: none;
-    }
+    footer a { color: var(--text-dim); text-decoration: none; }
     footer a:hover { color: var(--text); }
 
-    /* Responsive */
     @media (max-width: 640px) {
       .hero h1 { font-size: 28px; }
-      .steps { grid-template-columns: 1fr; }
+      .steps, .cap-grid { grid-template-columns: 1fr; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
       .download-card { padding: 24px; }
+      .lifecycle-flow { flex-direction: column; }
+      .lifecycle-arrow { transform: rotate(90deg); }
     }
   </style>
 </head>
@@ -303,14 +252,18 @@
 
   <section class="hero">
     <div class="container">
-      <h1>Give your agent the <em>right files</em> first</h1>
+      <h1>Your AI agent is <em>guessing</em> which files matter</h1>
       <p class="subtitle">
-        Deterministic context selection for AI coding agents.
-        No embeddings. No cloud. No telemetry. Fully local.
+        Every AI coding agent starts the same way: searching the entire repo for context.
+        It wastes tokens on irrelevant files, misses dependencies, and builds things that already exist.
+        Then you spend the next hour undoing its work.
+      </p>
+      <p class="subtitle" style="color: var(--accent); font-weight: 600; margin-top: 16px;">
+        CodeLedger gives your agent the right files, the right constraints, and the right patterns — before it writes a single line.
       </p>
       <p class="agents">
-        Works with <strong>Claude Code</strong> &middot; <strong>Cursor</strong> &middot; <strong>Codex</strong> &middot; <strong>Gemini CLI</strong> &middot; any CLI-based agent<br>
-        Multi-session ready — run parallel tabs with isolated context
+        Works with <strong>Claude Code</strong> &middot; <strong>Cursor</strong> &middot; <strong>Codex</strong> &middot; <strong>Gemini CLI</strong> &middot; <strong>Windsurf</strong> &middot; any CLI-based agent<br>
+        MCP integration &middot; Multi-session ready &middot; Zero-config hooks
       </p>
 
       <div class="download-card" id="downloadCard">
@@ -356,44 +309,104 @@
     </div>
   </section>
 
-  <section class="how-it-works">
+  <!-- Task Lifecycle -->
+  <section class="lifecycle">
     <div class="container">
-      <h2>How it works</h2>
+      <h2>One lifecycle. Every task.</h2>
+      <p class="section-sub">CodeLedger tracks every task from intent to outcome. Each phase produces evidence, not just output.</p>
+
+      <div class="lifecycle-flow">
+        <div class="lifecycle-step active">Activate</div>
+        <div class="lifecycle-arrow">&rarr;</div>
+        <div class="lifecycle-step">Execute</div>
+        <div class="lifecycle-arrow">&rarr;</div>
+        <div class="lifecycle-step">Verify</div>
+        <div class="lifecycle-arrow">&rarr;</div>
+        <div class="lifecycle-step">Learn</div>
+      </div>
+
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
-          <h3>Scans your repo</h3>
-          <p>Builds a dependency graph, git churn history, test mappings, and content index. Auto-detects 30+ languages. All local.</p>
+          <h3>Activate</h3>
+          <p>Scans your repo, scores every file, and delivers a focused context bundle. The Task Intelligence Engine refines vague prompts and reports ISC confidence scores.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
-          <h3>Scores every file</h3>
-          <p>Multi-signal weighted scoring combining task analysis, graph signals, history, and test pairing.</p>
+          <h3>Execute</h3>
+          <p>Your agent works within the context bundle. Discovery Gate checks for existing implementations. Broker delivers structured context to any surface.</p>
         </div>
         <div class="step">
           <div class="step-num">3</div>
-          <h3>Selects what matters</h3>
-          <p>Picks the top files within a token budget. Deterministic — same task, same repo, same bundle.</p>
+          <h3>Verify</h3>
+          <p>Review Intelligence detects missing validation, unguarded I/O, circular dependencies, and brittle tests. Completion Integrity Check verifies claims against the diff.</p>
         </div>
         <div class="step">
           <div class="step-num">4</div>
-          <h3>Delivers to your agent</h3>
-          <p>Writes a context bundle your agent reads immediately. No manual file discovery needed.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">5</div>
-          <h3>Isolates parallel sessions</h3>
-          <p>Each Claude Code tab gets its own session — separate bundles, separate state, with overlap detection.</p>
+          <h3>Learn</h3>
+          <p>Session summary shows recall, precision, and context reduction. Successful patterns are promoted. Failure hotspots compound into anti-patterns.</p>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- Capabilities -->
+  <section class="capabilities">
+    <div class="container">
+      <h2>What CodeLedger does</h2>
+      <p class="section-sub">Not another wrapper. A full context control plane with deterministic scoring, architectural verification, and compounding intelligence.</p>
+
+      <div class="cap-grid">
+        <div class="cap">
+          <div class="cap-icon">&#x1F3AF;</div>
+          <h3>Deterministic Context Selection</h3>
+          <p>12 weighted scoring signals per file. Dependency graph, git churn, test mappings, co-commit temporal index. Same task, same repo, same bundle.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F9E0;</div>
+          <h3>Task Intelligence Engine</h3>
+          <p>Evaluates prompt clarity (ISC scoring), refines vague tasks, and reports prompt lift. "fix bug" becomes a scoped, actionable task with 50%+ ISC improvement.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F50D;</div>
+          <h3>Review Intelligence</h3>
+          <p>Detects missing runtime validation, unguarded HTTP calls, circular dependencies, and brittle test patterns. Auto-fix available. Zero configuration.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F6E1;</div>
+          <h3>Discovery Gate</h3>
+          <p>Scans for existing implementations before you build. Verdicts: GO (new), EXTEND (overlap), or NO_GO (already exists). Prevents duplicate systems.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F4CA;</div>
+          <h3>Engineering Intelligence Dashboard</h3>
+          <p>Outcome truth, agent scorecards, destabilization metrics, and value compounding. Answers: "Is AI making the codebase more stable?" with deterministic evidence.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F517;</div>
+          <h3>MCP Integration</h3>
+          <p>Exposes context as MCP tools for Claude Desktop, Cursor, and Windsurf. Activation enforcement ensures no context is delivered without task linkage.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F4DD;</div>
+          <h3>Insight System</h3>
+          <p>Explains what happened (explain), shows recurring patterns (learnings), and recommends next actions (next). All deterministic, no LLMs.</p>
+        </div>
+        <div class="cap">
+          <div class="cap-icon">&#x1F3D7;</div>
+          <h3>Architecture Health</h3>
+          <p>5-component health score: duplication risk, extension discipline, source-of-truth stability, override frequency, and discovery coverage. Includes intervention engine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
   <section class="stats">
     <div class="container">
       <div class="stats-grid">
         <div>
-          <div class="stat-num">10</div>
+          <div class="stat-num">12</div>
           <div class="stat-label">Scoring signals per file</div>
         </div>
         <div>
@@ -405,13 +418,14 @@
           <div class="stat-label">Cloud dependencies</div>
         </div>
         <div>
-          <div class="stat-num">N</div>
-          <div class="stat-label">Parallel sessions (no hard cap)</div>
+          <div class="stat-num">30+</div>
+          <div class="stat-label">CLI commands</div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- Code Example -->
   <div class="container">
     <div class="code-block">
       <pre><span class="code-comment"># Install and initialize</span>
@@ -419,17 +433,125 @@
 <span class="code-cmd">cd your-project</span>
 <span class="code-cmd">codeledger init</span>
 
-<span class="code-comment"># One command — scan + score + bundle</span>
-<span class="code-cmd">codeledger activate --task "Fix null handling in user service"</span>
+<span class="code-comment"># Activate — scan + score + bundle + task intelligence</span>
+<span class="code-cmd">codeledger activate --task "Fix auth middleware to handle expired JWT tokens"</span>
+<span class="code-output">  Bundle: 11 files, ~8508 tokens | Confidence: HIGH</span>
+<span class="code-output">  Task Intelligence</span>
+<span class="code-output">    ISC: 0.97 [##########] sufficient</span>
+<span class="code-output">    Type: auth_change (confidence: 0.50)</span>
 
-<span class="code-comment"># Your agent now has .codeledger/active-bundle.md</span>
-<span class="code-comment"># with the right files, ranked by relevance.</span>
+<span class="code-comment"># Verify — architectural checks before PR</span>
+<span class="code-cmd">codeledger verify --task "Fix auth middleware"</span>
 
-<span class="code-comment"># Running multiple agent tabs? Each gets its own session:</span>
-<span class="code-cmd">codeledger session-init</span>
-<span class="code-cmd">codeledger sessions</span></pre>
+<span class="code-comment"># Session recap — how well did the bundle predict your changes?</span>
+<span class="code-cmd">codeledger session-summary</span>
+<span class="code-output">  Bundle predicted 8/9 files you changed (89% recall)</span>
+<span class="code-output">  Context: ~8.5K tokens vs ~2.1M full repo (99% reduction)</span></pre>
     </div>
   </div>
+
+  <!-- The Problem -->
+  <section style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <h2>The problem with AI coding today</h2>
+      <p class="section-sub">AI agents are powerful — but without the right context, they're expensive guessing machines.</p>
+      <div class="steps">
+        <div class="step">
+          <h3 style="color: var(--red);">Wrong files, wasted tokens</h3>
+          <p>Your agent reads 50 files to find the 5 that matter. You pay for the other 45 in tokens, latency, and hallucinated suggestions.</p>
+        </div>
+        <div class="step">
+          <h3 style="color: var(--red);">Builds what already exists</h3>
+          <p>Without knowing your codebase's structure, agents create duplicate systems. You discover the overlap during code review — or worse, in production.</p>
+        </div>
+        <div class="step">
+          <h3 style="color: var(--red);">No memory between sessions</h3>
+          <p>Every session starts from zero. Patterns that worked yesterday are forgotten today. Failures repeat. The agent never learns your codebase.</p>
+        </div>
+        <div class="step">
+          <h3 style="color: var(--red);">Can't prove what happened</h3>
+          <p>Engineering managers ask: "Is AI making us faster?" You have vibes, not evidence. No recall metrics, no outcome truth, no audit trail.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Insight Packs: Best Practices Ontology -->
+  <section style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <h2>Built on the best practices that matter</h2>
+      <p class="section-sub">
+        CodeLedger's Task Intelligence Engine is powered by Insight Packs — a curated ontology of 95+ prompt engineering signals and 20+ coding patterns drawn from leading AI platforms and academic research.
+      </p>
+      <div style="text-align: center; margin-bottom: 32px;">
+        <p style="font-size: 15px; color: var(--text-dim); margin-bottom: 16px;">Curated from public best-practice documentation published by:</p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; max-width: 600px; margin: 0 auto;">
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">Anthropic</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">OpenAI</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">AWS Bedrock</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">Google Gemini</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">SAP AI Launchpad</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">GitHub Copilot</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">Vanderbilt Prompt Patterns</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">CO-STAR Framework</span>
+          <span style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600;">SWE-bench</span>
+        </div>
+      </div>
+      <div class="cap-grid">
+        <div class="cap">
+          <h3>7 signal categories</h3>
+          <p>Meta-prompting, safety, chain-of-thought expansion, few-shot, structured output, self-critique, and enterprise governance.</p>
+        </div>
+        <div class="cap">
+          <h3>Repo-calibrated</h3>
+          <p>After scanning your codebase, CodeLedger generates a repo-specific pack that weights signals based on your language, framework, and patterns.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <h2>Evidence, not vibes</h2>
+      <p class="section-sub">
+        The Engineering Intelligence Dashboard answers the question every engineering leader asks:
+        "Is AI making the codebase more stable — and can you prove it?"
+      </p>
+      <div class="cap-grid">
+        <div class="cap">
+          <h3>6 real-data pages</h3>
+          <p>Overview, Integrity, Quality, Knowledge, Efficiency, and Value — all computed from your actual CodeLedger session data. No synthetic, no estimates.</p>
+        </div>
+        <div class="cap">
+          <h3>Engineering Intelligence</h3>
+          <p>Outcome truth, agent scorecards, destabilization metrics, and value compounding. Currently in proof-of-concept mode with synthetic scenarios — real data integration on the roadmap.</p>
+        </div>
+        <div class="cap">
+          <h3>Enterprise auto-deploy</h3>
+          <p>Enterprise tier includes automatic dashboard deployment to GitHub Pages on your organization's account — real-time data plus a synthetic welcome scenario to explore the full feature set.</p>
+        </div>
+        <div class="cap">
+          <h3>Self-hosted options</h3>
+          <p><code>codeledger serve</code> runs a local dashboard server. <code>codeledger dashboard build</code> generates static HTML. Docker and Kubernetes templates included.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tiers CTA -->
+  <section style="border-top: 1px solid var(--border); text-align: center;">
+    <div class="container">
+      <h2>Start free. Tier up when your team needs more.</h2>
+      <p class="section-sub">
+        Individual tier includes deterministic context selection, task intelligence, review intelligence, and the full insight system — no credit card required.
+        Team and Enterprise tiers add MCP integration, the full dashboard, architecture governance, and fleet-wide visibility.
+      </p>
+      <p style="margin-top: 24px;">
+        <a href="https://github.com/codeledgerECF/codeledger/blob/main/docs/FEATURE_TIERS.md" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">See full tier comparison &rarr;</a>
+      </p>
+    </div>
+  </section>
 
   <footer>
     <div class="container">
@@ -438,18 +560,9 @@
   </footer>
 
   <script>
-    // ── Configuration ──────────────────────────────────────────────────
-
-    // Paste your Google Apps Script web app URL here (see google-apps-script/SETUP.md)
-    const FORM_ENDPOINT = '';  // e.g. 'https://script.google.com/macros/s/AKfycbx.../exec'
-
-    // The actual download URL — points to the GitHub Release asset
+    const FORM_ENDPOINT = '';
     const DOWNLOAD_URL = 'https://github.com/codeledgerECF/codeledger/releases/latest/download/codeledger.zip';
-
-    // The fallback URL for "skip" link
     const RELEASES_URL = 'https://github.com/codeledgerECF/codeledger/releases';
-
-    // ── Form handling ──────────────────────────────────────────────────
 
     const form = document.getElementById('downloadForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -472,28 +585,24 @@
         source: 'landing-page',
       };
 
-      // Send lead data (fire-and-forget — don't block download on form service)
       try {
         if (FORM_ENDPOINT) {
           fetch(FORM_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
-            mode: 'no-cors', // works with Google Apps Script
+            mode: 'no-cors',
           });
         } else {
-          // No form endpoint configured yet — log to console
           console.log('Download lead (configure FORM_ENDPOINT to capture):', data);
         }
       } catch (err) {
         console.warn('Lead capture failed (download continues):', err);
       }
 
-      // Show success + trigger download
       formView.style.display = 'none';
       successView.style.display = 'block';
 
-      // Small delay so the user sees the success state
       setTimeout(function () {
         window.location.href = DOWNLOAD_URL;
       }, 600);

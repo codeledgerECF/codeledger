@@ -57,7 +57,12 @@ Returns scored pattern matches with relevance %, key files, and anti-pattern war
 
 Retrieve the current task-specific context bundle.
 
-Returns the pre-assembled file context (Markdown).
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `intent` | string | No | Task intent — triggers activation if no bundle exists |
+| `repoRoot` | string | No | Repo root path (defaults to cwd) |
+
+Returns the pre-assembled file context (Markdown) with an activation header showing task ID, source, confidence, and degraded status.
 
 ### `record_interaction`
 
@@ -70,11 +75,32 @@ Report an execution outcome into the evidence buffer.
 | `filesModified` | string[] | No | Files that were changed |
 | `thoughtTrace` | string | No | Brief reasoning (500 char max, no secrets) |
 
+### `prompt_validate`
+
+Validate a task prompt against enterprise prompt engineering best practices.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `task` | string | Yes | The task prompt to validate |
+| `category` | string | No | Filter: clarity, structure, examples, safety, enterprise_governance, software_dev |
+
+Returns a scored report with findings, fix suggestions, and source attribution.
+
+## Activation Enforcement
+
+The MCP server enforces activation before delivering context. This ensures every tool call is linked to a tracked task:
+
+- **With intent**: if no bundle exists, the server auto-activates using the provided intent
+- **Without intent**: returns context with an `Activation: missing` header and a degraded-mode annotation
+- **Degraded mode**: when activation quality is absent, the response clearly states "Task context was not formally established for part of this session" — it never hides degraded state
+
+This behavior is controlled by the ActivationGate, a unified middleware that all surfaces (CLI, MCP, Broker) pass through.
+
 ## How It Works
 
 1. **Before coding** — agent calls `query_ledger` to find verified patterns
-2. **During coding** — agent uses `get_active_context` to stay focused
-3. **After coding** — agent calls `record_interaction` to report outcomes
+2. **During coding** — agent uses `get_active_context` to stay focused (activation enforced)
+3. **After coding** — agent calls `record_interaction` to report outcomes (linked to active task)
 4. **Next session** — patterns that worked get stronger; patterns that failed weaken
 
 The system learns which patterns actually help, automatically.
