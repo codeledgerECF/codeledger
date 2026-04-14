@@ -1,5 +1,22 @@
 # Scoring Algorithm
 
+---
+
+> **What problem are we solving?**
+>
+> **The Problem** — AI coding agents waste 40–60% of their context window on irrelevant files. Every session starts cold. Institutional knowledge lives in people's heads and disappears when they leave. There is no risk signal before a merge.
+>
+> **The Solution** — CodeLedger is a deterministic context control plane for software development. It scores every file in a repository, selects only what the current task requires, captures outcomes, and promotes successful patterns into reusable institutional memory.
+>
+> **The Intelligence Layer** — The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology pack of golden patterns — distilled from peer organizations and leading engineering teams at organizations including Google, SAP, and Salesforce. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.
+>
+> **The Principle** — No cloud. No training pipeline. No behavior change required. Engineering management installs it once. Every developer and every AI agent benefits automatically — from collective intelligence on day one, and from your own institutional memory from day two onward.
+>
+> *Logs are history. Ledger is intelligence.*
+
+---
+
+
 ## Overview
 
 CodeLedger uses a deterministic, configurable weighted scoring approach for context selection. No LLM is involved — every decision is reproducible from the same inputs.
