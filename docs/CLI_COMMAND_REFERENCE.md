@@ -185,6 +185,8 @@ The Task Intelligence block shows:
 - **Prompt lift**: when the Prompt Coach refines a vague prompt, shows the ISC improvement (e.g., "+50% prompt lift")
 - **Task type**: classified task type (bug_fix, feature, refactor, auth_change, etc.)
 - **Refinement mode**: silent (auto-refined), assisted (user-confirmed), or none
+- **Doctrine**: if the task risks creating parallel systems or duplicate truth, a progressive intervention is triggered (light cue → guided refinement → two-phase stop)
+- **Shadow suggestion**: for refactor/migration tasks, a one-liner is shown to run parallel truth evaluation
 
 ### `task --task "..."`
 
@@ -1881,6 +1883,61 @@ codeledger next
 codeledger next --limit 3 --json
 ```
 
+## Shadow — Parallel Truth Evaluation (v0.10.10)
+
+Compare legacy and candidate implementations side by side before rollout.
+
+### `shadow run`
+
+Run a side-by-side comparison on fixture inputs.
+
+```bash
+codeledger shadow run --legacy isc-scoring --candidate isc-scoring --input fixtures.json
+codeledger shadow run --legacy isc-scoring --candidate isc-scoring --last 5
+```
+
+Flags: `--compare output,sufficiency,latency`, `--timeout-ms 5000`, `--sample-rate 1.0`, `--max-samples N`, `--fail-open`, `--format text|json`
+
+### `shadow report`
+
+Show aggregate summary for a run.
+
+```bash
+codeledger shadow report
+codeledger shadow report <run-id> --format json
+```
+
+### `shadow gate`
+
+Evaluate rollout thresholds. Exit 0 = pass, exit 10 = fail.
+
+```bash
+codeledger shadow gate
+codeledger shadow gate --max-critical-diff-pct 3 --format json
+```
+
+Threshold flags: `--max-critical-diff-pct`, `--max-tier-mismatch-pct`, `--max-error-pct`, `--max-timeout-pct`, `--max-latency-regression-pct`
+
+### `shadow list`
+
+List recent shadow runs.
+
+```bash
+codeledger shadow list
+```
+
+### `shadow inspect`
+
+Show sample-level results and diffs.
+
+```bash
+codeledger shadow inspect <run-id>
+codeledger shadow inspect --only critical
+codeledger shadow inspect --sample s1
+```
+
+Built-in targets: `echo`, `isc-scoring`, `delayed-echo`. Auto-discovery finds additional targets from known engine functions.
+
 ## Cross-Layer Intelligence (v0.10)
 
 These commands fuse the structural graph, local behavioral outcomes, and institutional / team lessons into deterministic, evidence-cited guidance. No LLM in the scoring path.
@@ -2200,7 +2257,7 @@ npx codeledger --version
 Example output:
 
 ```text
-codeledger v0.7.x
+codeledger vX.Y.Z
 ```
 
 ### `--help` / `-h`

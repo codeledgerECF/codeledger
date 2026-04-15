@@ -3,6 +3,8 @@
 ## 0.10.10 (Unreleased)
 
 ### Added
+- **Shadow: Parallel Truth Evaluation** (`codeledger shadow`) — compare legacy and candidate implementations side by side before rollout. 5 commands (run, report, gate, list, inspect), 5 comparators (output, sufficiency, ranking, normalization, latency), severity classification, CI-grade gate with configurable thresholds (exit 0/10). V2 adds `--last N` input convenience and auto-discovery. V3 adds activate integration (shadow suggestion for refactor tasks) and CI-ready JSON output.
+- **Doctrine-Aware Prompt Intelligence** — detects prompts that risk creating parallel systems, duplicate truth, or second workflows. Progressive intervention via 4 levels (none → light_cue → guided_refinement → two_phase_stop). 5 doctrine concepts seeded into ontology on init. 5 new signals in the prompt coach pack (71 total). Telemetry via DOCTRINE_INTERVENTION events.
 - **Unified TaskContext** — single context object that flows through the entire activate → execute → verify → learn lifecycle. Replaces the pattern of each stage independently reading from disk.
 - **ActivationGate middleware** — single chokepoint for activation enforcement across CLI, MCP, and Broker surfaces. Feature-flagged (`CODELEDGER_ACTIVATION_GATE`), enabled by default.
 - **TIE visibility** — `activate` and `broker refresh` now show a "Task Intelligence" block with ISC scores, prompt lift percentage, task type, and refinement mode.

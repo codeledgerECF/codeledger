@@ -32,6 +32,13 @@
 | Prompt lift reporting | ✅ | ✅ | ✅ |
 | Task type classification | ✅ | ✅ | ✅ |
 | Activation confidence gate (ambient/assisted/intercept) | ✅ | ✅ | ✅ |
+| Doctrine-aware prompt intelligence (5 doctrine concepts) | ✅ | ✅ | ✅ |
+| **Shadow: Parallel Truth Evaluation** | | | |
+| shadow run — side-by-side comparison | ✅ | ✅ | ✅ |
+| shadow report / inspect — aggregate + sample-level detail | ✅ | ✅ | ✅ |
+| shadow gate — CI-grade threshold evaluation (exit 0/10) | ✅ | ✅ | ✅ |
+| shadow list — run history | ✅ | ✅ | ✅ |
+| Auto-discovery + input convenience (--last N) | ✅ | ✅ | ✅ |
 | **Verification & CI** | | | |
 | verify — architectural verification | ✅ | ✅ | ✅ |
 | Review Intelligence (6 invariant modules) | ✅ | ✅ | ✅ |
