@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.10.10 (Unreleased)
+## 0.10.11 (Unreleased)
+
+### Added
+- **Feature Propagation Integrity** (`codeledger release verify`) — deterministic verification that features fully propagate across all release surfaces (source, dist, standalone, vendored, docs). SHA256 content hashing, feature fingerprint inference, enterprise policy gating (observe/warn/block), SIEM-ready audit events. Supports `--since <ref>`, `--feature <name>`, `--strict`.
+- **Integrity Trinity UX** — unified output model connecting Doctrine (Architecture Integrity), Shadow (Implementation Integrity), and Release Verify (Release Integrity) into one coherent view. Shared surface table for CLI and PR comments. Extended PR comment renderer with integrity summary, surface table, and copy-paste remediation.
+
+## 0.10.10
 
 ### Added
 - **Shadow: Parallel Truth Evaluation** (`codeledger shadow`) — compare legacy and candidate implementations side by side before rollout. 5 commands (run, report, gate, list, inspect), 5 comparators (output, sufficiency, ranking, normalization, latency), severity classification, CI-grade gate with configurable thresholds (exit 0/10). V2 adds `--last N` input convenience and auto-discovery. V3 adds activate integration (shadow suggestion for refactor tasks) and CI-ready JSON output.
