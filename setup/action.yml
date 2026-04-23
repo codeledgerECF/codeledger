@@ -1,0 +1,100 @@
+name: Setup CodeLedger
+description: Install a cached CodeLedger CLI for GitHub Actions workflows.
+author: Intelligent Context AI, Inc.
+branding:
+  icon: download
+  color: blue
+
+inputs:
+  version:
+    description: CodeLedger CLI version to install. Use latest for the newest published release.
+    required: false
+    default: v0.10.14
+  repository:
+    description: Repository that publishes CodeLedger release assets.
+    required: false
+    default: codeledgerECF/codeledger
+  asset-name:
+    description: Release asset name for the standalone CLI.
+    required: false
+    default: codeledger-standalone.cjs
+  checksum:
+    description: Optional SHA256 checksum for the downloaded asset.
+    required: false
+    default: ''
+
+outputs:
+  path:
+    description: Absolute path to the installed CodeLedger CLI.
+    value: ${{ steps.install.outputs.path }}
+  cache-hit:
+    description: Whether the CLI came from the GitHub Actions cache.
+    value: ${{ steps.cache.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve install path
+      id: resolve
+      shell: bash
+      env:
+        CODELEDGER_VERSION: ${{ inputs.version }}
+        CODELEDGER_ASSET_NAME: ${{ inputs.asset-name }}
+      run: |
+        set -euo pipefail
+        INSTALL_DIR="$RUNNER_TEMP/codeledger-cli/$CODELEDGER_VERSION"
+        INSTALL_PATH="$INSTALL_DIR/$CODELEDGER_ASSET_NAME"
+        {
+          echo "install_dir=$INSTALL_DIR"
+          echo "install_path=$INSTALL_PATH"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Restore CodeLedger CLI cache
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.resolve.outputs.install_dir }}
+        key: codeledger-cli-${{ runner.os }}-${{ inputs.version }}-${{ inputs.asset-name }}
+
+    - name: Download CodeLedger CLI
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        CODELEDGER_VERSION: ${{ inputs.version }}
+        CODELEDGER_REPOSITORY: ${{ inputs.repository }}
+        CODELEDGER_ASSET_NAME: ${{ inputs.asset-name }}
+        CODELEDGER_INSTALL_DIR: ${{ steps.resolve.outputs.install_dir }}
+        CODELEDGER_INSTALL_PATH: ${{ steps.resolve.outputs.install_path }}
+        CODELEDGER_CHECKSUM: ${{ inputs.checksum }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$CODELEDGER_INSTALL_DIR"
+        if [ "$CODELEDGER_VERSION" = "latest" ]; then
+          DOWNLOAD_URL="https://github.com/$CODELEDGER_REPOSITORY/releases/latest/download/$CODELEDGER_ASSET_NAME"
+        else
+          DOWNLOAD_URL="https://github.com/$CODELEDGER_REPOSITORY/releases/download/$CODELEDGER_VERSION/$CODELEDGER_ASSET_NAME"
+        fi
+        curl -fsSL "$DOWNLOAD_URL" -o "$CODELEDGER_INSTALL_PATH"
+        chmod +x "$CODELEDGER_INSTALL_PATH"
+        if [ -n "$CODELEDGER_CHECKSUM" ]; then
+          ACTUAL="$(shasum -a 256 "$CODELEDGER_INSTALL_PATH" | awk '{print $1}')"
+          if [ "$ACTUAL" != "$CODELEDGER_CHECKSUM" ]; then
+            echo "CodeLedger checksum mismatch: expected $CODELEDGER_CHECKSUM, got $ACTUAL" >&2
+            exit 1
+          fi
+        fi
+
+    - name: Expose CodeLedger CLI
+      id: install
+      shell: bash
+      env:
+        CODELEDGER_INSTALL_PATH: ${{ steps.resolve.outputs.install_path }}
+      run: |
+        set -euo pipefail
+        if [ ! -f "$CODELEDGER_INSTALL_PATH" ]; then
+          echo "CodeLedger CLI was not installed at $CODELEDGER_INSTALL_PATH" >&2
+          exit 1
+        fi
+        echo "path=$CODELEDGER_INSTALL_PATH" >> "$GITHUB_OUTPUT"
+        echo "$(dirname "$CODELEDGER_INSTALL_PATH")" >> "$GITHUB_PATH"

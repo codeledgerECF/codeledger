@@ -269,7 +269,6 @@ This generates two files in one command:
 | `codeledger activate --task "..." --explain` | See why each file was selected |
 | `codeledger activate --task "..." --expand` | Double the budget for broader coverage |
 | `codeledger scan` | Force rebuild the repo index |
-| `codeledger refresh` | In-session alias for `scan` |
 | `codeledger refine --learned "..."` | Re-score mid-session with new context |
 | `codeledger session-summary` | Check recall/precision after commits |
 | `codeledger session-progress` | Snapshot progress (survives compaction) |

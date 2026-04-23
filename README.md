@@ -462,7 +462,6 @@ For session-aware inspection during the same run:
 ```
 
 `codeledger scan` ends with a compact executive summary, grouped policy recommendations, and suggested next commands. Use `codeledger scan --full-policy` when you want the full override list instead of the compact default view.
-`codeledger refresh` is an in-session alias for the same rebuild when you want an explicit “make the repo graph current now” command.
 `codeledger memory patterns` shows promoted runtime patterns along with trust basis and promotion state for quick inspection.
 
 For relevance-managed architectural memory:
@@ -507,7 +506,6 @@ codeledger doctor                        # Integration health check (config, hoo
 
 # ── Context Selection (daily use) ─────────────────────────────
 codeledger scan                          # Build repo index (dep graph, churn, test map)
-codeledger refresh                       # Explicit in-session refresh alias for scan
 codeledger bundle --task "…"             # Generate a deterministic context bundle
   --scope "src/auth/,src/api/"           #   Restrict to path prefixes (monorepo-friendly)
   --near-misses                          #   Show files that almost made the cut

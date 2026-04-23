@@ -33,22 +33,42 @@ node .codeledger/bin/codeledger-standalone.cjs <command>
 
 ### `init`
 
-Initializes `.codeledger/` in the current repository and warms the initial repo index.
+Initializes `.codeledger/` in the current repository and warms the initial repo index. Behaves in three modes:
+
+- **fresh** — no `.codeledger/` present; full first-time setup.
+- **upgrade** — `.codeledger/` exists with an *older* version than the running
+  CLI. Auto-refreshes runtime artifacts (vendored CLI, hooks, ambient
+  wrappers, CLAUDE.md section, `harness/pack.json` version stamp) while
+  preserving user state (`config.json`, `memory/`, `cache/`, `sessions/`,
+  `team-ledger/`, `runs/`, `insight/`, narrative). No `--force` needed.
+- **force** (`--force`) — destructive: wipes the entire `.codeledger/`
+  directory (including memory ledgers and team state) and starts over. Only
+  use when you intentionally want a clean slate.
+
+If the running CLI is *older* than the vendored copy, `init` refuses to
+silently downgrade and tells you to upgrade your global install instead.
 
 ```bash
 npx codeledger init
 ```
 
-Example output:
+Example output (auto-upgrade — no `--force` required):
 
 ```text
 CodeLedger vX.Y.Z
 
-⚠️  .codeledger/ already exists (repo-local CodeLedger vA.B.C).
-   You are running CodeLedger vX.Y.Z.
-   Why upgrade: newer scan intelligence, sharper policy heuristics, and safer ambient behavior.
-   What will refresh: vendored CLI, hooks, and ambient wrappers.
-   Next: codeledger init --force
+  ⬆️  Upgrading repo-local install: vA.B.C → vX.Y.Z
+     Refreshing: vendored CLI, hooks, ambient wrappers, CLAUDE.md section, version stamp.
+     Preserving: config.json, memory/, cache/, sessions/, team-ledger/, runs/, insight/.
+  ↻ Refreshed harness/pack.json version stamp.
+  ✅ Updated CodeLedger section in CLAUDE.md
+  ✅ Updated .claude/hooks.json (auto-summary on commit, session hooks)
+  ✅ Memory ledgers preserved (.codeledger/memory/)
+  ✅ Vendored standalone CLI → .codeledger/bin/
+
+  CodeLedger upgraded: vA.B.C → vX.Y.Z
+  Refreshed: vendored CLI, hooks, ambient wrappers, CLAUDE.md section.
+  Preserved: config, memory, cache, sessions, team-ledger, narrative, runs.
 ```
 
 ### `scan`
@@ -82,16 +102,9 @@ Suggested next commands
   - codeledger policy review --json
 ```
 
-### `refresh`
+### `refresh` (deprecated)
 
-Explicit in-session alias for `scan`.
-
-```bash
-npx codeledger refresh
-```
-
-Use this when you want to force the repo graph and index current before continuing.
-Structural repo changes still trigger automatic rescans during activation, so `refresh` is mainly the explicit "make it current now" option.
+Deprecated alias for `scan`. Use `codeledger scan` instead.
 
 ### `memory status`
 
@@ -919,6 +932,44 @@ Example output:
 Generated CI configuration
 Provider: github
 Mode: warn
+```
+
+### `setup-github-action`
+
+Prints a lightweight GitHub Actions workflow for the public PR Intelligence
+Action.
+
+```bash
+npx codeledger setup-github-action --print
+npx codeledger setup-github-action --print --split --mode warn
+```
+
+Example output:
+
+```yaml
+name: CodeLedger PR Intelligence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  codeledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: CodeLedger PR Intelligence
+        uses: codeledgerECF/codeledger@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: observe
 ```
 
 ### `ci pr-check`
