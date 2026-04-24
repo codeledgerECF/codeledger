@@ -2329,3 +2329,82 @@ Commands:
   verify
   ...
 ```
+
+## Command Coverage Appendix
+
+These terse entries keep the source-derived command inventory aligned with this
+reference. Detailed examples live in the workflow sections above.
+
+- `codeledger about` — show product, version, and license summary.
+- `codeledger arch-policy` — inspect or enforce architecture policy (list, validate, simulate, init).
+- `codeledger auto-refresh` — decide whether a task prompt should trigger a context refresh.
+- `codeledger broker sync` — single-call broker sync: refresh + current + timeline in one subprocess.
+- `codeledger capsule` — manage Command Capsules (inspect, change, approve, risk scoring).
+- `codeledger capture` — capture replay or evidence input for the terminal replay engine.
+- `codeledger capture-merge-memory` — append a post-merge outcome snapshot to the team ledger.
+- `codeledger claims` — inspect or manage soft coordination claims.
+- `codeledger classify` — classify a task or route a command to the correct subsystem.
+- `codeledger commit-msg` — generate a structured commit message from staged changes.
+- `codeledger config` — inspect or update local `.codeledger/config.json` settings.
+- `codeledger conflicts` — report detected coordination conflicts between agents or sessions.
+- `codeledger context-pointer` — derive, show, or add context-pointer entry points for scoped work.
+- `codeledger delegation` — show or manage agent task delegation records.
+- `codeledger digest` — generate a dense human-readable digest of the current session or bundle.
+- `codeledger discover` — run architecture discovery before implementation begins.
+- `codeledger discover-check` — validate a PR diff against prior discovery findings.
+- `codeledger discover-gate` — gate a build or deploy on discovery verdict.
+- `codeledger doctor` — verify the local installation and print fix commands; use `--fix` to auto-remediate.
+- `codeledger drift-watch` — watch for structural drift in real time (continuous mode).
+- `codeledger explain` — explain the scoring evidence for the latest run.
+- `codeledger features` — show available features and their tier/enablement state.
+- `codeledger fix` — apply supported auto-fixes found by `verify`.
+- `codeledger fix-suggestions` — deprecated alias for `fix`.
+- `codeledger github-check` — inspect GitHub-facing release or PR status via the API.
+- `codeledger health` — report architecture health score (AHS, DRI, EDS, STS).
+- `codeledger help` — show help for any command.
+- `codeledger hotspots` — report historically risky or high-churn file paths.
+- `codeledger improve` — suggest targeted improvements for a specific file.
+- `codeledger insight-pack` — install, list, or remove Insight prompt packs.
+- `codeledger intervene` — start an architecture intervention and print prioritized recommendations.
+- `codeledger kg` — run knowledge-graph commands (build, query).
+- `codeledger log` — inspect terminal replay logs.
+- `codeledger mcp` — manage the MCP server integration (start, stop, status).
+- `codeledger merge-check` — verify semantic merge safety before landing a branch.
+- `codeledger next` — recommend the next best actions based on current signals.
+- `codeledger onboard` — interactive first-session onboarding walkthrough.
+- `codeledger orchestrate` — coordinate multi-agent work: reservations, task partitioning.
+- `codeledger pack` — manage release or insight packs (install, list, remove).
+- `codeledger panel` — render the portable context cockpit for IDEs and agents.
+- `codeledger panel_brief` — MCP alias: emit a compact bundle brief for IDE panel injection.
+- `codeledger panel_handoff` — MCP alias: emit a structured context-handoff artifact.
+- `codeledger panel_snapshot` — MCP alias: take a point-in-time session snapshot for the IDE panel.
+- `codeledger playbook` — generate a step-by-step playbook for a given task.
+- `codeledger plg` — product-led-growth telemetry helpers (internal).
+- `codeledger post-merge-outcome` — record the post-merge outcome for a completed feature.
+- `codeledger pr-comment` — render a deterministic PR comment from verification output.
+- `codeledger pr-summary` — generate a PR summary from the current diff and session evidence.
+- `codeledger pr-truth-comment` — post a truth-verified PR comment (includes provenance).
+- `codeledger proof-pack` — bundle evidence into a portable proof pack for audit or handoff.
+- `codeledger prompt-template` — render prompt templates for common task types.
+- `codeledger prompt-validate` — validate a task prompt quality before activation.
+- `codeledger pulse` — show the recent signal pulse (ambient session activity).
+- `codeledger recent` — inspect recent replay or evidence entries.
+- `codeledger redux` — run architecture reduction analysis (identify removable complexity).
+- `codeledger refresh` — deprecated alias for `scan`.
+- `codeledger release-decision` — record or query a release decision with evidence.
+- `codeledger release-verify` — verify release state across all propagation surfaces.
+- `codeledger replay` — reproduce prior context or terminal state from the replay engine.
+- `codeledger routing-audit` — audit command routing for orphans or misclassifications.
+- `codeledger routing-log` — inspect the command routing log.
+- `codeledger sast-ingest` — ingest external SAST findings into the evidence ledger.
+- `codeledger system-map` — build, refresh, or show the repo system-topology map.
+- `codeledger test-summary` — generate a test-coverage summary for the current task surface.
+- `codeledger ticket-resolve` — resolve a task back to a ticket ID (Jira, Linear, GitHub).
+- `codeledger validate-change` — deprecated alias for `capsule change`.
+- `codeledger verify-surface` — verify a specific surface (e.g. `--surface mcp`).
+- `codeledger version` — print the CLI version string.
+- `codeledger brief` — emit a short session brief suitable for a PR description or standup.
+- `codeledger delegation` — (team) inspect agent delegation assignments and task ownership.
+- `codeledger orchestrate` — (enterprise) coordinate file reservations across parallel agents.
+- `codeledger pulse` — show recent ambient activity from the session discovery engine.
+- `codeledger conflicts` — show detected semantic or wiring conflicts across the session.
