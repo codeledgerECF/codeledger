@@ -41,7 +41,7 @@ inputs:
   version:
     description: CodeLedger CLI version to install when a repo-local CLI is not present.
     required: false
-    default: v0.10.14
+    default: v0.10.16
   asset-name:
     description: Release asset name for the standalone CLI.
     required: false
@@ -160,6 +160,7 @@ runs:
         set +e
         "${CLI[@]}" ci pr-check \
           --json \
+          --no-config-required \
           --mode "$CODELEDGER_MODE" \
           --base "$CODELEDGER_BASE_REF" \
           --title "$PR_TITLE" \
