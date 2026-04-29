@@ -1,4 +1,4 @@
-# CodeLedger                --->>> Easy Install: npm install -g @codeledger/cli
+# CodeLedger
 
 ---
 
