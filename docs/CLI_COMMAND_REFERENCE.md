@@ -71,6 +71,21 @@ CodeLedger vX.Y.Z
   Preserved: config, memory, cache, sessions, team-ledger, narrative, runs.
 ```
 
+#### Agent instruction file
+
+Every AI coding agent reads a project-level instruction file before doing anything. `codeledger init` stamps a CodeLedger section into whichever file your agent uses, and keeps it current on every upgrade.
+
+| Agent | Instruction file |
+|---|---|
+| Claude Code | `CLAUDE.md` |
+| OpenAI Codex | `AGENTS.md` |
+| Cursor | `.cursor/rules/*.mdc` (or legacy `.cursorrules`) |
+| Windsurf | `.windsurfrules` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Kiro | `.kiro/steering/*.md` |
+
+The file tells the agent the rules of this specific codebase — how to invoke the CLI, what files are off-limits, how to interpret session state. CodeLedger is one of the few tools that writes to, validates, and protects this file rather than only consuming it.
+
 ### `scan`
 
 Builds the repository index used for deterministic file selection.
@@ -630,6 +645,12 @@ Precision: 54%
 Token savings: 73%
 ```
 
+When multiple activations occurred during the session, `session-summary` appends an `Outcome Confidence` line:
+
+```text
+   Outcome Confidence: 87% recall  (signal stability: 3 activations · avg ISC 0.82)
+```
+
 ### `session-cleanup`
 
 Removes a session’s registry and state files.
@@ -924,15 +945,27 @@ Generates CI workflow and policy files.
 
 ```bash
 npx codeledger setup-ci --provider github --mode warn
+npx codeledger setup-ci --provider github --mode warn --print   # preview without writing
 ```
 
-Example output:
+**Flags:** `--mode observe|warn|block`, `--provider github|gitlab|circleci|azure`, `--output <dir>`, `--print`, `--smart-gates`
 
-```text
-Generated CI configuration
-Provider: github
-Mode: warn
+#### `--smart-gates` (GitHub only)
+
+Generates a risk-adaptive two-stage workflow (`codeledger-smart-gates.yml`). Stage 1 classifies the PR using `codeledger ci pr-check`; Stage 2 gates downstream jobs on that classification. Low-risk PRs (docs, config, small refactors) take the fast path. High-risk PRs (auth, shared-core, migrations) get the full suite plus a security gate.
+
+```bash
+npx codeledger setup-ci --smart-gates
+npx codeledger setup-ci --smart-gates --print    # preview without writing
 ```
+
+| Job | Condition | Checks |
+|---|---|---|
+| `light-checks` | risk=Low, drift=None, evidence_gaps=None | Lint + unit tests |
+| `full-checks` | risk≠Low or drift=Detected | Typecheck + full suite + integration |
+| `security-gate` | risk=High only | Security scan + coverage |
+
+Classification never hard-fails — if CodeLedger is unavailable, all signals default to safe values and the PR proceeds normally. Edit the placeholder `run:` commands in each generated job to match your project's actual checks.
 
 ### `setup-github-action`
 
@@ -1915,6 +1948,44 @@ codeledger explain --json
 codeledger explain --surface ide
 ```
 
+### `learn proposals`
+
+Inspect active learning proposals from local signals and team outcomes. Accept or reject individual proposals to drive convention promotion.
+
+```bash
+codeledger learn proposals
+codeledger learn proposals --json
+codeledger learn proposals --limit 5
+codeledger learn proposals --accept alp_abc123
+codeledger learn proposals --reject alp_abc123 --reason "needs more evidence"
+```
+
+### `learn promote`
+
+Promote stable accepted learning proposals to the static pack.
+
+```bash
+codeledger learn promote              # dry-run (default)
+codeledger learn promote --dry-run    # explicit dry-run
+codeledger learn promote --apply      # write promotion records
+```
+
+Eligibility criteria: `status === 'accepted'`, `basedOnSignals ≥ 10`, `confidence ≥ 0.80`.
+
+`--dry-run` prints an eligibility table showing confidence, evidence signal count, and a `[PROMOTE]` or `[REVIEW]` label. `--apply` writes promotion records (append-only). Full pack weight adjustment is deferred — the record is the intake point.
+
+### `learn --deploy-outcome <path>`
+
+Ingest a deploy outcome event to link production results back to PR signal decisions.
+
+```bash
+codeledger learn --deploy-outcome ./event.json
+```
+
+Reads a JSON file conforming to `codeledger/deploy-outcome/v1`. Validates the schema and appends to the local outcomes log. Required fields: `schema`, `merge_sha`, `outcome` (`success | rollback | degraded | incident`), `service`, `timestamp`. Optional: `signal_ids[]` — which audit signals fired on the originating PR.
+
+When a rollback or incident is recorded, signals that fired on that PR accumulate negative evidence for future weight adjustment.
+
 ### `learnings`
 
 Show recurring patterns, hotspots, and trend learnings from recent runs.
@@ -1932,6 +2003,35 @@ Recommend the next best actions based on current signals and historical outcomes
 ```bash
 codeledger next
 codeledger next --limit 3 --json
+```
+
+### `panel serve`
+
+Open a live browser cockpit showing current context, learnings, next moves, and merge memory — auto-refreshing as your session evolves.
+
+```bash
+codeledger panel serve --open
+```
+
+That starts the CodeLedger cockpit at **http://localhost:7420** and opens it in your browser. Four tabs: Explain, Learnings, Next, Merge Memory.
+
+**Useful variants:**
+
+```bash
+codeledger panel serve --port 7421 --open   # use a different port
+codeledger panel open --surface web         # launch the recommended web flow
+codeledger panel render --format html --out panel.html  # export a static snapshot
+```
+
+If the port is already running a CodeLedger panel server, `serve --open` reuses it silently — safe to run multiple times.
+
+**Other panel subcommands:**
+
+```bash
+codeledger panel snapshot --json            # canonical JSON contract (for IDE integrations)
+codeledger panel render --format markdown --tab explain  # render one tab as markdown
+codeledger panel brief --surface codex      # compact brief for agent injection
+codeledger panel handoff --agent claude     # scoped prompt for handoff to an agent
 ```
 
 ## Shadow — Parallel Truth Evaluation (v0.10.10)
