@@ -159,7 +159,7 @@ Hardening, adversarial audit remediation, and GTM polish.
 
 ### Changed
 - Removed protected internal term from README architecture diagram and ContextECF mapping table.
-- Removed contradictory "Confidential." label from open-source README footers.
+- Removed contradictory private-distribution label from open-source README footers.
 - Corrected `CONTRIBUTING.md` license attribution from Apache 2.0 to the actual dual-license structure (MIT + proprietary core).
 
 ---

@@ -484,4 +484,4 @@ codeledger upgrade            # Explore Team / Enterprise
 
 ---
 
-<sub>**ContextECF™** — Enterprise Context Infrastructure. Customer-Controlled Data · Tenant-Isolated · Read-Only v1 · Full Provenance · Governance-First Architecture. Confidential. ContextECF is proprietary infrastructure that augments enterprise systems with governed, role-aware contextual intelligence. The platform does not replace source systems and does not execute autonomous actions in Read-Only v1. All intelligence outputs are explainable, permission-validated, and fully auditable. Protected by pending and issued patents. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
+<sub>**CodeLedger** is produced by Intelligent Context AI, Inc. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>

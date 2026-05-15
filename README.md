@@ -227,7 +227,7 @@ codeledger activate --task "your task here"
 
 CodeLedger is just the beginning.
 
-It’s built on a broader system called the **Enterprise Context Fabric (ContextECF)** — a new way to make AI systems **deterministic, auditable, and cumulative** instead of probabilistic and forgetful.
+It’s built on **ContextECF** — a broader context infrastructure approach for making AI systems **deterministic, auditable, and cumulative** instead of probabilistic and forgetful.
 
 At the core is a simple idea:
 
@@ -279,7 +279,7 @@ If CodeLedger is helping you, it’s worth a quick share with:
 
 ## 🏢 About
 
-**Intelligent Context AI Inc** is the creator of CodeLedger and the Enterprise Context Fabric.
+**Intelligent Context AI Inc** is the creator of CodeLedger and ContextECF.
 
 If your team is exploring AI at scale, agent systems, or enterprise context management:
 
@@ -781,4 +781,4 @@ Large context windows are not the answer.
 
 ---
 
-<sub>**ContextECF™** — Enterprise Context Infrastructure. Customer-Controlled Data · Tenant-Isolated · Read-Only v1 · Full Provenance · Governance-First Architecture. ContextECF is proprietary infrastructure that augments enterprise systems with governed, role-aware contextual intelligence. The platform does not replace source systems and does not execute autonomous actions in Read-Only v1. All intelligence outputs are explainable, permission-validated, and fully auditable. Protected by pending and issued patents. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
+<sub>**CodeLedger** is produced by Intelligent Context AI, Inc. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>

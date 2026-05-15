@@ -19,7 +19,7 @@
 
 CodeLedger is just the beginning.
 
-It’s built on a broader system called the **Enterprise Context Fabric (ContextECF)** — a new way to make AI systems **deterministic, auditable, and cumulative** instead of probabilistic and forgetful.
+It’s built on **ContextECF** — a broader context infrastructure approach for making AI systems **deterministic, auditable, and cumulative** instead of probabilistic and forgetful.
 
 At the core is a simple idea:
 
@@ -71,7 +71,7 @@ If CodeLedger is helping you, it’s worth a quick share with:
 
 ## 🏢 About
 
-**Intelligent Context AI Inc** is the creator of CodeLedger and the Enterprise Context Fabric.
+**Intelligent Context AI Inc** is the creator of CodeLedger and ContextECF.
 
 If your team is exploring AI at scale, agent systems, or enterprise context management:
 
