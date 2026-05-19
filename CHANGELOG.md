@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.10.21
+
+### Added
+- **FabricLedgerSDK evidence pipeline** — `evidence ingest | plan | link | verify | guard` subcommand family turns raw failure logs into source-linked investigation plans, verified fixes, and institutional memory via the `@contextecf/fabric-ledger-sdk` protected-evidence engine. Raw logs are never stored — only scrubbed, signed packets. SDK is optional at runtime (graceful degradation when absent).
+- **Destination Guard (`evidence guard`)** — builds a task-scoped action boundary from an evidence packet, checks agent actions against allowed/approval_required/denied policy, and persists the manifest to `.codeledger/evidence/destination-manifest.json`. Exits 0=allowed, 1=approval_required, 2=denied.
+- **Runtime Security Gates** — `sdk.enforceCapabilities()` pre-execution enforcement with denied capability receipts; `sdk.validatePostInference()` patch safety validation with quarantine. Both degrade gracefully below SDK v0.3.0.
+- **`codeledger_destination_guard` MCP tool** — build the destination manifest and check agent actions from any MCP-connected agent.
+- **`codeledger activate --evidence <packet>`** — injects an `## Incident Evidence` section into `active-bundle.md` with primary issue, top 3 causal candidates with confidence %, and Phase 0 advisory capability policy. Raw log content is never surfaced.
+- **`codeledger harvest --origin fabricledger`** — stores the incident lesson in `.codeledger/memory/lessons.json` and promotes a pattern to the runtime anthology.
+- **MCP evidence tools** — `codeledger_evidence_ingest`, `codeledger_evidence_plan`, `codeledger_destination_guard` expose the FabricLedgerSDK evidence pipeline to MCP-connected agents.
+
+### Fixed
+- **MCP audit profile** — `audit --scope mcp-surface` now correctly includes the V3 read-back tools, FabricLedgerSDK evidence tools, and destination guard tool in the expected-tool registry.
+- **`@contextecf` removed from hard dependencies** — SDK packages were added to `packages/cli/package.json` without a lockfile entry, breaking `pnpm install --frozen-lockfile` in CI. SDK is now runtime-only via dynamic import.
+- **CI workflow auth** — Added `NODE_AUTH_TOKEN` to `codeledger-docs-drift.yml` and `codeledger-pr.yml` install steps.
+
+## 0.10.20
+
+### Added
+- **`codeledger ready`** — Universal zero-friction entry point for new and existing users. Detects whether the repo is initialized, silently runs `init` for first-time users, shows a live "at a glance" snapshot (languages, file count, hot files by churn), and prints the activate + `panel serve` commands. One command works for everyone — first session or hundredth.
+- **MCP V3 read-back tools** — Four new read-only MCP tools that let agents inspect CodeLedger state without shell access: `get_trace_receipt` (last signed reasoning trace), `get_context_debt_score` (A–F composite for a path), `get_intent_lock_state` (active lock for the current task), `get_activation_payload` (the causally-ordered evidence sequence from the last activation). All four tools are registered in the MCP server and covered by the existing activation enforcement gate.
+- **`codeledger trace reasoning`** subcommand — Reads `.codeledger/runtime/reasoning-trace.json` and prints a structured human-readable summary of the last reasoning trace: which files were selected, considered, excluded by governance, and the suppression reasons. Useful for debugging activation quality and validating doctrine enforcement.
+- **100-test release validation suite** — Three-phase Docker-isolated release gate: 34 core feature tests (`release-test/suite.sh`), 20 chaos/adversarial tests (`release-test/chaos.sh`), 46 onboarding & agent surface tests (`release-test/onboarding.sh`). Covers all 6 agent types, all 5 surface types, new vs. existing user paths, upgrade flows, hook simulation, and 10 extreme edge cases. Orchestrated by `release-test/run-all.sh`.
+
+### Fixed
+- **Vitest CI shard exit-code bug** — `scripts/run-vitest-ci.mjs` would silently fail when vitest exited with code 1 due to a birpc worker-close race (the known RPC timeout). The old guard short-circuited suppression for any non-zero exit, and then returned the raw exit code even when suppression succeeded. Both bugs are fixed: suppression now runs regardless of exit code, and the wrapper exits 0 when the only failure was the known RPC warning and all test assertions passed. Regression test added to `tests/vitest-runner.test.ts`.
+
 ## 0.10.11 (Unreleased)
 
 ### Added

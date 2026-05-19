@@ -31,6 +31,42 @@ node .codeledger/bin/codeledger-standalone.cjs <command>
 
 ## Core Setup and Task Flow
 
+### `ready`
+
+Universal zero-friction entry point. Works identically for first-time users and returning users — you never need to know which one you are.
+
+```bash
+codeledger ready
+codeledger ready --task "add OAuth login to the payments flow"
+```
+
+**What it does:**
+
+- **New user** — detects that `.codeledger/` is absent, silently runs `init`, and reports how long it took.
+- **Existing user** — checks index freshness (runs `scan` if stale) and shows how long ago the index was last built.
+- Both paths show a live "at a glance" snapshot: top languages, total file count, package count, and the 3 hottest files by churn.
+- Without `--task`: prints the two commands you need next (`codeledger activate --task "..."` and `codeledger panel serve`).
+- With `--task`: runs `activate` immediately and shows the bundle.
+
+Example output (existing user, fresh index):
+
+```text
+✔  CodeLedger ready  (index 4 minutes old)
+
+   Repo at a glance
+   ─────────────────────────────────────────
+   TypeScript · JavaScript · Shell
+   1 247 files · 14 packages
+
+   Hot files (churn)
+   • packages/cli/src/index.ts
+   • packages/engine/src/selector/scorer.ts
+   • tests/truth-audit-core.test.ts
+
+   Next step →  codeledger activate --task "describe your task"
+   Side panel →  codeledger panel serve
+```
+
 ### `init`
 
 Initializes `.codeledger/` in the current repository and warms the initial repo index. Behaves in three modes:
@@ -1366,6 +1402,60 @@ Example output:
 Top interventions
 1. Reduce auth middleware duplication
 2. Add missing tests around retry cache
+```
+
+## Trace and Reasoning Visibility
+
+### `trace reasoning`
+
+Reads the last reasoning trace written by the activation pipeline and prints a structured human-readable summary. Shows which files were selected for context, which were considered and excluded, which were suppressed by governance, and the suppression reasons.
+
+```bash
+codeledger trace reasoning
+codeledger trace reasoning --json
+```
+
+Example output:
+
+```text
+Reasoning trace  ·  2026-05-18T14:23:01Z
+─────────────────────────────────────────────────────────────
+Selected for context   (14 files)
+  packages/cli/src/commands/ready.ts            score 0.92  keyword+graph
+  packages/cli/src/index.ts                     score 0.88  keyword+centrality
+  packages/engine/src/selector/scorer.ts        score 0.81  graph+churn
+  ...
+
+Considered, excluded   (23 files)
+  packages/cli/src/commands/learn.ts            score 0.38  below threshold
+  ...
+
+Suppressed by governance   (2 files)
+  packages/cli/src/auth/secrets.ts              rule: context-contract/auth-required
+  ...
+```
+
+The raw trace is stored at `.codeledger/runtime/reasoning-trace.json`. The compact signed receipt (suitable for audit workflows) is at `.codeledger/runtime/trace-receipt.json`.
+
+### MCP V3 read-back tools
+
+Four read-only MCP tools let agents and IDE extensions inspect CodeLedger state without shell access. All are registered in the MCP server and gated by the existing activation enforcement policy.
+
+| Tool | What it returns |
+|------|----------------|
+| `get_trace_receipt` | Last signed reasoning trace receipt (`trace-receipt.json`). Includes selected files, governance suppressions, and confidence score. |
+| `get_context_debt_score` | A–F composite debt score for a given path. Five contributing signals, trend direction, and prior comparison. |
+| `get_intent_lock_state` | Active intent lock for the current task: declared scope, drift level (`none / minor / major / critical`), and lock timestamp. |
+| `get_activation_payload` | The causally-ordered evidence sequence from the last `activate` run. Ranked argument delivered to the agent at session start. |
+
+Example (via `codeledger mcp`):
+
+```json
+{
+  "tool": "get_context_debt_score",
+  "args": { "path": "packages/cli/src" }
+}
+// → { "grade": "B", "score": 0.82, "trend": "improving", "signals": [...] }
 ```
 
 ## API and Cloud
