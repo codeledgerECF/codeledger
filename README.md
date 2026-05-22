@@ -152,7 +152,7 @@ Your repo becomes an evolving system — not just code.
 ```bash
 npm install -g @codeledger/cli   # or download the zip from Releases
 cd your-project
-codeledger init
+codeledger ready
 git add .codeledger/bin/ .gitignore
 git commit -m "chore: init codeledger"
 ./.codeledger/bin/codeledger task --task "Fix null handling in user service"
@@ -162,7 +162,7 @@ codeledger task --task "Fix null handling in user service"
 
 Your agent reads the right files first. Every time.
 
-For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger init` deploys it from the canonical standalone build so the checked-in runtime matches the version you tested locally. Inside a vendored repo, `./.codeledger/bin/codeledger <command>` is the easiest interactive entry point.
+For browser/cloud sessions, the committed `.codeledger/bin/` runtime package is what gets executed. `codeledger ready` initializes the repo, scans it, and deploys the canonical standalone build so the checked-in runtime matches the version you tested locally. Inside a vendored repo, `./.codeledger/bin/codeledger <command>` is the easiest interactive entry point.
 
 ### Truth Control Plane
 
@@ -206,9 +206,9 @@ npm install -g @codeledger/cli
 cd your-project
 ```
 
-3. Initialize CodeLedger in that repo
+3. Initialize and scan CodeLedger in that repo
 ```bash
-codeledger init
+codeledger ready
 ```
 
 4. Commit the vendored runtime if you want browser/cloud support
@@ -219,8 +219,7 @@ git commit -m "chore: initialize codeledger"
 
 5. Start using it
 ```bash
-codeledger scan
-codeledger activate --task "your task here"
+codeledger ready --task "your task here"
 ```
 
 ## 🌐 Beyond CodeLedger
