@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.10.36
+
+### Added
+- **AI Session Recovery** — When an AI session ends without a completion proof (network drop, token limit, agent crash), CodeLedger now captures a durable session record at `.codeledger/recovery/spine.json` and emits an immutable interruption receipt. Three new commands: `codeledger recover` (full recovery report), `codeledger recover --resume` (structured handoff prompt for the next agent), `codeledger recover --verify` (3-gate verification: files changed, transaction completeness ≥70%, no conflicts). Pre-PR merge guard in `codeledger pre-pr` blocks pushes when the session spine is `interrupted` or `failed`. 37 tests across 5 recovery scenarios. New types: `AISessionSpine`, `InterruptionReceipt`, `RecoveryReport`, `AISessionStatus`, `ProofPackStatus`, `RecoveryAction`.
+- **Cross-Editor Panel Auto-Wire** — `codeledger init` now detects which AI coding editors are configured in the repo and writes the correct instruction file for each: `.claude/launch.json` (Claude Code native side-panel via `preview_start`), `.cursor/rules/codeledger.mdc` (`alwaysApply: true`), `.windsurfrules` (append with `CODELEDGER:BEGIN/END` markers), `AGENTS.md` (Codex/GPT section append), `.kiro/steering/codeledger.md` (`inclusion: always`), `.vscode/tasks.json` (panel task). All writes are idempotent and merge-safe. Multi-editor repos get all configs in one pass. `--force` refreshes stale sections. 47 checks validated across all 6 editors.
+- **Repo Health Pulse** — `codeledger ready` now surfaces a live health snapshot at session open: composite risk score, coupling index, hotspot score, and test gap index — each with a Low/Medium/High band — plus the top 3 risk-driving files by name. Replaces the generic static tips that carried no session-specific information.
+- **Guardian Auto-Reactivation** — `guardian step complete <id>` now automatically re-targets the context bundle to the next pending step using its description and expected file assertions. Eliminates context drift across multi-step plans without requiring manual `activate` calls between steps. Bundle recall in 10-step plans increased from near-zero to >80% in testing.
+- **Boundary Governance Suggestions** — `runBoundaryCheck` now detects packages used in module code that are not listed in `allowed_outbound` and surfaces them as an advisory `### Governance Suggestions` section in `codeledger verify` output and PR comments. Does not fail the build — advisory only. Helps teams identify where declared architectural contracts have drifted from actual usage.
+
+### Fixed
+- **Command registry sync** — Added 11 pre-existing commands missing from `COMMERCIAL_COMMANDS`/`FREE_COMMANDS` classification: `boundaries`, `rules`, `brownfield`, `ccs`, `guardian`, `artifact-status`, `auth-gate`, `navigate`, `acceptance`, `agent-score`, `test-impact`. Registry-sync test now enforces this at CI time.
+- **`pre-pr` check count** — Updated assertions to account for the new AI session recovery merge guard (12 checks total, up from 11).
+- **Agent onboarding test** — Updated platform path assertions to include `.windsurfrules` (5 targets, up from 4).
+- **Standalone binary version** — Root `package.json` and all 28 package manifests bumped to `0.10.36`; `verify-standalone-assets.mjs` version check now passes.
+
+
 ## 0.10.21
 
 ### Added
