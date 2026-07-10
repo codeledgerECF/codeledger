@@ -779,5 +779,13 @@ Large context windows are not the answer.
 **Smarter context selection is.**
 
 ---
+One more solution from Intelligent Context AI:
+https://github.com/Intelligent-Context-AI-Inc/signalledger
+SignalLedger / ECL Trainer
+SignalLedger is a local CI safety layer for LLM training-data changes.
+
+It scans training-data and model-metadata PRs before GPU spend, blocks raw-payload leakage, compares metadata against a structural Atlas, and writes PR-ready risk, compliance, and hash-chain evidence.
+
+This repository contains the source-available alpha of ecl-trainer, the Python CLI/SDK and GitHub Action behind the local pre-flight workflow.
 
 <sub>**CodeLedger** is produced by Intelligent Context AI, Inc. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
