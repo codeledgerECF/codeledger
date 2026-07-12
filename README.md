@@ -542,6 +542,7 @@ Product promise:
 # ── Session Management ────────────────────────────────────────
 codeledger session-init                  # Initialize a new session (returns session ID)
 codeledger sessions                      # List active sessions and file overlaps
+codeledger session capsule               # Write a durable coding session capsule
 codeledger session-progress              # Write ground-truth progress snapshot
 codeledger session-summary               # Show session-end recall/precision metrics
 codeledger session-cleanup               # Clean up a session's state files
@@ -549,6 +550,10 @@ codeledger checkpoint create             # Save work-in-progress snapshot
 codeledger checkpoint restore --id …    # Resume from a checkpoint
 codeledger checkpoint list               # List available checkpoints
 codeledger shared-summary                # Cross-session coordination summary
+codeledger context pack --task "…"       # Build reviewer-ready context pack artifacts
+codeledger review coordinator            # Normalize reviewer output into a judgment artifact
+codeledger negative-space record         # Record reviewed noise/false-positive evidence
+codeledger value receipt --session <id>  # Write an evidence-backed value receipt
 
 # ── Intent Governance ─────────────────────────────────────────
 codeledger intent init --objective "…"   # Create a structured task contract
@@ -779,13 +784,5 @@ Large context windows are not the answer.
 **Smarter context selection is.**
 
 ---
-One more solution from Intelligent Context AI:
-https://github.com/Intelligent-Context-AI-Inc/signalledger
-SignalLedger / ECL Trainer
-SignalLedger is a local CI safety layer for LLM training-data changes.
-
-It scans training-data and model-metadata PRs before GPU spend, blocks raw-payload leakage, compares metadata against a structural Atlas, and writes PR-ready risk, compliance, and hash-chain evidence.
-
-This repository contains the source-available alpha of ecl-trainer, the Python CLI/SDK and GitHub Action behind the local pre-flight workflow.
 
 <sub>**CodeLedger** is produced by Intelligent Context AI, Inc. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>

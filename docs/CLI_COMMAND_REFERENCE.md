@@ -687,6 +687,26 @@ When multiple activations occurred during the session, `session-summary` appends
    Outcome Confidence: 87% recall  (signal stability: 3 activations · avg ISC 0.82)
 ```
 
+### `session capsule`
+
+Writes a Coding Session Capsule for the active or requested session. The capsule
+captures activation, context, execution, verification, review, learning, and
+value references. If evidence is missing, the artifact is written with
+`status: "degraded"` and explicit `missing_evidence` entries instead of failing
+the session.
+
+```bash
+npx codeledger session capsule --session cl_sess_20260330_abc123 --json
+npx codeledger session-capsule --session cl_sess_20260330_abc123 --json
+```
+
+Artifacts:
+
+```text
+.codeledger/artifacts/session-capsules/<capsule_id>/coding-session-capsule.json
+.codeledger/artifacts/session-capsules/<capsule_id>/coding-session-capsule.md
+```
+
 ### `session-cleanup`
 
 Removes a session’s registry and state files.
@@ -1153,6 +1173,51 @@ Example output:
 }
 ```
 
+### `context pack`
+
+Creates the canonical Review Context Pack artifacts for a review task. This is a
+packaging layer over the existing context bundle, policy, memory, and evidence
+surfaces; it does not introduce a second selector. Current artifacts use
+`codeledger/review-context-pack/v2` and link to session capsules, coordinator
+judgments, and value receipts through explicit artifact reference objects.
+
+```bash
+npx codeledger context pack --task "Review auth token change" --json
+```
+
+Artifacts:
+
+```text
+.codeledger/artifacts/review-context-packs/<context_pack_id>/review-context-pack.json
+.codeledger/artifacts/review-context-packs/<context_pack_id>/review-context-pack.md
+```
+
+Example output:
+
+```json
+{
+  "schema_version": "codeledger/review-context-pack/v2",
+  "context_pack_id": "rcp_abc123",
+  "task_hash": "sha256:...",
+  "status": "complete",
+  "bundle_ref": {
+    "id": "bnd_abc123",
+    "hash": "sha256:...",
+    "schema_version": "codeledger/context-bundle/v1"
+  },
+  "capsule_ref": {
+    "id": "csc_abc123",
+    "hash": "sha256:...",
+    "schema_version": "codeledger/coding-session-capsule/v1"
+  },
+  "selected_files": [],
+  "excluded_files": [],
+  "policy_refs": [],
+  "memory_refs": [],
+  "missing_evidence": []
+}
+```
+
 ### `context diff`
 
 Shows how context changed between iterations.
@@ -1324,6 +1389,55 @@ Example output:
 
 ```text
 Review gate: pass
+```
+
+### `review coordinator`
+
+Normalizes reviewer output into a durable Coordinator Judgment artifact. The
+judgment maps legacy review verdicts to `SHIP`, `HOLD`, `ESCALATE`, or `BLOCK`,
+deduplicates findings, and records suppressions, policy basis, and missing
+evidence.
+
+```bash
+npx codeledger review coordinator --task "Review auth token change" --input reviewer-results.json --changed-files src/auth.ts,tests/auth.test.ts --json
+```
+
+Artifacts:
+
+```text
+.codeledger/artifacts/coordinator-judgments/<judgment_id>/coordinator-judgment.json
+```
+
+### `value receipt`
+
+Writes an evidence-backed value receipt for the active bundle and recent work.
+Receipts use `codeledger/value-receipt/v1`, separate observed, inferred, and
+estimated value, and explicitly list what CodeLedger is not claiming.
+
+```bash
+npx codeledger value receipt --session cl_sess_20260330_abc123 --json
+npx codeledger value-receipt --session cl_sess_20260330_abc123 --json
+```
+
+Artifacts:
+
+```text
+.codeledger/artifacts/value-receipts/<value_receipt_id>/value-receipt.json
+.codeledger/artifacts/value-receipts/<value_receipt_id>/value-receipt.md
+```
+
+### `negative-space`
+
+Records reviewed noise, false positives, accepted risks, suppressions, and
+waivers as local evidence. Events are written as individual atomic files under
+`.codeledger/evidence/negative-space/events/<event_id>.json`; older
+`.codeledger/evidence/negative-space.jsonl` files remain readable for legacy
+workspaces.
+
+```bash
+npx codeledger negative-space record --disposition false_positive --rule-id noisy_rule --file src/app.ts --reason "Accepted team doctrine exception"
+npx codeledger negative-space candidates --json
+npx codeledger negative-space promote --candidate nsc_abc123 --reason "Repeated reviewed false positive"
 ```
 
 ## Security, Audit, and Release
