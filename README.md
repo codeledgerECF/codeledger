@@ -1,4 +1,4 @@
-# CodeLedger           in your terminal on you pc/mac:                npm install -g @codeledger/cli
+# CodeLedger
 
 ---
 

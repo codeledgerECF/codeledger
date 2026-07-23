@@ -9,7 +9,7 @@ inputs:
   version:
     description: CodeLedger CLI version to install. Use latest for the newest published release.
     required: false
-    default: v0.10.14
+    default: v0.10.50
   repository:
     description: Repository that publishes CodeLedger release assets.
     required: false
