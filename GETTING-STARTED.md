@@ -119,6 +119,27 @@ This creates:
 
 > **Already have a CLAUDE.md?** CodeLedger appends its section. It won't overwrite your existing content.
 
+### Working In Git Worktrees
+
+If your team uses one git worktree per task, initialize and activate CodeLedger
+inside the task worktree, not only in the main checkout. CodeLedger keeps
+session state under `.codeledger/`, and that runtime state is intentionally
+gitignored, so each working checkout needs its own local setup.
+
+```bash
+git worktree add ../feature-x -b feature-x
+cd ../feature-x
+codeledger init
+codeledger activate --task "describe the task"
+# ...do the work...
+codeledger session-summary
+```
+
+`session-summary` works before or after you commit, but it should run from the
+worktree where the task happened. If you run it from the main checkout while
+edits live in a linked worktree, CodeLedger reports the recap as not measured
+instead of presenting misleading recall numbers.
+
 ---
 
 ## Step 3: Start Your Agent
@@ -441,7 +462,7 @@ npm uninstall -g @codeledger/cli
 - Run `codeledger compare --scenario "..."` to benchmark agent performance with vs without CodeLedger
 - Run `codeledger stats` to see cumulative value across all sessions
 
-### New in v0.9.2
+### Engineering Dashboard
 
 #### Engineering Dashboard
 ```bash

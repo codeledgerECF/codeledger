@@ -875,7 +875,7 @@ Trend: improving
 Creates a deterministic context manifest.
 
 ```bash
-npx codeledger manifest --task "Release 0.7.11"
+npx codeledger manifest --task "Release <version>"
 ```
 
 Example output:
@@ -1319,7 +1319,7 @@ Retained: 500 entries
 Runs the full integrity stack before opening a PR.
 
 ```bash
-npx codeledger pre-pr --task "Ship 0.7.11"
+npx codeledger pre-pr --task "Ship <version>"
 ```
 
 Example output:
@@ -1335,7 +1335,7 @@ Conditional: docs alignment
 Validates whether the claimed work is actually complete.
 
 ```bash
-npx codeledger complete-check --task "Ship 0.7.11" --summary "Standalone guidance fixed"
+npx codeledger complete-check --task "Ship <version>" --summary "Standalone guidance fixed"
 ```
 
 Example output:
@@ -1351,7 +1351,7 @@ Claims supported by diff: yes
 Runs an adversarial audit over the current worktree.
 
 ```bash
-npx codeledger audit --task "Ship 0.8.0" --summary "Updated release workflow and docs"
+npx codeledger audit --task "Ship <version>" --summary "Updated release workflow and docs"
 ```
 
 Example output:
@@ -1610,10 +1610,14 @@ Endpoints:
 
 ### `vendor`
 
-Copies the standalone CLI into a target repo.
+Copies the standalone CLI into a target repo and refreshes the ambient runtime
+surface. By default this can update `.codeledger/bin/`, repo-local wrappers,
+Claude hook delegation, and `.gitignore` exceptions. Use `--runtime-only` to
+refresh only `.codeledger/bin/` and leave hooks and `.gitignore` unchanged.
 
 ```bash
 npx codeledger vendor
+npx codeledger vendor --runtime-only
 ```
 
 Example output:
@@ -1789,7 +1793,7 @@ missing: none
 Generates a memory preamble for a task. When a task is provided, the preamble now uses the Context Injection Controller to inject only the bounded, task-relevant subset of retained policy memory.
 
 ```bash
-npx codeledger memory preamble --task "Release 0.7.11"
+npx codeledger memory preamble --task "Release <version>"
 ```
 
 Example output:
@@ -1947,7 +1951,7 @@ ID: lesson_123
 Shows current guardrail results.
 
 ```bash
-npx codeledger guardrails status --task "Ship 0.7.11"
+npx codeledger guardrails status --task "Ship <version>"
 ```
 
 Example output:
@@ -1963,7 +1967,7 @@ Failed: 0
 Shows detailed guardrail explanations.
 
 ```bash
-npx codeledger guardrails explain --task "Ship 0.7.11"
+npx codeledger guardrails explain --task "Ship <version>"
 ```
 
 Example output:
@@ -2044,7 +2048,7 @@ Evidence
 Produces completion-oriented structured output.
 
 ```bash
-npx codeledger broker completion --task "Ship 0.7.11"
+npx codeledger broker completion --task "Ship <version>"
 ```
 
 Example output:
@@ -2238,7 +2242,7 @@ codeledger panel brief --surface codex      # compact brief for agent injection
 codeledger panel handoff --agent claude     # scoped prompt for handoff to an agent
 ```
 
-## Shadow — Parallel Truth Evaluation (v0.10.10)
+## Shadow — Parallel Truth Evaluation
 
 Compare legacy and candidate implementations side by side before rollout.
 
