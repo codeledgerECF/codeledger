@@ -422,7 +422,7 @@ CodeLedger ships with Claude Code hooks. Just run `codeledger init` and start Cl
 | Hook | When | What |
 |------|------|------|
 | **SessionStart** | Session opens | Scans repo, generates bundle |
-| **PreToolUse** | Before edit/write | Reminds agent to check the bundle |
+| **PreToolUse** | Before edit/write | Checks activation freshness and warns on CodeLedger reservation conflicts; managed installs may block |
 | **PreCompact** | Before compression | Saves progress snapshot to survive compaction |
 | **Stop** | Session ends | Shows recall/precision metrics |
 
@@ -463,6 +463,7 @@ For session-aware inspection during the same run:
 
 `codeledger scan` ends with a compact executive summary, grouped policy recommendations, and suggested next commands. Use `codeledger scan --full-policy` when you want the full override list instead of the compact default view.
 `codeledger memory patterns` shows promoted runtime patterns along with trust basis and promotion state for quick inspection.
+`codeledger memory activity` gives one compact view of active learning proposals plus harvested runtime outcomes.
 
 For relevance-managed architectural memory:
 

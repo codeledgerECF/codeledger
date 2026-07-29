@@ -91,7 +91,7 @@ All database operations use parameterized queries. No string concatenation is us
 
 ## Secret & Credential Detection
 
-CodeLedger includes a built-in credential scanner (`codeledger detect-secrets`) with 14 detection rules:
+CodeLedger includes a built-in credential scanner (`codeledger detect-secrets`) with 14 detection rules. Add `--gitleaks` to run an optional local gitleaks pass when it is installed; CodeLedger records a redacted summary and skips that pass gracefully when the binary is unavailable.
 
 | Severity | What It Detects |
 |----------|----------------|
@@ -177,7 +177,7 @@ CodeLedger integrates with Claude Code via lifecycle hooks (`.claude/hooks.json`
 - Non-fatal errors are logged but do not interrupt agent execution
 
 **Hook behaviors:**
-- **PreToolUse:** On Edit/Write, checks discovery cache — blocks writes when verdict is `NO_GO_ALREADY_EXISTS`, warns when writing outside approved insertion points
+- **PreToolUse:** On Edit/Write/MultiEdit and risky Bash writes, checks activation freshness and CodeLedger reservations; local installs warn, managed block mode can deny unsafe writes
 - **PostToolUse:** On git commit, shows bundle recall/precision; tracks file reads; detects out-of-bundle drift
 - Hooks never execute arbitrary code — they invoke the CodeLedger CLI with specific commands only
 
