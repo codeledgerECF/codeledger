@@ -93,7 +93,7 @@ MODE="${1:-global}"
 if [ "$MODE" = "--local" ]; then
   npm install "$INSTALL_SOURCE"
   info "Installed CodeLedger as a local dependency"
-  echo "  Run with: npx codeledger <command>"
+  echo "  Run with: ./node_modules/.bin/codeledger <command>"
 else
   npm install -g "$INSTALL_SOURCE"
   info "Installed CodeLedger globally"
@@ -101,7 +101,11 @@ else
 
   # Detect local project installation that may shadow the global one
   if [ -f "package.json" ] && [ -d "node_modules/@codeledger" ]; then
-    LOCAL_VER=$(npx codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+    LOCAL_VER=$(
+      ./node_modules/.bin/codeledger --version 2>/dev/null \
+        | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
+        || echo ""
+    )
     GLOBAL_VER=$(codeledger --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
     if [ -n "$LOCAL_VER" ] && [ -n "$GLOBAL_VER" ] && [ "$LOCAL_VER" != "$GLOBAL_VER" ]; then
       echo ""
@@ -120,9 +124,9 @@ step "3. Verifying installation..."
 if command -v codeledger >/dev/null 2>&1; then
   VERSION=$(codeledger --version 2>/dev/null || echo "unknown")
   info "CodeLedger $VERSION is ready"
-elif npx codeledger --version >/dev/null 2>&1; then
-  VERSION=$(npx codeledger --version 2>/dev/null || echo "unknown")
-  info "CodeLedger $VERSION is ready (via npx)"
+elif [ -x "./node_modules/.bin/codeledger" ]; then
+  VERSION=$(./node_modules/.bin/codeledger --version 2>/dev/null || echo "unknown")
+  info "CodeLedger $VERSION is ready (local install)"
 else
   error "Installation verification failed."
   echo "  Try running: npm install -g @codeledger/cli"

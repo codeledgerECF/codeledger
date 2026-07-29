@@ -255,9 +255,8 @@
     <div class="container">
       <h1>Your AI agent is <em>guessing</em> which files matter</h1>
       <p class="subtitle">
-        Every AI coding agent starts the same way: searching the entire repo for context.
-        It wastes tokens on irrelevant files, misses dependencies, and builds things that already exist.
-        Then you spend the next hour undoing its work.
+        AI coding agents are powerful — but without the right context, they read 50 files to find the 5 that matter,
+        miss the dependency that breaks things, and build what already exists. CodeLedger fixes the context problem at the source.
       </p>
       <p class="subtitle" style="color: var(--accent); font-weight: 600; margin-top: 16px;">
         CodeLedger gives your agent the right files, the right constraints, and the right patterns — before it writes a single line.
@@ -294,7 +293,7 @@
               </select>
             </div>
 
-            <button type="submit" class="btn-download" id="submitBtn">Download .zip</button>
+            <button type="submit" class="btn-download" id="submitBtn">Get the latest release</button>
           </form>
 
           <a href="#" class="skip-link" id="skipLink">Skip — go straight to GitHub Releases</a>
@@ -303,8 +302,8 @@
 
         <div class="download-success" id="successView">
           <div class="checkmark">&#10003;</div>
-          <h3>Downloading...</h3>
-          <p>Check your downloads folder. The getting-started guide is inside the zip.</p>
+          <h3>Heading to GitHub Releases&hellip;</h3>
+          <p>Choose the build for your platform. The getting-started guide is in the release notes.</p>
         </div>
       </div>
     </div>
@@ -314,10 +313,10 @@
   <section style="border-top: 1px solid var(--border); padding: 48px 0;">
     <div class="container">
       <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 640px; margin: 0 auto;">
-        <p style="font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;">What problem are we solving?</p>
+        <p style="font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;">Why CodeLedger exists</p>
         <p style="margin-bottom: 16px;"><strong>The Problem</strong> &mdash; AI coding agents waste 40&ndash;60% of their context window on irrelevant files. Every session starts cold. Institutional knowledge lives in people&rsquo;s heads and disappears when they leave. There is no risk signal before a merge.</p>
         <p style="margin-bottom: 16px;"><strong>The Solution</strong> &mdash; CodeLedger is a deterministic context control plane for software development. It scores every file in a repository, selects only what the current task requires, captures outcomes, and promotes successful patterns into reusable institutional memory.</p>
-        <p style="margin-bottom: 16px;"><strong>The Intelligence Layer</strong> &mdash; The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology pack of golden patterns &mdash; distilled from peer organizations and leading engineering teams at organizations including Google, SAP, and Salesforce. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.</p>
+        <p style="margin-bottom: 16px;"><strong>The Intelligence Layer</strong> &mdash; The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology of 95+ prompt engineering signals drawn from published AI platform documentation and software engineering research. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.</p>
         <p style="margin-bottom: 16px;"><strong>The Principle</strong> &mdash; No cloud. No training pipeline. No behavior change required. Engineering management installs it once. Every developer and every AI agent benefits automatically &mdash; from collective intelligence on day one, and from your own institutional memory from day two onward.</p>
         <p style="color: var(--accent); font-style: italic; font-size: 15px; margin-top: 20px;">Logs are history. Ledger is intelligence.</p>
       </div>
@@ -558,12 +557,12 @@
       </p>
       <div class="cap-grid">
         <div class="cap">
-          <h3>6 real-data pages</h3>
-          <p>Overview, Integrity, Quality, Knowledge, Efficiency, and Value — all computed from your actual CodeLedger session data. No synthetic, no estimates.</p>
+          <h3>6 dashboard pages</h3>
+          <p>Overview, Integrity, Quality, Knowledge, Efficiency, and Value &mdash; all computed from your actual CodeLedger session data. Eight demo scenarios let you explore before your first commit.</p>
         </div>
         <div class="cap">
           <h3>Engineering Intelligence</h3>
-          <p>Outcome truth, agent scorecards, destabilization metrics, and value compounding. Currently in proof-of-concept mode with synthetic scenarios — real data integration on the roadmap.</p>
+          <p>Outcome truth, agent scorecards, destabilization metrics, and value compounding &mdash; all powered by your real session data. Eight demo scenarios let you explore the full depth before your first commit.</p>
         </div>
         <div class="cap">
           <h3>Enterprise auto-deploy</h3>
@@ -586,7 +585,7 @@
         Team and Enterprise tiers add MCP integration, the full dashboard, architecture governance, and fleet-wide visibility.
       </p>
       <p style="margin-top: 24px;">
-        <a href="https://github.com/codeledgerECF/codeledger/blob/main/docs/FEATURE_TIERS.md" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">See full tier comparison &rarr;</a>
+        <a href="https://contextecfcodeledger.com/pricing" style="color: var(--accent); text-decoration: none; font-weight: 600;">See full tier comparison &rarr;</a>
       </p>
     </div>
   </section>
@@ -599,7 +598,7 @@
 
   <script>
     const FORM_ENDPOINT = '';
-    const DOWNLOAD_URL = 'https://github.com/codeledgerECF/codeledger/releases/latest/download/codeledger.zip';
+    const DOWNLOAD_URL = 'https://github.com/codeledgerECF/codeledger/releases/latest';
     const RELEASES_URL = 'https://github.com/codeledgerECF/codeledger/releases';
 
     const form = document.getElementById('downloadForm');
@@ -613,7 +612,7 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Preparing download...';
+      submitBtn.textContent = 'Taking you to GitHub Releases…';
 
       const data = {
         email: document.getElementById('email').value,

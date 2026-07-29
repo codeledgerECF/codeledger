@@ -81,6 +81,21 @@ Retrieve the current task-specific context bundle.
 
 Returns the pre-assembled file context (Markdown) with an activation header showing task ID, source, confidence, and degraded status.
 
+### Session Brief Tools
+
+Use these after activation when an agent needs continuity without replaying a
+long chat transcript.
+
+| Tool | Description |
+|------|-------------|
+| `codeledger_get_session_brief` | Bounded working memory for the active session |
+| `codeledger_verify_session_brief` | Fresh/stale/corrupt/missing freshness report |
+| `codeledger_get_session_brief_evidence` | Evidence refs and missing-evidence keys |
+
+These tools return paths, hashes, capped summaries, freshness state, and
+evidence refs. They do not return raw prompts, raw diffs, full source files,
+unrestricted logs, scoring weights, or proprietary internals.
+
 ### `record_interaction`
 
 Report an execution outcome into the evidence buffer.

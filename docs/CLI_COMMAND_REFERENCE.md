@@ -85,7 +85,7 @@ If the running CLI is *older* than the vendored copy, `init` refuses to
 silently downgrade and tells you to upgrade your global install instead.
 
 ```bash
-npx codeledger init
+npx --yes /cli init
 ```
 
 Example output (auto-upgrade — no `--force` required):
@@ -127,7 +127,7 @@ The file tells the agent the rules of this specific codebase — how to invoke t
 Builds the repository index used for deterministic file selection.
 
 ```bash
-npx codeledger scan
+npx --yes /cli scan
 ```
 
 Example output:
@@ -162,7 +162,7 @@ Deprecated alias for `scan`. Use `codeledger scan` instead.
 Shows HOT/WARM/COLD/ARCHIVED counts for relevance-managed policy memory.
 
 ```bash
-npx codeledger memory status
+npx --yes /cli memory status
 ```
 
 Example output:
@@ -183,7 +183,7 @@ Top retained artifacts:
 Shows the factor breakdown for one policy memory artifact.
 
 ```bash
-npx codeledger memory explain --id 3b6f2f0a --json
+npx --yes /cli memory explain --id 3b6f2f0a --json
 ```
 
 Example output:
@@ -203,7 +203,7 @@ Example output:
 Generates a deterministic context bundle for a task.
 
 ```bash
-npx codeledger bundle --task "Fix null handling in getUserById"
+npx --yes /cli bundle --task "Fix null handling in getUserById"
 ```
 
 Example output:
@@ -257,13 +257,13 @@ The Task Intelligence block shows:
 Runs the full ambient task flow: scan-if-stale, bundle, preflight, and agent launch/prep.
 
 ```bash
-npx codeledger task --agent codex --task "Refactor order placement flow"
+npx --yes /cli task --agent codex --task "Refactor order placement flow"
 ```
 
 `copilot` is also accepted here as an alias to the existing generic runtime path:
 
 ```bash
-npx codeledger task --agent copilot --agent-bin "<copilot-compatible command>" --task "Refactor order placement flow"
+npx --yes /cli task --agent copilot --agent-bin "<copilot-compatible command>" --task "Refactor order placement flow"
 ```
 
 Example output:
@@ -282,7 +282,7 @@ For GitHub-hosted Copilot coding agent sessions, use CodeLedger to prepare and v
 Shortcut for `task --agent codex`.
 
 ```bash
-npx codeledger codex --task "Harden auth middleware"
+npx --yes /cli codex --task "Harden auth middleware"
 ```
 
 Example output:
@@ -306,7 +306,7 @@ In non-hook environments this wrapper applies the same meaningful-task auto-refr
 Shortcut for `task --agent claude`.
 
 ```bash
-npx codeledger claude --task "Fix webhook retry handling"
+npx --yes /cli claude --task "Fix webhook retry handling"
 ```
 
 Example output:
@@ -330,7 +330,7 @@ This wrapper mirrors hook-aware auto-refresh behavior in local non-hook sessions
 Runs scan/bundle/preflight without launching an agent.
 
 ```bash
-npx codeledger preflight "Update Stripe webhook validation"
+npx --yes /cli preflight "Update Stripe webhook validation"
 ```
 
 Example output:
@@ -348,7 +348,7 @@ Ready to proceed
 Shows recent ambient runtime runs.
 
 ```bash
-npx codeledger runs --limit 5
+npx --yes /cli runs --limit 5
 ```
 
 Example output:
@@ -365,7 +365,7 @@ Recent runs
 Re-scores the bundle after the task evolves.
 
 ```bash
-npx codeledger refine --learned "The bug is in the cache invalidation path"
+npx --yes /cli refine --learned "The bug is in the cache invalidation path"
 ```
 
 Example output:
@@ -381,7 +381,7 @@ New top file: src/cache/session-cache.ts
 Removes orphaned worktrees from prior interrupted compare/task runs.
 
 ```bash
-npx codeledger clean
+npx --yes /cli clean
 ```
 
 Example output:
@@ -396,7 +396,7 @@ Cleaning orphaned worktrees...
 Checks repo setup, hooks, config, index, and ledger health.
 
 ```bash
-npx codeledger doctor
+npx --yes /cli doctor
 ```
 
 Example output:
@@ -416,7 +416,7 @@ Doctor report
 Runs one benchmark scenario.
 
 ```bash
-npx codeledger run --scenario .codeledger/harness/scenarios/null-handling.json
+npx --yes /cli run --scenario .codeledger/harness/scenarios/null-handling.json
 ```
 
 Example output:
@@ -433,7 +433,7 @@ Score: 0.82
 Runs with-vs-without-CodeLedger comparison.
 
 ```bash
-npx codeledger compare --scenario .codeledger/harness/scenarios/auth-rate-limit.json
+npx --yes /cli compare --scenario .codeledger/harness/scenarios/auth-rate-limit.json
 ```
 
 Example output:
@@ -450,7 +450,7 @@ Delta: +27% fewer tokens, +1.0 files recall
 Builds a compare scenario from the most recent task/session.
 
 ```bash
-npx codeledger compare-current --run
+npx --yes /cli compare-current --run
 ```
 
 Example output:
@@ -468,7 +468,7 @@ Output: .codeledger/compare/latest/
 Starts the local background warmer.
 
 ```bash
-npx codeledger daemon start --background
+npx --yes /cli daemon start --background
 ```
 
 Example output:
@@ -484,7 +484,7 @@ Mode: background
 Shows daemon status.
 
 ```bash
-npx codeledger daemon status
+npx --yes /cli daemon status
 ```
 
 Example output:
@@ -500,7 +500,7 @@ Recent warm bundles: 4
 Stops the daemon.
 
 ```bash
-npx codeledger daemon stop
+npx --yes /cli daemon stop
 ```
 
 Example output:
@@ -517,7 +517,7 @@ Stopping daemon...
 Projects reality drift from daemon event history.
 
 ```bash
-npx codeledger drift --history --verify-integrity
+npx --yes /cli drift --history --verify-integrity
 ```
 
 Example output:
@@ -534,7 +534,7 @@ Drift records: 3
 Projects outcome memory from the ECL and learning signals.
 
 ```bash
-npx codeledger outcome --pattern auth --verify-integrity
+npx --yes /cli outcome --pattern auth --verify-integrity
 ```
 
 Example output:
@@ -551,7 +551,7 @@ Trend: improving / stable
 Turns recent truth into asset candidates for the existing lessons ledger.
 
 ```bash
-npx codeledger harvest --preview --verify-integrity
+npx --yes /cli harvest --preview --verify-integrity
 ```
 
 Example output:
@@ -567,7 +567,7 @@ Candidates: 2
 Builds an agent-agnostic handoff from the latest bundle.
 
 ```bash
-npx codeledger context-handoff --target codex --verify-integrity
+npx --yes /cli context-handoff --target codex --verify-integrity
 ```
 
 Example output:
@@ -584,7 +584,7 @@ Example output:
 Persists a daemon snapshot descriptor.
 
 ```bash
-npx codeledger snapshot --verify-integrity
+npx --yes /cli snapshot --verify-integrity
 ```
 
 Example output:
@@ -601,7 +601,7 @@ Branch: main
 Reconstructs daemon state from a snapshot and replay.
 
 ```bash
-npx codeledger time-travel --to snapshot-... --verify-integrity
+npx --yes /cli time-travel --to snapshot-... --verify-integrity
 ```
 
 Example output:
@@ -618,7 +618,7 @@ Recent bundles: 3
 Reconciles drift, outcomes, completion, and release state.
 
 ```bash
-npx codeledger reality-check --verify-integrity
+npx --yes /cli reality-check --verify-integrity
 ```
 
 Example output:
@@ -637,7 +637,7 @@ Release: ready_conditional
 Creates a new session ID.
 
 ```bash
-npx codeledger session-init
+npx --yes /cli session-init
 ```
 
 Example output:
@@ -652,7 +652,7 @@ ID: cl_sess_20260330_abc123
 Writes a ground-truth progress snapshot.
 
 ```bash
-npx codeledger session-progress
+npx --yes /cli session-progress
 ```
 
 Example output:
@@ -667,7 +667,7 @@ Tracked files touched: 6
 Shows end-of-session value metrics.
 
 ```bash
-npx codeledger session-summary --final
+npx --yes /cli session-summary --final
 ```
 
 On `--final`, high-density successful sessions can auto-promote into reusable runtime patterns. CodeLedger records the promotion decision either way so you can inspect why a session was promoted or skipped.
@@ -687,6 +687,21 @@ When multiple activations occurred during the session, `session-summary` appends
    Outcome Confidence: 87% recall  (signal stability: 3 activations · avg ISC 0.82)
 ```
 
+### `session brief`
+
+Writes a bounded Session Brief and Repository Session Capsule. This is working
+memory, not a transcript: it stores selected paths, hashes, capped decisions,
+open items, failures, validation refs, and evidence refs. It does not store raw
+prompts, raw diffs, full source files, unrestricted command logs, or hidden
+model reasoning.
+
+```bash
+codeledger session brief
+codeledger session brief --session cl_sess_20260330_abc123 --level compact
+codeledger session verify --session cl_sess_20260330_abc123 --json
+codeledger session history --session cl_sess_20260330_abc123
+```
+
 ### `session capsule`
 
 Writes a Coding Session Capsule for the active or requested session. The capsule
@@ -696,8 +711,8 @@ value references. If evidence is missing, the artifact is written with
 the session.
 
 ```bash
-npx codeledger session capsule --session cl_sess_20260330_abc123 --json
-npx codeledger session-capsule --session cl_sess_20260330_abc123 --json
+npx --yes /cli session capsule --session cl_sess_20260330_abc123 --json
+npx --yes /cli session-capsule --session cl_sess_20260330_abc123 --json
 ```
 
 Artifacts:
@@ -712,7 +727,7 @@ Artifacts:
 Removes a session’s registry and state files.
 
 ```bash
-npx codeledger session-cleanup --session cl_sess_20260330_abc123
+npx --yes /cli session-cleanup --session cl_sess_20260330_abc123
 ```
 
 Example output:
@@ -727,7 +742,7 @@ Removed registry entry and session artifacts
 Lists active sessions and overlap.
 
 ```bash
-npx codeledger sessions
+npx --yes /cli sessions
 ```
 
 Example output:
@@ -743,7 +758,7 @@ Active sessions
 Saves a checkpoint for a session.
 
 ```bash
-npx codeledger checkpoint create --session cl_sess_a --id before-refactor
+npx --yes /cli checkpoint create --session cl_sess_a --id before-refactor
 ```
 
 Example output:
@@ -758,7 +773,7 @@ ID: before-refactor
 Restores a session checkpoint.
 
 ```bash
-npx codeledger checkpoint restore --session cl_sess_a --id before-refactor
+npx --yes /cli checkpoint restore --session cl_sess_a --id before-refactor
 ```
 
 Example output:
@@ -773,7 +788,7 @@ ID: before-refactor
 Lists available checkpoints.
 
 ```bash
-npx codeledger checkpoint list --session cl_sess_a
+npx --yes /cli checkpoint list --session cl_sess_a
 ```
 
 Example output:
@@ -789,7 +804,7 @@ Checkpoints
 Shows cross-session overlap and hotspots.
 
 ```bash
-npx codeledger shared-summary --all
+npx --yes /cli shared-summary --all
 ```
 
 Example output:
@@ -806,7 +821,7 @@ Hot files:
 Runs a lightweight mid-session bundle coverage check.
 
 ```bash
-npx codeledger progress-check --session cl_sess_a
+npx --yes /cli progress-check --session cl_sess_a
 ```
 
 Example output:
@@ -824,7 +839,7 @@ Recommendation: refine bundle
 Generates a shareable result snippet.
 
 ```bash
-npx codeledger share --format markdown
+npx --yes /cli share --format markdown
 ```
 
 Example output:
@@ -839,7 +854,7 @@ Saved to stdout
 Shows cumulative value metrics.
 
 ```bash
-npx codeledger stats
+npx --yes /cli stats
 ```
 
 Example output:
@@ -856,7 +871,7 @@ Average recall: 84%
 Shows architecture health dashboard output.
 
 ```bash
-npx codeledger dashboard --history
+npx --yes /cli dashboard --history
 ```
 
 Example output:
@@ -875,7 +890,7 @@ Trend: improving
 Creates a deterministic context manifest.
 
 ```bash
-npx codeledger manifest --task "Release <version>"
+npx --yes /cli manifest --task "Release <version>"
 ```
 
 Example output:
@@ -890,7 +905,7 @@ Output: .codeledger/artifacts/manifest.json
 Signs a manifest for tamper evidence.
 
 ```bash
-npx codeledger sign-manifest --in manifest.json --out signed.json
+npx --yes /cli sign-manifest --in manifest.json --out signed.json
 ```
 
 Example output:
@@ -905,7 +920,7 @@ Output: signed.json
 Prints resolved policy.
 
 ```bash
-npx codeledger policy --print
+npx --yes /cli policy --print
 ```
 
 Example output:
@@ -921,7 +936,7 @@ Required invariants: tests, completion, scope
 Scaffolds a new policy file.
 
 ```bash
-npx codeledger policy init --scope repo
+npx --yes /cli policy init --scope repo
 ```
 
 Example output:
@@ -936,7 +951,7 @@ File: .codeledger/policy/repo-policy.json
 Validates a policy file.
 
 ```bash
-npx codeledger policy validate --file .codeledger/policy/repo-policy.json
+npx --yes /cli policy validate --file .codeledger/policy/repo-policy.json
 ```
 
 Example output:
@@ -951,7 +966,7 @@ Policy valid
 Diffs two policy files.
 
 ```bash
-npx codeledger policy diff --base repo.json --target strict.json
+npx --yes /cli policy diff --base repo.json --target strict.json
 ```
 
 Example output:
@@ -967,7 +982,7 @@ Policy diff
 Merges multiple policy files.
 
 ```bash
-npx codeledger policy merge --files global.json,repo.json
+npx --yes /cli policy merge --files global.json,repo.json
 ```
 
 Example output:
@@ -982,7 +997,7 @@ Resolution strategy: strictest-wins
 Runs CI enforcement and emits artifacts.
 
 ```bash
-npx codeledger verify --task "Refactor order placement flow" --json
+npx --yes /cli verify --task "Refactor order placement flow" --json
 ```
 
 Example output:
@@ -1000,8 +1015,8 @@ Example output:
 Generates CI workflow and policy files.
 
 ```bash
-npx codeledger setup-ci --provider github --mode warn
-npx codeledger setup-ci --provider github --mode warn --print   # preview without writing
+npx --yes /cli setup-ci --provider github --mode warn
+npx --yes /cli setup-ci --provider github --mode warn --print   # preview without writing
 ```
 
 **Flags:** `--mode observe|warn|block`, `--provider github|gitlab|circleci|azure`, `--output <dir>`, `--print`, `--smart-gates`
@@ -1011,8 +1026,8 @@ npx codeledger setup-ci --provider github --mode warn --print   # preview withou
 Generates a risk-adaptive two-stage workflow (`codeledger-smart-gates.yml`). Stage 1 classifies the PR using `codeledger ci pr-check`; Stage 2 gates downstream jobs on that classification. Low-risk PRs (docs, config, small refactors) take the fast path. High-risk PRs (auth, shared-core, migrations) get the full suite plus a security gate.
 
 ```bash
-npx codeledger setup-ci --smart-gates
-npx codeledger setup-ci --smart-gates --print    # preview without writing
+npx --yes /cli setup-ci --smart-gates
+npx --yes /cli setup-ci --smart-gates --print    # preview without writing
 ```
 
 | Job | Condition | Checks |
@@ -1029,8 +1044,8 @@ Prints a lightweight GitHub Actions workflow for the public PR Intelligence
 Action.
 
 ```bash
-npx codeledger setup-github-action --print
-npx codeledger setup-github-action --print --split --mode warn
+npx --yes /cli setup-github-action --print
+npx --yes /cli setup-github-action --print --split --mode warn
 ```
 
 Example output:
@@ -1066,7 +1081,7 @@ jobs:
 Runs bounded-scope PR validation for CI.
 
 ```bash
-npx codeledger ci pr-check --json
+npx --yes /cli ci pr-check --json
 ```
 
 Example output:
@@ -1086,7 +1101,7 @@ Example output:
 Creates a task intent contract.
 
 ```bash
-npx codeledger intent init --objective "Fix flaky webhook retries"
+npx --yes /cli intent init --objective "Fix flaky webhook retries"
 ```
 
 Example output:
@@ -1101,7 +1116,7 @@ Objective: Fix flaky webhook retries
 Shows current intent.
 
 ```bash
-npx codeledger intent show
+npx --yes /cli intent show
 ```
 
 Example output:
@@ -1117,7 +1132,7 @@ Scope-in: src/webhook
 Updates the current intent.
 
 ```bash
-npx codeledger intent set --scope-in "src/webhook,tests/webhook"
+npx --yes /cli intent set --scope-in "src/webhook,tests/webhook"
 ```
 
 Example output:
@@ -1132,7 +1147,7 @@ Scope-in changed
 Acknowledge drift or set a new baseline.
 
 ```bash
-npx codeledger intent ack --as-baseline
+npx --yes /cli intent ack --as-baseline
 ```
 
 Example output:
@@ -1147,7 +1162,7 @@ New baseline recorded
 Checks whether a task is sufficiently aligned with the current intent.
 
 ```bash
-npx codeledger intent check "Refactor webhook retries"
+npx --yes /cli intent check "Refactor webhook retries"
 ```
 
 Example output:
@@ -1161,7 +1176,7 @@ Intent Sufficiency Check: SUFFICIENT
 Explains why files or symbols were selected.
 
 ```bash
-npx codeledger context explain --json
+npx --yes /cli context explain --json
 ```
 
 Example output:
@@ -1182,7 +1197,7 @@ surfaces; it does not introduce a second selector. Current artifacts use
 judgments, and value receipts through explicit artifact reference objects.
 
 ```bash
-npx codeledger context pack --task "Review auth token change" --json
+npx --yes /cli context pack --task "Review auth token change" --json
 ```
 
 Artifacts:
@@ -1223,7 +1238,7 @@ Example output:
 Shows how context changed between iterations.
 
 ```bash
-npx codeledger context diff --from run_001 --to run_002
+npx --yes /cli context diff --from run_001 --to run_002
 ```
 
 Example output:
@@ -1239,7 +1254,7 @@ Context diff
 Outputs a Mermaid dependency graph.
 
 ```bash
-npx codeledger context graph --output bundle.mmd
+npx --yes /cli context graph --output bundle.mmd
 ```
 
 Example output:
@@ -1253,7 +1268,7 @@ Wrote Mermaid graph: bundle.mmd
 Validates the active context bundle.
 
 ```bash
-npx codeledger context validate --task "Fix retry race" --json
+npx --yes /cli context validate --task "Fix retry race" --json
 ```
 
 Example output:
@@ -1270,7 +1285,7 @@ Example output:
 Shows local ledger health.
 
 ```bash
-npx codeledger ledger status
+npx --yes /cli ledger status
 ```
 
 Example output:
@@ -1286,7 +1301,7 @@ Success rate: 81%
 Shows recent ledger entries.
 
 ```bash
-npx codeledger ledger inspect --limit 5
+npx --yes /cli ledger inspect --limit 5
 ```
 
 Example output:
@@ -1302,7 +1317,7 @@ Recent ledger entries
 Trims old ledger entries.
 
 ```bash
-npx codeledger ledger prune --max 500
+npx --yes /cli ledger prune --max 500
 ```
 
 Example output:
@@ -1319,7 +1334,7 @@ Retained: 500 entries
 Runs the full integrity stack before opening a PR.
 
 ```bash
-npx codeledger pre-pr --task "Ship <version>"
+npx --yes /cli pre-pr --task "Ship <version>"
 ```
 
 Example output:
@@ -1335,7 +1350,7 @@ Conditional: docs alignment
 Validates whether the claimed work is actually complete.
 
 ```bash
-npx codeledger complete-check --task "Ship <version>" --summary "Standalone guidance fixed"
+npx --yes /cli complete-check --task "Ship <version>" --summary "Standalone guidance fixed"
 ```
 
 Example output:
@@ -1351,7 +1366,7 @@ Claims supported by diff: yes
 Runs an adversarial audit over the current worktree.
 
 ```bash
-npx codeledger audit --task "Ship <version>" --summary "Updated release workflow and docs"
+npx --yes /cli audit --task "Ship <version>" --summary "Updated release workflow and docs"
 ```
 
 Example output:
@@ -1367,7 +1382,7 @@ Required documentation updates: changelog, public docs
 Shows current review coverage signals.
 
 ```bash
-npx codeledger review-coverage
+npx --yes /cli review-coverage
 ```
 
 Example output:
@@ -1382,7 +1397,7 @@ Touched files reviewed: 8/10
 Runs the gatekeeper review check used by hooks.
 
 ```bash
-npx codeledger review-gate
+npx --yes /cli review-gate
 ```
 
 Example output:
@@ -1399,7 +1414,7 @@ deduplicates findings, and records suppressions, policy basis, and missing
 evidence.
 
 ```bash
-npx codeledger review coordinator --task "Review auth token change" --input reviewer-results.json --changed-files src/auth.ts,tests/auth.test.ts --json
+npx --yes /cli review coordinator --task "Review auth token change" --input reviewer-results.json --changed-files src/auth.ts,tests/auth.test.ts --json
 ```
 
 Artifacts:
@@ -1415,8 +1430,8 @@ Receipts use `codeledger/value-receipt/v1`, separate observed, inferred, and
 estimated value, and explicitly list what CodeLedger is not claiming.
 
 ```bash
-npx codeledger value receipt --session cl_sess_20260330_abc123 --json
-npx codeledger value-receipt --session cl_sess_20260330_abc123 --json
+npx --yes /cli value receipt --session cl_sess_20260330_abc123 --json
+npx --yes /cli value-receipt --session cl_sess_20260330_abc123 --json
 ```
 
 Artifacts:
@@ -1435,9 +1450,9 @@ waivers as local evidence. Events are written as individual atomic files under
 workspaces.
 
 ```bash
-npx codeledger negative-space record --disposition false_positive --rule-id noisy_rule --file src/app.ts --reason "Accepted team doctrine exception"
-npx codeledger negative-space candidates --json
-npx codeledger negative-space promote --candidate nsc_abc123 --reason "Repeated reviewed false positive"
+npx --yes /cli negative-space record --disposition false_positive --rule-id noisy_rule --file src/app.ts --reason "Accepted team doctrine exception"
+npx --yes /cli negative-space candidates --json
+npx --yes /cli negative-space promote --candidate nsc_abc123 --reason "Repeated reviewed false positive"
 ```
 
 ## Security, Audit, and Release
@@ -1447,7 +1462,7 @@ npx codeledger negative-space promote --candidate nsc_abc123 --reason "Repeated 
 Scans for hardcoded credentials.
 
 ```bash
-npx codeledger detect-secrets --severity high
+npx --yes /cli detect-secrets --severity high
 ```
 
 Example output:
@@ -1462,8 +1477,8 @@ Findings: 0 high severity
 Exports ledger/audit data. Output is sanitized by default; repo-local paths stay repo-relative when possible and raw machine paths are abstracted. Use `--raw` only for privileged internal workflows.
 
 ```bash
-npx codeledger audit-export --format jsonl --output audit.jsonl
-npx codeledger audit-export --format json --raw
+npx --yes /cli audit-export --format jsonl --output audit.jsonl
+npx --yes /cli audit-export --format json --raw
 ```
 
 Example output:
@@ -1478,8 +1493,8 @@ Format: jsonl
 Traces or exports provenance data. JSON output is sanitized by default; add `--raw` for privileged local access.
 
 ```bash
-npx codeledger provenance trace --task "task-id" --json
-npx codeledger provenance export --json --raw
+npx --yes /cli provenance trace --task "task-id" --json
+npx --yes /cli provenance export --json --raw
 ```
 
 ### `release-check`
@@ -1487,7 +1502,7 @@ npx codeledger provenance export --json --raw
 Determines whether a release is shippable.
 
 ```bash
-npx codeledger release-check --why
+npx --yes /cli release-check --why
 ```
 
 Example output:
@@ -1507,7 +1522,7 @@ Top actions:
 Shows prioritized architecture interventions.
 
 ```bash
-npx codeledger interventions --top 5
+npx --yes /cli interventions --top 5
 ```
 
 Example output:
@@ -1579,7 +1594,7 @@ Example (via `codeledger mcp`):
 Starts the local HTTP API server.
 
 ```bash
-npx codeledger serve --port 7400
+npx --yes /cli serve --port 7400
 ```
 
 Example output:
@@ -1616,8 +1631,8 @@ Claude hook delegation, and `.gitignore` exceptions. Use `--runtime-only` to
 refresh only `.codeledger/bin/` and leave hooks and `.gitignore` unchanged.
 
 ```bash
-npx codeledger vendor
-npx codeledger vendor --runtime-only
+npx --yes /cli vendor
+npx --yes /cli vendor --runtime-only
 ```
 
 Example output:
@@ -1634,7 +1649,7 @@ Output: .codeledger/bin/codeledger-standalone.cjs
 Starts a governed cowork session.
 
 ```bash
-npx codeledger cowork-start --intent "Document release workflow"
+npx --yes /cli cowork-start --intent "Document release workflow"
 ```
 
 Example output:
@@ -1650,7 +1665,7 @@ Workspace: .
 Refreshes cowork context.
 
 ```bash
-npx codeledger cowork-refresh --intent "Focus on GitHub Actions release flow"
+npx --yes /cli cowork-refresh --intent "Focus on GitHub Actions release flow"
 ```
 
 Example output:
@@ -1665,7 +1680,7 @@ Top files updated
 Writes a cowork progress snapshot.
 
 ```bash
-npx codeledger cowork-snapshot
+npx --yes /cli cowork-snapshot
 ```
 
 Example output:
@@ -1679,7 +1694,7 @@ Cowork snapshot saved
 Finalizes the cowork session.
 
 ```bash
-npx codeledger cowork-stop
+npx --yes /cli cowork-stop
 ```
 
 Example output:
@@ -1696,7 +1711,7 @@ Summary printed
 Seeds the memory ledgers.
 
 ```bash
-npx codeledger memory init --force
+npx --yes /cli memory init --force
 ```
 
 Example output:
@@ -1711,7 +1726,7 @@ Seeded ontology, evidence gates, validation ledger
 Shows recent memory entries.
 
 ```bash
-npx codeledger memory recent
+npx --yes /cli memory recent
 ```
 
 Example output:
@@ -1727,7 +1742,7 @@ Recent truth entries
 Shows validation memory.
 
 ```bash
-npx codeledger memory validation
+npx --yes /cli memory validation
 ```
 
 Example output:
@@ -1743,7 +1758,7 @@ Recent passes: 12
 Shows ontology terms.
 
 ```bash
-npx codeledger memory ontology
+npx --yes /cli memory ontology
 ```
 
 Example output:
@@ -1760,7 +1775,7 @@ Ontology terms
 Shows memory structure.
 
 ```bash
-npx codeledger memory structure
+npx --yes /cli memory structure
 ```
 
 Example output:
@@ -1777,7 +1792,7 @@ Memory structure
 Shows evidence gate state.
 
 ```bash
-npx codeledger memory evidence
+npx --yes /cli memory evidence
 ```
 
 Example output:
@@ -1793,7 +1808,7 @@ missing: none
 Generates a memory preamble for a task. When a task is provided, the preamble now uses the Context Injection Controller to inject only the bounded, task-relevant subset of retained policy memory.
 
 ```bash
-npx codeledger memory preamble --task "Release <version>"
+npx --yes /cli memory preamble --task "Release <version>"
 ```
 
 Example output:
@@ -1809,7 +1824,7 @@ Builds the deterministic task-start injection bundle from policy memory.
 Before selection, CodeLedger classifies the task into one primary task type, secondary tags, confidence, risk level, complexity, and an evidence trace. Low-confidence cases fall back to `unknown`.
 
 ```bash
-npx codeledger memory inject --task "Fix auth regression" --paths "src/auth/login.ts" --json
+npx --yes /cli memory inject --task "Fix auth regression" --paths "src/auth/login.ts" --json
 ```
 
 Example output:
@@ -1889,7 +1904,7 @@ This lets a repo bias deterministic classification without changing the shared c
 Lists active lessons.
 
 ```bash
-npx codeledger lessons list
+npx --yes /cli lessons list
 ```
 
 Example output:
@@ -1905,7 +1920,7 @@ Active lessons
 Shows lessons relevant to a task/files/concepts.
 
 ```bash
-npx codeledger lessons relevant --task "Fix release workflow"
+npx --yes /cli lessons relevant --task "Fix release workflow"
 ```
 
 Example output:
@@ -1921,7 +1936,7 @@ Relevant lessons
 Approves a lesson.
 
 ```bash
-npx codeledger lessons verify --id lesson_123
+npx --yes /cli lessons verify --id lesson_123
 ```
 
 Example output:
@@ -1936,7 +1951,7 @@ ID: lesson_123
 Deprecates a lesson.
 
 ```bash
-npx codeledger lessons deprecate --id lesson_123
+npx --yes /cli lessons deprecate --id lesson_123
 ```
 
 Example output:
@@ -1951,7 +1966,7 @@ ID: lesson_123
 Shows current guardrail results.
 
 ```bash
-npx codeledger guardrails status --task "Ship <version>"
+npx --yes /cli guardrails status --task "Ship <version>"
 ```
 
 Example output:
@@ -1967,7 +1982,7 @@ Failed: 0
 Shows detailed guardrail explanations.
 
 ```bash
-npx codeledger guardrails explain --task "Ship <version>"
+npx --yes /cli guardrails explain --task "Ship <version>"
 ```
 
 Example output:
@@ -1983,7 +1998,7 @@ Guardrail explanations
 Produces structured context resolution for a task.
 
 ```bash
-npx codeledger broker resolve --task "Fix release messaging"
+npx --yes /cli broker resolve --task "Fix release messaging"
 ```
 
 Example output:
@@ -2000,7 +2015,7 @@ Example output:
 Produces validation-oriented broker output.
 
 ```bash
-npx codeledger broker validation --target "src/billing/license.ts"
+npx --yes /cli broker validation --target "src/billing/license.ts"
 ```
 
 Example output:
@@ -2016,7 +2031,7 @@ Validation targets
 Shows nearby files and dependencies.
 
 ```bash
-npx codeledger broker neighborhood --target "src/billing/license.ts"
+npx --yes /cli broker neighborhood --target "src/billing/license.ts"
 ```
 
 Example output:
@@ -2032,7 +2047,7 @@ Neighborhood
 Returns evidence for a finding.
 
 ```bash
-npx codeledger broker evidence --finding "standalone mismatch"
+npx --yes /cli broker evidence --finding "standalone mismatch"
 ```
 
 Example output:
@@ -2048,7 +2063,7 @@ Evidence
 Produces completion-oriented structured output.
 
 ```bash
-npx codeledger broker completion --task "Ship <version>"
+npx --yes /cli broker completion --task "Ship <version>"
 ```
 
 Example output:
@@ -2063,7 +2078,7 @@ Open loops: 0
 Generates a structured preamble for an agent or review.
 
 ```bash
-npx codeledger broker preamble --task "Fix standalone release parity"
+npx --yes /cli broker preamble --task "Fix standalone release parity"
 ```
 
 Example output:
@@ -2109,7 +2124,7 @@ Product promise:
 Refreshes or reuses active context for a live task shift and returns ranked files plus bundle delta.
 
 ```bash
-npx codeledger broker refresh --task "Add auth middleware tests" --json
+npx --yes /cli broker refresh --task "Add auth middleware tests" --json
 ```
 
 Example output:
@@ -2129,7 +2144,7 @@ Without `--json`, the command also prints a `Matched patterns:` section that exp
 Returns the current active bundle, latest bundle delta, and recent timeline tail.
 
 ```bash
-npx codeledger broker current --json
+npx --yes /cli broker current --json
 ```
 
 Without `--json`, the command prints the current ranked files plus the same matched-pattern trust summary used by `broker refresh`.
@@ -2139,7 +2154,7 @@ Without `--json`, the command prints the current ranked files plus the same matc
 Returns the recent truth-ledger tail without rereading the entire timeline.
 
 ```bash
-npx codeledger broker timeline --limit 10 --json
+npx --yes /cli broker timeline --limit 10 --json
 ```
 
 ## Insight System (v0.10)
@@ -2306,8 +2321,8 @@ These commands fuse the structural graph, local behavioral outcomes, and institu
 Cross-layer guided implementation plan. Reads the current graph snapshot, local outcome history, and any institutional lessons synced into the repo, and emits a structured plan with advice items that each cite a verifiable evidence string.
 
 ```bash
-npx codeledger coach --intent "Add OIDC support to auth login"
-npx codeledger coach --intent "..." --json
+npx --yes /cli coach --intent "Add OIDC support to auth login"
+npx --yes /cli coach --intent "..." --json
 ```
 
 The coach refuses to give structural advice when the graph snapshot is stale relative to the current HEAD. Run `graph index` first in that case.
@@ -2317,8 +2332,8 @@ The coach refuses to give structural advice when the graph snapshot is stale rel
 Builds a symbol-level structural snapshot of the repository using the TypeScript compiler API. Extracts top-level exported functions, classes, interfaces, types, enums, and import edges, and writes a commit-SHA-stamped snapshot plus a HEAD pointer under `.codeledger/graph/`. Auto-prunes to the most recent snapshots.
 
 ```bash
-npx codeledger graph index
-npx codeledger graph index --json
+npx --yes /cli graph index
+npx --yes /cli graph index --json
 ```
 
 ### `graph architecture`
@@ -2326,7 +2341,7 @@ npx codeledger graph index --json
 Explicit alias for the legacy package-level architecture graph view.
 
 ```bash
-npx codeledger graph architecture
+npx --yes /cli graph architecture
 ```
 
 ### `ecl sync`
@@ -2334,8 +2349,8 @@ npx codeledger graph architecture
 Manage the institutional / remote ECL — a schema for cross-project "lessons learned" at `.codeledger/ecl/remote/`. The current transport is committed JSON files; the schema is ready for future network-based transports.
 
 ```bash
-npx codeledger ecl sync --seed            # write a deterministic seed fixture
-npx codeledger ecl sync --from <dir>      # copy outcomes.jsonl/lessons.jsonl from a local dir
+npx --yes /cli ecl sync --seed            # write a deterministic seed fixture
+npx --yes /cli ecl sync --from <dir>      # copy outcomes.jsonl/lessons.jsonl from a local dir
 ```
 
 ### `ecl status`
@@ -2343,8 +2358,8 @@ npx codeledger ecl sync --from <dir>      # copy outcomes.jsonl/lessons.jsonl fr
 Show the remote ECL manifest + record counts.
 
 ```bash
-npx codeledger ecl status
-npx codeledger ecl status --json
+npx --yes /cli ecl status
+npx --yes /cli ecl status --json
 ```
 
 ### `memory seed-patterns`
@@ -2352,9 +2367,9 @@ npx codeledger ecl status --json
 Extract "Institutional North Star" patterns from successful task history. Filters your outcome ledger for consistently successful, high-confidence execution groups and promotes them into the Golden Patterns ledger. The Prompt Coach then surfaces matched patterns inline when a new task arrives — the cold-start fix for new team members.
 
 ```bash
-npx codeledger memory seed-patterns                  # all sources
-npx codeledger memory seed-patterns --from ecl
-npx codeledger memory seed-patterns --dry-run --json
+npx --yes /cli memory seed-patterns                  # all sources
+npx --yes /cli memory seed-patterns --from ecl
+npx --yes /cli memory seed-patterns --dry-run --json
 ```
 
 ### `memory patterns`
@@ -2362,8 +2377,8 @@ npx codeledger memory seed-patterns --dry-run --json
 Shows promoted runtime patterns plus recent automatic promotion decisions.
 
 ```bash
-npx codeledger memory patterns
-npx codeledger memory patterns --json
+npx --yes /cli memory patterns
+npx --yes /cli memory patterns --json
 ```
 
 The human-readable view shows each pattern's lifecycle status, confidence, trust basis (`reuse` and occurrences), promotion state, and latest promotion reason.
@@ -2377,9 +2392,9 @@ An append-only stream of `verify` outcomes per commit. Each run emits a structur
 Show raw release-truth events for a commit.
 
 ```bash
-npx codeledger release-truth                        # latest commit
-npx codeledger release-truth --commit <sha>
-npx codeledger release-truth --commit <sha> --json
+npx --yes /cli release-truth                        # latest commit
+npx --yes /cli release-truth --commit <sha>
+npx --yes /cli release-truth --commit <sha> --json
 ```
 
 ### `release-history`
@@ -2387,7 +2402,7 @@ npx codeledger release-truth --commit <sha> --json
 Show release-truth aggregates and recent verify history for the current repo.
 
 ```bash
-npx codeledger release-history
+npx --yes /cli release-history
 ```
 
 ### `release-insights`
@@ -2395,7 +2410,7 @@ npx codeledger release-history
 Narrative + aggregate release-truth insights for the current repo over a time window.
 
 ```bash
-npx codeledger release-insights
+npx --yes /cli release-insights
 ```
 
 ## Fleet — Cross-Repo Enterprise Insights (Enterprise tier)
@@ -2425,9 +2440,9 @@ Phase 1 cross-repo insights for enterprise customers with multiple CodeLedger-in
 Pull a fleet manifest into the local cache (`~/.codeledger/fleet.cache.json`).
 
 ```bash
-npx codeledger fleet sync --from-github acme-corp/.github
-npx codeledger fleet sync --from-github acme-corp/codeledger-config:fleet.json
-npx codeledger fleet sync --from /path/to/local/codeledger-fleet.json
+npx --yes /cli fleet sync --from-github acme-corp/.github
+npx --yes /cli fleet sync --from-github acme-corp/codeledger-config:fleet.json
+npx --yes /cli fleet sync --from /path/to/local/codeledger-fleet.json
 ```
 
 GitHub mode uses the operator's existing `gh` CLI authentication — no new auth surface.
@@ -2437,8 +2452,8 @@ GitHub mode uses the operator's existing `gh` CLI authentication — no new auth
 Per-repo health line for every repo in the fleet manifest.
 
 ```bash
-npx codeledger fleet status
-npx codeledger fleet status --json
+npx --yes /cli fleet status
+npx --yes /cli fleet status --json
 ```
 
 ### `fleet aggregate`
@@ -2447,9 +2462,9 @@ Walk every repo and produce a cross-fleet report with per-team totals, first-pas
 Saved and JSON reports sanitize repo-local filesystem paths by default so shareable reports do not leak operator machine structure.
 
 ```bash
-npx codeledger fleet aggregate
-npx codeledger fleet aggregate --json
-npx codeledger fleet aggregate --out fleet-report.json
+npx --yes /cli fleet aggregate
+npx --yes /cli fleet aggregate --json
+npx --yes /cli fleet aggregate --out fleet-report.json
 ```
 
 ### `fleet compare --team-a A --team-b B`
@@ -2457,7 +2472,7 @@ npx codeledger fleet aggregate --out fleet-report.json
 Side-by-side metric comparison for two teams in the fleet. Surfaces deltas in outcome volume, first-pass success rate, golden pattern adoption, and prevented issues, with a deterministic delta column and a headline insight when the first-pass gap is meaningful.
 
 ```bash
-npx codeledger fleet compare --team-a fintech-alpha --team-b fintech-beta
+npx --yes /cli fleet compare --team-a fintech-alpha --team-b fintech-beta
 ```
 
 ### `fleet hotspots`
@@ -2465,8 +2480,8 @@ npx codeledger fleet compare --team-a fintech-alpha --team-b fintech-beta
 Top failing files unioned across the entire fleet, ranked and tagged by repo so the platform team can see where tech debt is accumulating fastest across the org.
 
 ```bash
-npx codeledger fleet hotspots --top 10
-npx codeledger fleet hotspots --top 25 --json
+npx --yes /cli fleet hotspots --top 10
+npx --yes /cli fleet hotspots --top 25 --json
 ```
 
 ### `fleet dashboard`
@@ -2474,8 +2489,8 @@ npx codeledger fleet hotspots --top 25 --json
 Render a self-contained HTML fleet dashboard (dark theme, no external dependencies, no JavaScript). Output defaults to `.codeledger/fleet-dashboard.html`.
 
 ```bash
-npx codeledger fleet dashboard
-npx codeledger fleet dashboard --out /tmp/fleet-dashboard.html
+npx --yes /cli fleet dashboard
+npx --yes /cli fleet dashboard --out /tmp/fleet-dashboard.html
 ```
 
 ### `fleet insights`
@@ -2483,9 +2498,9 @@ npx codeledger fleet dashboard --out /tmp/fleet-dashboard.html
 Time-windowed Release Truth fleet rollup. Aggregates PASS/WARN/FAIL rates and high-risk repo count across every repo in the manifest.
 
 ```bash
-npx codeledger fleet insights                    # default window: 7d
-npx codeledger fleet insights --window 24h
-npx codeledger fleet insights --window 30d --json
+npx --yes /cli fleet insights                    # default window: 7d
+npx --yes /cli fleet insights --window 24h
+npx --yes /cli fleet insights --window 30d --json
 ```
 
 ### `fleet alerts`
@@ -2493,8 +2508,8 @@ npx codeledger fleet insights --window 30d --json
 Deterministic risk-spike and concentration alerts. Compares recent vs baseline windows of release-truth data; for every detected spike, persists a `RISK_ALERT` event back into the affected repo's local release-truth log so the next developer in that repo sees the same warning that the VP saw in the fleet view.
 
 ```bash
-npx codeledger fleet alerts
-npx codeledger fleet alerts --json
+npx --yes /cli fleet alerts
+npx --yes /cli fleet alerts --json
 ```
 
 This is the closed loop at the org level: a failing release in one repo becomes a visible fleet alert, and the alert then flows back into per-repo developer warnings. No human in the relay.
@@ -2610,7 +2625,7 @@ You now have access to all Team features, plus:
 Shows the CLI version.
 
 ```bash
-npx codeledger --version
+npx --yes /cli --version
 ```
 
 Example output:
@@ -2624,7 +2639,7 @@ codeledger vX.Y.Z
 Shows CLI help.
 
 ```bash
-npx codeledger --help
+npx --yes /cli --help
 ```
 
 Example output:

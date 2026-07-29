@@ -17,8 +17,8 @@
 ---
 
 
-Need a command-by-command walkthrough with example output? See [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md).
-Looking beyond developer workflow? See [Beyond CodeLedger](docs/context-ecf.md).
+Need a command-by-command walkthrough with example output? See the public [CLI Command Reference](https://github.com/codeledgerECF/codeledger/blob/main/docs/CLI_COMMAND_REFERENCE.md).
+Looking beyond developer workflow? See [Beyond CodeLedger](https://github.com/codeledgerECF/codeledger/blob/main/docs/context-ecf.md).
 
 CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
 
@@ -80,7 +80,7 @@ The installer uses the bundled package from the zip, so the installed wrapper ve
 npm install -g @codeledger/cli
 ```
 
-> **No global install?** Use `npx codeledger <command>` anywhere. The examples below use the global command for brevity, but `npx codeledger` works identically.
+> **No global install?** Use the scoped package explicitly: `npx --yes @codeledger/cli@latest <command>`. The examples below use the global command for brevity.
 
 ### Option C: Standalone bundle (browser IDEs, sandboxed environments)
 
@@ -388,15 +388,15 @@ After 30+ minutes and several commits, CodeLedger will nudge you to refresh. You
 codeledger activate --task "your current task"
 ```
 
-### "npx shows old version after upgrade"
+### "local install shows old version after upgrade"
 
-If `npx codeledger --version` shows an older version after upgrading globally, your project has a local copy in `node_modules` that shadows the global install. Fix it:
+If `./node_modules/.bin/codeledger --version` shows an older version after upgrading globally, your project has a local copy in `node_modules` that shadows the global install. Fix it:
 
 ```bash
 # Option 1: Update the local copy
 npm install /path/to/codeledger-cli-<version>.tgz
 
-# Option 2: Remove the local copy (npx will use global)
+# Option 2: Remove the local copy
 rm -rf node_modules/@codeledger
 
 # Option 3: Use the global install directly
@@ -428,9 +428,9 @@ codeledger activate --task "your task"
 
 ## Privacy
 
-- **Installation** requires npm access to fetch `@codeledger/*` dependencies (one-time)
-- **After install**, runs entirely on your local machine
-- Makes zero network calls at runtime
+- **Installation** may use npm and GitHub Releases to fetch the wrapper and matching hardened binary
+- **After install**, analysis runs on your local machine
+- Runtime analysis makes zero source-code telemetry calls by default
 - Collects zero telemetry
 - Your source code never leaves your machine
 - No account required
