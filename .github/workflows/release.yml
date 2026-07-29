@@ -12,8 +12,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,49 +66,46 @@ jobs:
             exit 1
           fi
 
-      - name: Strip source maps and proprietary declarations from package
+      - name: Verify npm package has no post-publish strip targets
         run: |
-          echo "Stripping IP-sensitive files from npm tarball..."
+          echo "Verifying npm tarball is already hardened..."
           TARBALL="${NPM_TARBALL}"
           WORK_DIR=$(mktemp -d)
+          FAIL=0
 
           # Extract tarball
           tar xzf "$TARBALL" -C "$WORK_DIR"
 
-          # Remove source maps (reveal internal structure)
           MAP_COUNT=$(find "$WORK_DIR" -name '*.js.map' | wc -l)
-          find "$WORK_DIR" -name '*.js.map' -delete
-          echo "  Removed $MAP_COUNT source map files"
+          if [ "$MAP_COUNT" -gt 0 ]; then
+            echo "::error::Published npm tarball contains $MAP_COUNT source map file(s). Refusing to mutate released package."
+            FAIL=1
+          fi
 
-          # Remove declaration files for internal packages.
-          # Only the public types package should ship declarations.
           DECL_COUNT=0
           while IFS= read -r dts_file; do
-            # Keep declarations for the public types package only
             case "$dts_file" in
               */types/dist/*) : ;;
-              *) rm -f "$dts_file"; DECL_COUNT=$((DECL_COUNT + 1)) ;;
+              *) DECL_COUNT=$((DECL_COUNT + 1)) ;;
             esac
           done < <(find "$WORK_DIR" -name '*.d.ts' 2>/dev/null)
-          echo "  Removed $DECL_COUNT internal declaration files"
+          if [ "$DECL_COUNT" -gt 0 ]; then
+            echo "::error::Published npm tarball contains $DECL_COUNT internal declaration file(s). Refusing to mutate released package."
+            FAIL=1
+          fi
 
-          # Remove sourceMappingURL comments from JS files
-          find "$WORK_DIR" -name '*.js' -exec sed -i 's|//# sourceMappingURL=.*||g' {} +
-          echo "  Stripped sourceMappingURL comments"
+          URL_COUNT=$(grep -rl 'sourceMappingURL=' "$WORK_DIR" --include='*.js' | wc -l)
+          if [ "$URL_COUNT" -gt 0 ]; then
+            echo "::error::Published npm tarball contains $URL_COUNT sourceMappingURL comment(s). Refusing to mutate released package."
+            FAIL=1
+          fi
 
-          # Stub internal fallback paths in any shipped shell files
-          # (pattern source is internal; decoded at runtime to avoid publishing it)
-          FROM=$(echo "cmVxdWlyZSgiQGNvZGVsZWRnZXIvZW5naW5lIik=" | base64 -d)
-          TO=$(echo "cmVxdWlyZSgiLi9jb3JlIik=" | base64 -d)
-          find "$WORK_DIR" -name '*shell*.js' -exec sed -i "s|${FROM}|${TO}|g" {} + 2>/dev/null || true
-
-          # Repack tarball
-          cd "$WORK_DIR"
-          tar czf "$OLDPWD/$TARBALL" package/
-          cd "$OLDPWD"
           rm -rf "$WORK_DIR"
 
-          echo "✓ Tarball hardened: removed $MAP_COUNT maps, $DECL_COUNT declarations"
+          if [ "$FAIL" -gt 0 ]; then
+            exit 1
+          fi
+          echo "✓ npm tarball is already hardened; no post-publish mutation performed"
 
       - name: Verify wrapper installs
         # CRITICAL — chicken-and-egg note (added 2026-04-09 after run 24220954958):
@@ -141,6 +136,8 @@ jobs:
           echo "✓ Wrapper installed cleanly (binary fetch skipped — see comment above)"
 
       - name: Verify no IP leakage in shipped package
+        env:
+          CODELEDGER_PUBLIC_IP_DENYLIST_SHA256: ${{ secrets.CODELEDGER_PUBLIC_IP_DENYLIST_SHA256 }}
         run: |
           echo "Running IP leak detection on shipped tarball..."
           WORK_DIR=$(mktemp -d)
@@ -189,33 +186,32 @@ jobs:
             echo "  ✓ No test files"
           fi
 
-          # Check 5: No proprietary identifiers ANYWHERE in the package
-          #
-          # The 2026-04-08 adversarial audit proved that a narrow check
-          # (scanning a single known bundle file) misses leaks that live
-          # in node_modules transitives. v0.10.5's @codeledger/engine and
-          # @codeledger/selector shipped the full scoring engine via the
-          # @codeledger/cli workspace-dep tree, and the prior single-file
-          # check could not see it. This broadened check greps every .js
-          # file in the tarball for crown-jewel tokens.
-          #
-          # Denylist is base64-encoded so this public workflow file doesn't
-          # publish the crown-jewel naming roadmap. Decoded at runtime.
-          PATTERNS_B64="Y29tcHV0ZUNjcwpjaGVja0ludGVudFN1ZmZpY2llbmN5CnZlcmlmeVNpZ25lZExpY2Vuc2UKcGFyc2VMaWNlbnNlS2V5CmJ1aWxkRmFpbHVyZUhvdHNwb3RzCmFuYWx5emVTZXNzaW9uRGVuc2l0eQpzY29yZUNhbmRpZGF0ZQpzY29yZUZpbGUKcmFua0ZpbGVzCnNoYWRvd1Njb3JpbmcKYnVpbGRNaW5pbWFsU2xpY2UKYnVpbGRTeW1ib2xHCmFzc2Vzc1Jpc2sKZGV0ZWN0Q29sbGlzaW9ucwp0YWdTZW5zaXRpdmVMaW5lcwpyZWdyZXNzaW9uV2FybmluZ3NUb0ZpbmRpbmdzCkRFRkFVTFRfS05PV0xFREdFX1dFSUdIVFMKREVGQVVMVF9TRVZFUklUWV9XRUlHSFRTCktOT1dMRURHRV9GT0xERVJfUFJJT1JTCkRPQ19UWVBFX1BSSU9SUwpnYXRlVGVtcG9yYWxGZWF0dXJlcwpjbGFzc2lmeVNldmVyaXR5CldFQUtfU0lHTkFMX0NBUFMKV19ERVBFTkRFTkNZX0NPVkVSQUdFCldfVEVTVF9DT1ZFUkFHRQpXX0hJU1RPUklDQUxfU1VDQ0VTUwpXX1NZTUJPTF9DT01QTEVURU5FU1MKV19FWFBBTlNJT05fRUZGSUNJRU5DWQpXX1RPS0VOX1NJR05BTApXX09QRVJBVElPTl9DTEFSSVRZCldfRE9NQUlOX0NMQVJJVFkKV19UQVJHRVRfU1BFQ0lGSUNJVFkKV19DT05TVFJBSU5UX1BSRVNFTkNFCkNDU19QUk9DRUVEX1RIUkVTSE9MRApJU0NfU1VGRklDSUVOVF9USFJFU0hPTEQKX19DT0RFTEVER0VSX1BST1RFQ1RFRF9NT0RVTEVfQ0FDSEVfXwpfX2NvZGVsZWRnZXJfcHJvdGVjdGVkX3J1bnRpbWVfXwp2YWxpZGF0ZUxlZGdlcldyaXRlRmllbGQ="
-          PATTERNS=$(echo "$PATTERNS_B64" | base64 -d 2>/dev/null || echo "$PATTERNS_B64" | base64 --decode)
-          ALGO_HITS=0
-          while IFS= read -r pattern; do
-            [ -z "$pattern" ] && continue
-            # Fixed-string recursive grep across every .js file in the extracted tarball
-            if grep -rF -l "$pattern" "$WORK_DIR" --include='*.js' >/dev/null 2>&1; then
-              ALGO_HITS=$((ALGO_HITS + 1))
-            fi
-          done <<< "$PATTERNS"
-          if [ "$ALGO_HITS" -gt 0 ]; then
-            echo "::error::FAIL: ${ALGO_HITS} proprietary identifier(s) found in package tarball"
+          # Check 5: No proprietary identifiers ANYWHERE in the package.
+          # The secret contains newline-delimited SHA-256 hashes of protected
+          # identifiers. The public workflow never stores or prints the names.
+          if [ -z "${CODELEDGER_PUBLIC_IP_DENYLIST_SHA256:-}" ]; then
+            echo "::error::CODELEDGER_PUBLIC_IP_DENYLIST_SHA256 secret is required for release IP checks"
             FAIL=1
           else
-            echo "  ✓ No proprietary identifiers found in any .js file"
+            HASH_FILE=$(mktemp)
+            printf '%s\n' "$CODELEDGER_PUBLIC_IP_DENYLIST_SHA256" \
+              | sed '/^[[:space:]]*$/d' \
+              | sort -u > "$HASH_FILE"
+            TOKEN_FILE=$(mktemp)
+            grep -RhoE '[A-Za-z_][A-Za-z0-9_]{4,}' "$WORK_DIR" --include='*.js' 2>/dev/null \
+              | sort -u \
+              | while IFS= read -r token; do
+                  printf '%s' "$token" | sha256sum | awk '{print $1}'
+                done \
+              | sort -u > "$TOKEN_FILE"
+            HASH_HITS=$(comm -12 "$HASH_FILE" "$TOKEN_FILE" | wc -l | tr -d ' ')
+            rm -f "$HASH_FILE" "$TOKEN_FILE"
+            if [ "$HASH_HITS" -gt 0 ]; then
+              echo "::error::FAIL: ${HASH_HITS} protected identifier hash match(es) found in package tarball"
+              FAIL=1
+            else
+              echo "  ✓ No protected identifier hash matches found in any .js file"
+            fi
           fi
 
           # Legacy narrow check on the open standalone, kept as a redundancy.
@@ -234,24 +230,8 @@ jobs:
             fi
           fi
 
-          # Check 7: No internal package references in open standalone
-          if [ -n "$OPEN_CJS" ]; then
-            # Internal package references (base64-encoded, decoded at runtime)
-            PKG_B64="QGNvZGVsZWRnZXIvZW5naW5lCkBjb2RlbGVkZ2VyL3NlbGVjdG9yCnByb3RlY3RlZC1ydW50aW1l"
-            PKG_PATTERNS=$(echo "$PKG_B64" | base64 -d 2>/dev/null || echo "$PKG_B64" | base64 --decode)
-            ENGINE_HITS=0
-            while IFS= read -r pattern; do
-              [ -z "$pattern" ] && continue
-              hits=$(grep -c "$pattern" "$OPEN_CJS" 2>/dev/null || echo 0)
-              ENGINE_HITS=$((ENGINE_HITS + hits))
-            done <<< "$PKG_PATTERNS"
-            if [ "$ENGINE_HITS" -gt 0 ]; then
-              echo "::error::FAIL: internal package references in open standalone"
-              FAIL=1
-            else
-              echo "  ✓ No internal package references in open standalone"
-            fi
-          fi
+          # Internal package references are covered by the private hash-set
+          # scan above. Do not publish internal package names in this workflow.
 
           rm -rf "$WORK_DIR"
 
@@ -259,7 +239,7 @@ jobs:
             echo "::error::IP leak detection failed — package is not safe to ship"
             exit 1
           fi
-          echo "✓ All IP leak checks passed (7 checks)"
+          echo "✓ All IP leak checks passed"
 
       - name: Generate MANIFEST.md
         run: |
@@ -290,22 +270,26 @@ jobs:
           |------|---------|
           | \`${NPM_TARBALL}\` | The version-pinned npm wrapper package |
           | \`install.sh\` | Installs from the bundled package (with prerequisite checks) |
-          | \`README.md\` | Full feature documentation and CLI reference |
+          | \`README.md\` | Public product and usage documentation |
           | \`GETTING-STARTED.md\` | Step-by-step setup guide |
-          | \`CHANGELOG.md\` | Version history with feature details |
+          | \`RELEASE_NOTES.md\` | Release-specific notes for this version |
           | \`MANIFEST.md\` | This file — release contents and verification |
-          | \`ARCHITECTURE_SPEC.md\` | Unified system architecture specification |
+          | \`ARCHITECTURE_OVERVIEW.md\` | Public architecture overview |
           | \`LICENSE\` | MIT license (CLI, types, repo scanner, harness) |
           | \`LICENSE-CORE\` | CodeLedger Core License (scoring engine binary) |
 
           ## How to install
 
-          **Option A: From this zip (recommended — pinned to this release)**
+          **Option A: From this bootstrap zip (recommended — pinned wrapper)**
           \`\`\`bash
           unzip codeledger-${VERSION}.zip
           cd codeledger-${VERSION}/
           ./install.sh
           \`\`\`
+
+          The bootstrap zip installs the pinned wrapper from the bundled
+          tarball. The wrapper may download the matching hardened binary from
+          this GitHub Release unless your environment already provides it.
 
           **Option B: Directly from npm**
           \`\`\`bash
@@ -343,9 +327,12 @@ jobs:
           codeledger activate --task "Fix auth for api-gateway"
           \`\`\`
 
-          ## npm package contents
+          ## Distribution model
 
-          The \`@codeledger/cli\` npm package is self-contained and includes everything needed to run CodeLedger. No separate installs required.
+          This is an online bootstrap package, not an offline binary bundle.
+          For true offline installation, use a platform-specific offline asset
+          that includes the hardened binary, checksums, license, and install
+          instructions.
 
           ## v${VERSION} features
           ${CHANGELOG_SECTION}
@@ -364,7 +351,7 @@ jobs:
           # This is the thin open build — safe commands only, no proprietary logic
           WORK_DIR=$(mktemp -d)
           tar xzf "${NPM_TARBALL}" -C "$WORK_DIR"
-          # Prefer the open build; fall back to full standalone if open not present
+          # Prefer the open build. Never fall back to the full standalone.
           OPEN_STANDALONE=$(find "$WORK_DIR" -name 'codeledger-open.cjs' | head -1)
           FULL_STANDALONE=$(find "$WORK_DIR" -name 'codeledger-standalone.cjs' | head -1)
           if [ -n "$OPEN_STANDALONE" ]; then
@@ -372,11 +359,10 @@ jobs:
             echo "✓ Using open standalone CLI ($(du -h codeledger-standalone.cjs | cut -f1) — safe commands only)"
             echo "HAS_STANDALONE=true" >> "$GITHUB_ENV"
           elif [ -n "$FULL_STANDALONE" ]; then
-            cp "$FULL_STANDALONE" codeledger-standalone.cjs
-            echo "::warning::Open standalone not found, falling back to full standalone"
-            echo "HAS_STANDALONE=true" >> "$GITHUB_ENV"
+            echo "::error::Full standalone found but open standalone is missing. Refusing fail-open public packaging."
+            exit 1
           else
-            echo "::warning::No standalone CLI found in package — zip will work via npm install only"
+            echo "No standalone CLI found in package — bootstrap zip will install the wrapper only"
             echo "HAS_STANDALONE=false" >> "$GITHUB_ENV"
           fi
           rm -rf "$WORK_DIR"
@@ -385,6 +371,7 @@ jobs:
         run: |
           STAGING="codeledger-${VERSION}"
           mkdir -p "$STAGING"
+          CHANGELOG_SECTION=$(awk '/^## '"${VERSION}"'/{found=1; next} /^## [0-9]/{if(found) exit} found{print}' CHANGELOG.md)
 
           # Copy the npm package (for npm install -g)
           cp "${NPM_TARBALL}" "$STAGING/"
@@ -400,9 +387,10 @@ jobs:
           cp install.sh "$STAGING/"
           cp GETTING-STARTED.md "$STAGING/"
           cp README.md "$STAGING/"
-          cp CHANGELOG.md "$STAGING/"
+          printf '# CodeLedger v%s Release Notes\n\n%s\n' "$VERSION" "${CHANGELOG_SECTION:-See the public changelog for this release.}" > RELEASE_NOTES.md
+          cp RELEASE_NOTES.md "$STAGING/"
           cp MANIFEST.md "$STAGING/"
-          cp docs/ARCHITECTURE_SPEC.md "$STAGING/" 2>/dev/null || true
+          cp docs/ARCHITECTURE_OVERVIEW.md "$STAGING/" 2>/dev/null || true
           cp LICENSE "$STAGING/" 2>/dev/null || true
           cp LICENSE-CORE "$STAGING/" 2>/dev/null || true
           chmod +x "$STAGING/install.sh"
@@ -416,31 +404,16 @@ jobs:
           echo "ZIP_VERSIONED=codeledger-${VERSION}.zip" >> "$GITHUB_ENV"
           echo "ZIP_LATEST=codeledger.zip" >> "$GITHUB_ENV"
 
-      - name: Remove previous releases (keep only the latest)
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Cleaning up previous releases..."
-          CURRENT_TAG="${GITHUB_REF_NAME}"
-          # List all releases, delete any that aren't the current one
-          gh release list --limit 50 --json tagName -q '.[].tagName' | while read -r tag; do
-            if [ "$tag" != "$CURRENT_TAG" ]; then
-              echo "  Deleting release $tag..."
-              gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-            fi
-          done
-          echo "✓ Only v${VERSION} release will remain"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: CodeLedger v${{ env.VERSION }}
-          body: |
+          cat > RELEASE_BODY.md << 'RELEASE_BODY'
             ## CodeLedger v${{ env.VERSION }}
 
             ### Install
 
-            **From the zip (works offline):**
+            **From the bootstrap zip (pins the wrapper; may download the binary):**
             ```bash
             unzip codeledger-${{ env.VERSION }}.zip
             cd codeledger-${{ env.VERSION }}/
@@ -452,9 +425,14 @@ jobs:
             npm install -g @codeledger/cli@${{ env.VERSION }}
             ```
 
+            **Offline install:**
+            Use the platform-specific offline binary asset for your OS/CPU,
+            or pre-place the hardened binary and install the wrapper with
+            `CODELEDGER_SKIP_POSTINSTALL=1`.
+
             ### npm verification
 
-            ✅ `@codeledger/cli@${{ env.VERSION }}` verified on npm and bundled in the zip.
+            ✅ `@codeledger/cli@${{ env.VERSION }}` verified on npm and bundled in the bootstrap zip.
 
             ### Verify after install
 
@@ -465,17 +443,22 @@ jobs:
 
             ### What's in the zip
 
-            The release zip contains the **full installable package** — the npm tarball is bundled so installation works offline. See `MANIFEST.md` inside the zip for checksums and feature verification steps.
+            The release zip contains the pinned npm wrapper package and public
+            release metadata. It is an online bootstrap package, not a
+            self-contained offline binary bundle. See `MANIFEST.md` inside the
+            zip for checksums and feature verification steps.
 
-            **Zip contents:** `${{ env.NPM_TARBALL }}` · `install.sh` · `README.md` · `GETTING-STARTED.md` · `CHANGELOG.md` · `MANIFEST.md` · `ARCHITECTURE_SPEC.md` · `LICENSE` · `LICENSE-CORE`
+            **Zip contents:** `${{ env.NPM_TARBALL }}` · `install.sh` · `README.md` · `GETTING-STARTED.md` · `RELEASE_NOTES.md` · `MANIFEST.md` · `ARCHITECTURE_OVERVIEW.md` · `LICENSE` · `LICENSE-CORE`
 
             ### Links
 
             - 📦 [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
             - 📖 [Getting Started Guide](https://github.com/${{ github.repository }}/blob/main/GETTING-STARTED.md)
             - 📋 [Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
-          files: |
-            ${{ env.ZIP_VERSIONED }}
-            ${{ env.ZIP_LATEST }}
-          draft: false
-          prerelease: false
+          RELEASE_BODY
+
+          gh release create "${GITHUB_REF_NAME}" \
+            "${ZIP_VERSIONED}" \
+            "${ZIP_LATEST}" \
+            --title "CodeLedger v${VERSION}" \
+            --notes-file RELEASE_BODY.md

@@ -147,7 +147,7 @@ Your repo becomes an evolving system — not just code.
 
 ### Get CodeLedger
 
-**[Download Latest Release](https://github.com/codeledgerECF/codeledger/releases/latest)** · `npm install -g @codeledger/cli` · [Getting Started Guide](GETTING-STARTED.md) · [CLI Command Reference](docs/CLI_COMMAND_REFERENCE.md)
+**[Download Latest Release](https://github.com/codeledgerECF/codeledger/releases/latest)** · `npm install -g @codeledger/cli` · [Getting Started Guide](GETTING-STARTED.md) · [CLI Command Reference](https://github.com/codeledgerECF/codeledger/blob/main/docs/CLI_COMMAND_REFERENCE.md)
 
 ```bash
 npm install -g @codeledger/cli   # or download the zip from Releases
@@ -355,7 +355,7 @@ codeledger --version
 ```
 
 See **[GETTING-STARTED.md](GETTING-STARTED.md)** for the full 5-step setup guide, configuration, and troubleshooting.
-For a command-by-command walkthrough with example output, see **[docs/CLI_COMMAND_REFERENCE.md](docs/CLI_COMMAND_REFERENCE.md)**.
+For a command-by-command walkthrough with example output, see the **[CLI Command Reference](https://github.com/codeledgerECF/codeledger/blob/main/docs/CLI_COMMAND_REFERENCE.md)**.
 
 ### Alternative: Download from GitHub Releases
 
@@ -375,13 +375,14 @@ For a command-by-command walkthrough with example output, see **[docs/CLI_COMMAN
 ## How It Works
 
 1. **Scans** your repo (dependency graph, git churn, test mappings, content index)
-2. **Scores** every file across 10 weighted signals
+2. **Ranks** candidate files with deterministic local signals
 3. **Selects** the most relevant files within a token budget
 4. **Delivers** a context bundle your agent reads immediately
 
 Same task + same repo state = same file rankings and content. Every time.
 
-See [SCORING.md](docs/SCORING.md) for details on how files are scored.
+Use `codeledger activate --task "..." --explain` to see behavior-level reasons
+for a specific bundle without exposing protected implementation details.
 
 ## Installation Note
 
@@ -427,7 +428,7 @@ CodeLedger ships with Claude Code hooks. Just run `codeledger init` and start Cl
 
 No commands to remember. Context is ready when your agent starts.
 
-See [examples/claude-code-hooks.json](examples/claude-code-hooks.json) for the hook configuration.
+See the public [Claude Code hook example](https://github.com/codeledgerECF/codeledger/blob/main/examples/claude-code-hooks.json) for the hook configuration.
 
 ### Cursor / Codex / Other Agents
 
@@ -645,9 +646,8 @@ Deterministic weighted combination of positive and negative signals, configurabl
 - Shadow file annotations (temporal co-commit companions with boost reasons)
 - Intent drift scoring (objective/scope/constraint change detection)
 
-Run `codeledger bundle --task "…" --explain` to see the per-file scoring breakdown.
-
-See [docs/SCORING.md](docs/SCORING.md) for the full scoring algorithm documentation.
+Run `codeledger bundle --task "…" --explain` to see per-file selection reasons
+for a specific task.
 
 ## Review Intelligence
 
@@ -691,19 +691,16 @@ All governance features are **deterministic** — numeric thresholds, pattern ma
 ├──────────────────────────────────────────────────────┤
 │  PROTECTED (CodeLedger Core License)                 │
 │  Scoring Engine · Selection Algorithm · Confidence   │
-│  Shipped as a single compiled JS binary (~19KB)      │
-│  No network calls · No telemetry · Fully local       │
+│  Shipped as platform-specific hardened binaries      │
+│  Runtime local by default · No source telemetry      │
 └──────────────────────────────────────────────────────┘
 ```
 
-The CLI wrapper, benchmarking harness, types, and repo scanning are fully open — inspect them, contribute improvements, build trust. The scoring algorithm is compiled into a single binary to protect the IP while keeping everything local and transparent in behavior.
+The CLI wrapper, benchmarking harness, types, and repo scanning are fully open — inspect them, contribute improvements, build trust. The protected engine ships as platform-specific hardened binaries to protect the IP while keeping runtime behavior local and inspectable through public receipts.
 
-```bash
-# Transparency flags — see what the engine does, not how
-codeledger-core --version
-codeledger-core --license
-codeledger-core --explain-architecture
-```
+Use `codeledger about`, `codeledger doctor`, and command-specific `--explain`
+output to inspect behavior, health, and evidence without exposing protected
+implementation internals.
 
 ## Share Your Results
 
@@ -716,9 +713,9 @@ codeledger share --clipboard            # Copy to clipboard
 
 ## Privacy
 
-- **Installation** requires npm access to fetch `@codeledger/*` dependencies (one-time)
-- **After install**, runs entirely on your local machine
-- Makes zero network calls at runtime
+- **Installation** may use npm and GitHub Releases to fetch the wrapper and matching hardened binary
+- **After install**, analysis runs on your local machine
+- Runtime analysis makes zero source-code telemetry calls by default
 - Collects zero telemetry
 - Your source code never leaves your machine
 - No account required
@@ -734,7 +731,7 @@ The scoring engine is closed, but there are many ways to contribute:
 - **Benchmark scenarios** — suggest new task/repo combinations for testing
 - **Agent adapters** — add support for new AI coding tools
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+See the public [contribution guide](https://github.com/codeledgerECF/codeledger/blob/main/CONTRIBUTING.md) for details.
 
 ## Prerequisites
 
@@ -766,13 +763,13 @@ Start free. Tier up when your team — or your compliance team — needs more.
 ## License
 
 - **Plugin (CLI, types, repo, harness, report):** [MIT](LICENSE)
-- **Scoring engine (core-engine binary):** [CodeLedger Core License](LICENSE-CORE) — free for individuals and OSS, commercial use requires a license
+- **Downloaded hardened binary:** [CodeLedger Core License](LICENSE-CORE) — free for individuals and OSS, commercial use requires a license
 
 ## Links
 
 - [Getting Started Guide](GETTING-STARTED.md)
-- [Scoring Algorithm](docs/SCORING.md)
-- [Changelog](CHANGELOG.md)
+- [Public Architecture Overview](ARCHITECTURE_OVERVIEW.md)
+- [Release Notes](RELEASE_NOTES.md)
 - [CodeLedger](https://codeledger.dev)
 - [npm: @codeledger/cli](https://www.npmjs.com/package/@codeledger/cli)
 - [ContextECF Enterprise](https://timetocontext.co)
