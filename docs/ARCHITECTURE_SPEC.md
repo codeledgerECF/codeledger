@@ -8,7 +8,7 @@
 >
 > **The Solution** — CodeLedger is a deterministic context control plane for software development. It scores every file in a repository, selects only what the current task requires, captures outcomes, and promotes successful patterns into reusable institutional memory.
 >
-> **The Intelligence Layer** — The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology pack of golden patterns — distilled from peer organizations and leading engineering teams at organizations including Google, SAP, and Salesforce. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.
+> **The Intelligence Layer** — The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology pack of golden patterns — distilled from peer organizations and leading engineering teams across the industry. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.
 >
 > **The Principle** — No cloud. No training pipeline. No behavior change required. Engineering management installs it once. Every developer and every AI agent benefits automatically — from collective intelligence on day one, and from your own institutional memory from day two onward.
 >
@@ -64,7 +64,7 @@ Every task follows a unified lifecycle: **Activate > Execute > Verify > Learn**.
 
 ### Context Selection
 
-CodeLedger scans the repository and ranks files using 12 weighted scoring signals: keyword match, dependency centrality, git churn, recent touch, test relevance, size penalty, success/failure priors, error infrastructure, branch changes, co-commit affinity, and shadow file expansion.
+CodeLedger scans the repository and ranks files using a set of weighted scoring signals spanning keyword relevance, dependency structure, git history, and contextual priors.
 
 The result is a deterministic context bundle — same task, same repo state, same bundle.
 
