@@ -1,4 +1,4 @@
-# CodeLedger
+# CodeLedger.   easy install: npm install -g @codeledger/cli  for the most part works ambiently with your coding agent...gives it the right files for the task: better code less cost ....long term best practices memory; then deploy it as prompt coaching; better software again flywheel!
 
 ---
 
