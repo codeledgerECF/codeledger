@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.10.22 – 0.10.63 (consolidated)
+
+This changelog fell behind the shipped releases for a while — rather than backfill 40
+individual low-signal version entries, here's what actually changed for users across that
+span. Full per-commit history is in [GitHub Releases](https://github.com/codeledgerECF/codeledger/releases).
+
+### Context quality
+
+- **Confidence signal fix** — bundle confidence (`low`/`medium`/`high`) was capped to
+  `medium` on almost every real bundle by an envelope-dimension check that measured bundle
+  *topology* (e.g. whether files import each other, or share exact path-substring keywords)
+  rather than answer quality. A 20-commit self-benchmark and a follow-up review both showed
+  the underlying continuous confidence score correlates well with real recall while the
+  capped label didn't discriminate at all. The per-dimension cap has been removed; confidence
+  now reflects the score directly.
+- **`max_files_truncation` warning + `--expand`** — a task whose real answer needs more files
+  than the configured `max_files` (default 25) could get silently capped with no signal that
+  anything was cut off. `bundle`/`activate` now emit `max_files_truncation` when higher-or-
+  equal-scoring candidates exist beyond the cap, and `activate` auto-expands the budget when
+  it sees this warning. `--expand` (doubles the token budget and raises `max_files`, capped at
+  50) is available on both `bundle` and `activate`.
+- **Skeleton-tier context assembly** — files pulled in purely for structural reasons (co-commit
+  history, centrality, churn) are now excerpted as signatures/type-surfaces only, not full
+  function bodies — 5–10× fewer tokens per structural file without dropping them from the
+  bundle.
+- **Precision fixes** — a token-budget floor correction and two admission guards (score-cliff
+  early exit, a structural-file cap) fixed a regression where freed token headroom was being
+  spent on marginal co-commit-only neighbor files instead of real answers.
+- **Honest value metrics** — a bundle that predicted zero of the changed files no longer
+  reports `avoided_tokens`/`context_reduction_pct` as if they were credited savings; those are
+  now `0` on a miss. Confidence is capped by the run's actual recall instead of just evidence
+  availability.
+- **`codeledger benchmark`** — new command that measures real recall/precision against a repo's
+  own git history (no agent execution required), with a CI trend workflow and SVG badge output.
+
+### Security & compliance (audit remediation)
+
+- Fixed a stored-XSS vector in the Insight dashboard.
+- `ecl.jsonl`/`session/timeline.jsonl` now actually hash-chain (`ledger anchor` seals existing
+  history); license revocation is enforced at activation/status time; the voucher-claim
+  endpoint is now rate-limited.
+- MCP server now defaults to a curated `core` tool profile (~6 tools) instead of exposing all
+  44 by default (`--profile full` restores the previous behavior).
+
+### Reliability
+
+- Fixed an npm/GitHub release desync where `npm install -g @codeledger/cli` could install a
+  wrapper whose matching hardened binary wasn't published yet — releases now promote the `npm`
+  `latest` tag only after the packaged artifact is verified end-to-end.
+- `codeledger ready` is now the guided first-run path for new installs; ambient wrapper
+  behavior (Claude Code, Codex, Cursor, Windsurf) is more stable across upgrades.
+
+### Other
+
+- The free tier is now called **Contributor** — same terms (free indefinitely for solo
+  developers), naming/positioning only.
+
 ## 0.10.21
 
 ### Added

@@ -218,6 +218,16 @@ Top files:
   3. tests/user-service.test.ts
 ```
 
+#### `--expand` (widen the budget)
+
+Doubles the token budget and raises `max_files` (capped at 50). Use it when the bundle's
+`warnings` array contains `max_files_truncation` or `budget_squeeze` — both mean
+higher-or-equal-scoring files existed but were cut off by the configured budget.
+
+```bash
+codeledger bundle --task "Rename the shared auth middleware everywhere" --expand
+```
+
 ### `activate --task "..."`
 
 Creates or refreshes `.codeledger/active-bundle.md`. Runs the Task Intelligence Engine to evaluate prompt quality and optionally refine vague tasks.
@@ -251,6 +261,11 @@ The Task Intelligence block shows:
 - **Refinement mode**: silent (auto-refined), assisted (user-confirmed), or none
 - **Doctrine**: if the task risks creating parallel systems or duplicate truth, a progressive intervention is triggered (light cue → guided refinement → two-phase stop)
 - **Shadow suggestion**: for refactor/migration tasks, a one-liner is shown to run parallel truth evaluation
+
+`activate` also auto-expands the budget on your behalf — without needing `--expand` — whenever
+the bundle is empty, low-confidence, or hit the `max_files_truncation` warning (a real,
+on-topic bundle that was still cut off by the file-count ceiling). Pass `--expand` explicitly
+to widen the budget up front instead of waiting for that fallback.
 
 ### `task --task "..."`
 

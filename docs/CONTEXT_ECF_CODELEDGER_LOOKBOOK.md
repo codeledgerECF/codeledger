@@ -1,6 +1,6 @@
 # ContextECF CodeLedger Look Book
 
-Release candidate: v0.10.52
+Release candidate: v0.10.63
 
 This look book explains the CodeLedger user experience in a two-column format:
 
@@ -61,4 +61,3 @@ codeledger session-summary
 The presenter should show the actual bundle, the session summary, and `codeledger doctor`.
 For enterprise webinars, also show `contextecf status --json` to explain where FabricLedgerSDK
 and CFA add optional value.
-
