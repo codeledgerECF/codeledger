@@ -1,6 +1,6 @@
 # ContextECF CodeLedger Look Book
 
-Release candidate: v0.10.66
+Release candidate: v0.10.67
 
 This look book explains the CodeLedger user experience in a two-column format:
 
