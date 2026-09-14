@@ -1,5 +1,5 @@
 # CodeLedger
-
+npm install -g @codeledger/cli
 ---
 
 > **What problem are we solving?**
