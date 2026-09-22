@@ -1,4 +1,4 @@
-# CodeLedger
+# CodeLedger.     npm install -g @codeledger/cli
 
 ---
 
