@@ -54,7 +54,7 @@ If CodeLedger is helping you, it’s worth a quick share with:
 
 ## 🏢 About
 
-**Intelligent Context AI Inc** is the creator of CodeLedger and ContextECF.
+**Intelligent Context AI, Inc.** is the creator of CodeLedger and ContextECF.
 
 If your team is exploring AI at scale, agent systems, or enterprise context management:
 

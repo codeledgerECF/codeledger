@@ -2,7 +2,7 @@
 
 ## Overview
 
-CodeLedger is a **local-first CLI tool** that runs on your machine, against your git repositories. It makes no network requests, has no cloud services, no accounts, and no telemetry. Your code never leaves your machine.
+CodeLedger is a **local-first CLI tool** that runs on your machine, against your git repositories. Installation and updates may use npm and GitHub Releases; runtime source analysis is local by default and does not send your source code through CodeLedger telemetry by default.
 
 This document describes CodeLedger's security posture, threat model, and the mechanisms it uses to protect your codebase.
 
@@ -20,9 +20,9 @@ This document describes CodeLedger's security posture, threat model, and the mec
 | **Git operations** | CodeLedger calls `git` via `child_process` | All interpolated values (refs, paths) validated against allowlists before shell interpolation |
 | **Agent commands** | `--agentCmd` deliberately executes shell commands | Path placeholders are shell-escaped to prevent injection |
 
-### What CodeLedger Does NOT Do
+### What CodeLedger Does NOT Do During Runtime Source Analysis
 
-- **No network requests** — no telemetry, no API calls, no cloud sync, no phone-home
+- **No source-code telemetry by default** — local analysis does not upload your repository contents
 - **No elevated privileges** — runs as the current user, no `sudo` required
 - **No system file modification** — writes only to `.codeledger/` and temporary worktrees
 - **No arbitrary code execution** from config files
@@ -35,14 +35,18 @@ This document describes CodeLedger's security posture, threat model, and the mec
 
 ### License Verification (Ed25519)
 
-Pro licenses are cryptographically signed and verified locally — no network call needed.
+Pro licenses are cryptographically signed and verified locally. Core license
+verification does not need the network; commercial activation flows may also
+queue a non-blocking seat-count ping to the configured issuer using customer ID
+and a short machine fingerprint. That ping sends no source code, repository
+paths, or license key, and activation does not depend on the request succeeding.
 
 - **Algorithm:** Ed25519 digital signatures via Node.js `node:crypto`
 - **Format:** `CL-PRO.<base64url-payload>.<base64url-signature>`
 - **Verification:** Payload verified locally against trusted public keys with rotation support
 - **Claims validation:** Enforces plan, feature set, license ID, and expiry date
 - **Expired licenses** return null immediately and are never honored
-- **Fully offline** — verification is local and deterministic
+- **Offline-capable verification** — signature checks are local and deterministic
 
 ### Manifest Signing (HMAC-SHA256 + JCS)
 

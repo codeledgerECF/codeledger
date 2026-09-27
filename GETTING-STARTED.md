@@ -1,28 +1,18 @@
 # Getting Started with CodeLedger
 
----
-
-> **What problem are we solving?**
->
-> **The Problem** — AI coding agents waste 40–60% of their context window on irrelevant files. Every session starts cold. Institutional knowledge lives in people's heads and disappears when they leave. There is no risk signal before a merge.
->
-> **The Solution** — CodeLedger is a deterministic context control plane for software development. It scores every file in a repository, selects only what the current task requires, captures outcomes, and promotes successful patterns into reusable institutional memory.
->
-> **The Intelligence Layer** — The Task Intelligence Engine does not start from zero. It is seeded from day one with a curated ontology pack of golden patterns — distilled from peer organizations and leading engineering teams at organizations including Google, SAP, and Salesforce. As your team uses CodeLedger, your own earned patterns layer on top, making the system progressively more tailored to your codebase, your conventions, and your standards.
->
-> **The Principle** — No cloud. No training pipeline. No behavior change required. Engineering management installs it once. Every developer and every AI agent benefits automatically — from collective intelligence on day one, and from your own institutional memory from day two onward.
->
-> *Logs are history. Ledger is intelligence.*
-
----
-
-
 Need a command-by-command walkthrough with example output? See the public [CLI Command Reference](https://github.com/codeledgerECF/codeledger/blob/main/docs/CLI_COMMAND_REFERENCE.md).
 Looking beyond developer workflow? See [Beyond CodeLedger](https://github.com/codeledgerECF/codeledger/blob/main/docs/context-ecf.md).
 
-CodeLedger gives your AI coding agent the right files first — deterministically, locally, with zero cloud dependencies.
+CodeLedger gives your AI coding agent the right files first. It scans your repo,
+selects a bounded task-relevant bundle, and writes `.codeledger/active-bundle.md`
+before the agent starts editing.
 
-It works with every major AI coding agent, in every environment: desktop apps, browser-based IDEs, CLI terminals, and as a plugin.
+Runtime analysis is local by default. Installation and updates may use npm and
+GitHub Releases, and source code is not sent through CodeLedger telemetry by
+default.
+
+It works with major AI coding agents across desktop apps, browser-based IDEs,
+CLI terminals, and plugin workflows.
 
 ---
 
@@ -431,9 +421,8 @@ codeledger activate --task "your task"
 - **Installation** may use npm and GitHub Releases to fetch the wrapper and matching hardened binary
 - **After install**, analysis runs on your local machine
 - Runtime analysis makes zero source-code telemetry calls by default
-- Collects zero telemetry
-- Your source code never leaves your machine
-- No account required
+- Source code is not sent through CodeLedger telemetry by default
+- No account required for the local CLI flow
 
 ---
 
