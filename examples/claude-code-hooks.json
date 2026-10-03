@@ -2,54 +2,86 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then   echo \"CodeLedger: CLI not found — install via npm or build from source.\"; else   CL_SID=$($CL_CMD session-init --quiet 2>/dev/null) || true;   if [ -n \"$CL_SID\" ]; then     export CODELEDGER_SESSION=\"$CL_SID\";     $CL_CMD ensure-session --quiet --stale-after 3600 --session \"$CL_SID\";   else     $CL_CMD ensure-session --quiet --stale-after 3600;   fi; fi",
-        "timeout": 30000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then   echo \"CodeLedger: CLI not found — install via npm or build from source.\"; else   CL_SID=$($CL_CMD hooks claude session-start 2>/dev/null) || true;   if [ -n \"$CL_SID\" ]; then     $CL_CMD ensure-session --quiet --stale-after 3600 --session \"$CL_SID\" || true;   else     $CL_CMD ensure-session --quiet --stale-after 3600 || true;   fi; fi",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then exit 0; fi; $CL_CMD hooks claude user-prompt-submit --mode \"${CODELEDGER_ACTIVATION_ENFORCEMENT:-warn}\" 2>/dev/null || true;",
-        "timeout": 15000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then exit 0; fi; $CL_CMD hooks claude user-prompt-submit --mode \"${CODELEDGER_ACTIVATION_ENFORCEMENT:-warn}\" 2>/dev/null || true;",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then exit 0; fi; $CL_CMD hooks claude pre-tool-use --mode \"${CODELEDGER_ACTIVATION_ENFORCEMENT:-warn}\";",
-        "timeout": 5000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then exit 0; fi; $CL_CMD hooks claude pre-tool-use --mode \"${CODELEDGER_ACTIVATION_ENFORCEMENT:-warn}\";",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; if [ \"$TOOL_NAME\" = \"Bash\" ] && echo \"$TOOL_INPUT\" | grep -q \"git commit\"; then   CL_SID=\"${CODELEDGER_SESSION:-}\";   if [ -z \"$CL_SID\" ] && [ -n \"$$\" ]; then     CL_MARKER=\".codeledger/.current-session-pid-$PPID\";     [ -f \"$CL_MARKER\" ] && CL_SID=$(cat \"$CL_MARKER\" 2>/dev/null);     [ -z \"$CL_SID\" ] && [ -f \".codeledger/.current-session-id\" ] && CL_SID=$(cat \".codeledger/.current-session-id\" 2>/dev/null);   fi; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi;   if [ -n \"$CL_CMD\" ]; then     if [ -n \"$CL_SID\" ]; then       $CL_CMD session-summary --session \"$CL_SID\" 2>/dev/null || true;       $CL_CMD value receipt --latest --session \"$CL_SID\" 2>/dev/null || true;     else       $CL_CMD session-summary 2>/dev/null || true;       $CL_CMD value receipt --latest 2>/dev/null || true;     fi;   fi; fi",
-        "timeout": 10000
-      },
-      {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; if [ \"$TOOL_NAME\" = \"Read\" ]; then   CL_SID=\"${CODELEDGER_SESSION:-}\";   if [ -z \"$CL_SID\" ] && [ -n \"$$\" ]; then     CL_MARKER=\".codeledger/.current-session-pid-$PPID\";     [ -f \"$CL_MARKER\" ] && CL_SID=$(cat \"$CL_MARKER\" 2>/dev/null);     [ -z \"$CL_SID\" ] && [ -f \".codeledger/.current-session-id\" ] && CL_SID=$(cat \".codeledger/.current-session-id\" 2>/dev/null);   fi;   if [ -n \"$CL_SID\" ]; then     LOGDIR=\".codeledger/sessions/$CL_SID\";   else     LOGDIR=\".codeledger\";   fi;   LOGFILE=\"$LOGDIR/.read-log.jsonl\";   NUDGE_MARKER=\"$LOGDIR/.last-nudge-count\";   NUDGE_INTERVAL=10;   mkdir -p \"$LOGDIR\";   READ_PATH=$(node -e 'try { const input = JSON.parse(process.env.TOOL_INPUT || \"{}\"); if (typeof input.file_path === \"string\") process.stdout.write(input.file_path); } catch {}' 2>/dev/null || true);   if [ -n \"$READ_PATH\" ]; then     REL_PATH=$(echo \"$READ_PATH\" | sed \"s|^$(pwd)/||\");     node -e 'const fs = require(\"fs\"); const out = process.argv[1]; const sessionId = process.argv[2] || null; const filePath = process.argv[3]; fs.appendFileSync(out, JSON.stringify({ schema_version: \"codeledger/tool-event/v1\", event_type: \"file.read\", timestamp: new Date().toISOString(), session_id: sessionId, path: filePath }) + \"\\n\");' \"$LOGFILE\" \"$CL_SID\" \"$REL_PATH\" 2>/dev/null || true;   fi;   if [ -f \"$LOGFILE\" ]; then     TOTAL=$(wc -l < \"$LOGFILE\" 2>/dev/null | tr -d \" \");     LAST_NUDGE=$(cat \"$NUDGE_MARKER\" 2>/dev/null || echo 0);     SINCE=$((TOTAL - LAST_NUDGE));     if [ \"$SINCE\" -ge \"$NUDGE_INTERVAL\" ]; then       echo \"$TOTAL\" > \"$NUDGE_MARKER\";       echo \"CodeLedger: $TOTAL files read this session. Run codeledger progress-check to see bundle coverage, or codeledger refine --learned \\\"...\\\" to re-score.\";     fi;   fi; fi",
-        "timeout": 3000
-      },
-      {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; if [ \"$TOOL_NAME\" = \"Edit\" ] || [ \"$TOOL_NAME\" = \"Write\" ]; then   CL_SID=\"${CODELEDGER_SESSION:-}\";   if [ -z \"$CL_SID\" ] && [ -n \"$$\" ]; then     CL_MARKER=\".codeledger/.current-session-pid-$PPID\";     [ -f \"$CL_MARKER\" ] && CL_SID=$(cat \"$CL_MARKER\" 2>/dev/null);     [ -z \"$CL_SID\" ] && [ -f \".codeledger/.current-session-id\" ] && CL_SID=$(cat \".codeledger/.current-session-id\" 2>/dev/null);   fi;   if [ -n \"$CL_SID\" ]; then     BUNDLE=\".codeledger/sessions/$CL_SID/active-bundle.md\";     DRIFT_FILE=\".codeledger/sessions/$CL_SID/.out-of-bundle-edits\";   else     BUNDLE=\".codeledger/active-bundle.md\";     DRIFT_FILE=\".codeledger/.out-of-bundle-edits\";   fi;   EDIT_PATH=$(echo \"$TOOL_INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | sed 's/\"file_path\":\"//;s/\"//g' 2>/dev/null || echo \"\");   if [ -n \"$EDIT_PATH\" ] && [ -f \"$BUNDLE\" ]; then     REL_PATH=$(echo \"$EDIT_PATH\" | sed \"s|^$(pwd)/||\");     if ! grep -qF \"$REL_PATH\" \"$BUNDLE\" 2>/dev/null; then       mkdir -p \"$(dirname \"$DRIFT_FILE\")\";       echo \"$REL_PATH\" >> \"$DRIFT_FILE\";       OOB_COUNT=$(wc -l < \"$DRIFT_FILE\" 2>/dev/null | tr -d \" \");       if [ \"$OOB_COUNT\" = \"1\" ]; then         CL_TASK=$(grep -m1 \"^Task:\" \"$BUNDLE\" 2>/dev/null | sed \"s/^Task: *//\" | head -c 80 || echo \"\");         if [ -n \"$CL_TASK\" ]; then           echo \"CodeLedger: ⚠ editing outside predicted scope — $REL_PATH not in bundle\";           echo \"  → activated for: \\\"$CL_TASK\\\" · run: codeledger activate --task \\\"...\\\" to expand\";         else           echo \"CodeLedger: ⚠ editing outside predicted scope — $REL_PATH not in bundle\";           echo \"  → run: codeledger activate --task \\\"...\\\" to expand context\";         fi;       fi;       NUDGE_AT=5;       if [ \"$OOB_COUNT\" = \"$NUDGE_AT\" ]; then         echo \"CodeLedger: $OOB_COUNT edits outside the bundle. Consider refreshing: codeledger activate --task \\\"your current task\\\"\";         if [ -n \"$CL_SID\" ]; then           rm -f \".codeledger/sessions/$CL_SID/.hook-reminded\";         else           rm -f \".codeledger/.hook-reminded\";         fi;       fi;     fi;   fi; fi",
-        "timeout": 3000
+        "matcher": "Bash|Read|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -z \"$CL_CMD\" ]; then exit 0; fi; $CL_CMD hooks claude post-tool-use 2>/dev/null || true;",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_SID=\"${CODELEDGER_SESSION:-}\"; if [ -z \"$CL_SID\" ] && [ -n \"$$\" ]; then   CL_MARKER=\".codeledger/.current-session-pid-$PPID\";   [ -f \"$CL_MARKER\" ] && CL_SID=$(cat \"$CL_MARKER\" 2>/dev/null);   [ -z \"$CL_SID\" ] && [ -f \".codeledger/.current-session-id\" ] && CL_SID=$(cat \".codeledger/.current-session-id\" 2>/dev/null); fi; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -n \"$CL_CMD\" ]; then   if [ -n \"$CL_SID\" ]; then     $CL_CMD hooks claude pre-compact --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-progress --quiet --session \"$CL_SID\" 2>/dev/null || true;     echo \"CodeLedger: session progress and bounded brief written under .codeledger/sessions/$CL_SID/ -- read them after compaction.\";   else     $CL_CMD hooks claude pre-compact 2>/dev/null || true;     $CL_CMD session-progress --quiet 2>/dev/null || true;     echo \"CodeLedger: session progress and bounded brief written under .codeledger/ -- read them after compaction.\";   fi; fi",
-        "timeout": 10000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -n \"$CL_CMD\" ]; then   CL_SID=$($CL_CMD hooks claude resolve-session 2>/dev/null) || true;   if [ -n \"$CL_SID\" ]; then     $CL_CMD hooks claude pre-compact --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-progress --quiet --session \"$CL_SID\" 2>/dev/null || true;     echo \"CodeLedger: session progress and bounded brief written under .codeledger/sessions/$CL_SID/ -- read them after compaction.\";   else     $CL_CMD hooks claude pre-compact 2>/dev/null || true;     $CL_CMD session-progress --quiet 2>/dev/null || true;     echo \"CodeLedger: session progress and bounded brief written under .codeledger/ -- read them after compaction.\";   fi; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "type": "command",
-        "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_SID=\"${CODELEDGER_SESSION:-}\"; if [ -z \"$CL_SID\" ] && [ -n \"$$\" ]; then   CL_MARKER=\".codeledger/.current-session-pid-$PPID\";   [ -f \"$CL_MARKER\" ] && CL_SID=$(cat \"$CL_MARKER\" 2>/dev/null);   [ -z \"$CL_SID\" ] && [ -f \".codeledger/.current-session-id\" ] && CL_SID=$(cat \".codeledger/.current-session-id\" 2>/dev/null); fi; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -n \"$CL_CMD\" ]; then   if [ -n \"$CL_SID\" ]; then     $CL_CMD hooks claude stop --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-summary --final --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-cleanup --session \"$CL_SID\" 2>/dev/null || true;   else     $CL_CMD hooks claude stop 2>/dev/null || true;     $CL_CMD session-summary --final 2>/dev/null || true;     rm -f .codeledger/.hook-reminded .codeledger/.session-start-ref .codeledger/.activate-ref .codeledger/.task-activated .codeledger/session-progress.md;   fi; fi; echo \"Tip: Run codeledger activate --task \\\"your next task\\\" to refresh context for the next task.\"",
-        "timeout": 10000
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -n \"$CL_CMD\" ]; then   $CL_CMD hooks claude stop 2>/dev/null || true; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "export CODELEDGER_HOOK_CONTEXT=claude_code; CL_CMD=\"\"; if [ -x \".codeledger/bin/codeledger\" ]; then CL_CMD=\"./.codeledger/bin/codeledger\"; elif [ -f \".codeledger/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node .codeledger/bin/codeledger-standalone.cjs\"; elif [ -f \"packages/cli/bin/codeledger-standalone.cjs\" ]; then CL_CMD=\"node packages/cli/bin/codeledger-standalone.cjs\"; elif command -v codeledger >/dev/null 2>&1; then CL_CMD=\"codeledger\"; elif [ -x \"node_modules/.bin/codeledger\" ]; then CL_CMD=\"node_modules/.bin/codeledger\"; elif [ -f \"packages/cli/dist/index.js\" ]; then CL_CMD=\"node packages/cli/dist/index.js\"; fi; if [ -n \"$CL_CMD\" ]; then   CL_SID=$($CL_CMD hooks claude resolve-session 2>/dev/null) || true;   if [ -n \"$CL_SID\" ]; then     $CL_CMD hooks claude session-end --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-summary --final --session \"$CL_SID\" 2>/dev/null || true;     $CL_CMD session-cleanup --session \"$CL_SID\" 2>/dev/null || true;   else     $CL_CMD hooks claude session-end 2>/dev/null || true;     $CL_CMD session-summary --final 2>/dev/null || true;     rm -f .codeledger/.hook-reminded .codeledger/.session-start-ref .codeledger/.activate-ref .codeledger/.task-activated .codeledger/session-progress.md;   fi; fi; echo \"Tip: Run codeledger activate --task \\\"your next task\\\" to refresh context for the next task.\"",
+            "timeout": 20
+          }
+        ]
       }
     ]
   }
