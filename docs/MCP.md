@@ -8,6 +8,43 @@ The CodeLedger MCP server exposes your local Context Ledger as tools for Claude 
 
 ## Quick Start
 
+Install/configuration success is not a connection test. On a supported native
+host (Apple Silicon macOS or Linux x64), prepare a specific repository:
+
+```sh
+npm install -g @codeledger/cli@latest
+codeledger --version
+codeledger ready --cwd /absolute/path/to/repo --task "Inspect this repository"
+codeledger license status --cwd /absolute/path/to/repo
+codeledger mcp status --cwd /absolute/path/to/repo --json
+```
+
+Use the printed `config` object for desktop clients. It includes an explicit
+`mcp start` and absolute repository target. Portable `.mcp.json` configs written
+by `ready` require the client to launch from that repo; do not copy them to a
+desktop client with a different working directory. `--cwd` takes precedence
+over `CODELEDGER_REPO_ROOT`. Sibling roots remain outside the default approved
+scope. Do not expand allowed roots to work around setup errors.
+
+After reconnecting, verify MCP initialize, tools/list, then an actual
+`get_active_context` call with `{}` returning this repository's prepared bundle.
+Missing activation is degraded context, not task readiness. Verify the server
+version matches the CLI and record artifact/source identity for candidates;
+version strings alone are insufficient. Repeat cold and warm cache checks.
+Profiles are `core` (default), `governance` and `full`; use `governance` for
+acceptance tools. A directory template is not proof of a working client, and a
+local stdio command alone does not connect a hosted ChatGPT integration.
+
+Windows, Intel Mac and Linux ARM64 have no pre-built native installer asset.
+Intel Macs cannot run Apple Silicon binaries through Rosetta. An already
+trusted vendored runtime may work; skipping postinstall cannot bootstrap one
+in a fresh repo. Use a supported host/environment or review source-build
+prerequisites before attempting an unsupported host; this wrapper does not
+provide a fresh source-build bootstrap.
+No universal OS/client compatibility is implied. Published MCP requires an
+activated Team/Enterprise license; source-only checks without credentials do
+not validate the licensed hardened route. Never put license keys in configs.
+
 ```bash
 codeledger mcp status    # Check readiness
 codeledger mcp start     # Launch server (stdio transport)
@@ -22,7 +59,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "codeledger": {
       "command": "codeledger",
-      "args": ["mcp", "start"]
+      "args": ["mcp", "start", "--cwd", "/absolute/path/to/repo"],
+      "env": { "CODELEDGER_REPO_ROOT": "/absolute/path/to/repo" }
     }
   }
 }
@@ -36,7 +74,8 @@ In Cursor settings → MCP Servers:
 {
   "name": "codeledger",
   "command": "codeledger",
-  "args": ["mcp", "start"]
+  "args": ["mcp", "start", "--cwd", "/absolute/path/to/repo"],
+  "env": { "CODELEDGER_REPO_ROOT": "/absolute/path/to/repo" }
 }
 ```
 
@@ -128,6 +167,6 @@ The system learns which patterns actually help, automatically.
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20 for repository-local/source CLI (Node 22 tested)
 - CodeLedger initialized in repo (`codeledger init`)
 - Team or Enterprise tier license activated
