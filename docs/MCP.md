@@ -41,8 +41,10 @@ trusted vendored runtime may work; skipping postinstall cannot bootstrap one
 in a fresh repo. Use a supported host/environment or review source-build
 prerequisites before attempting an unsupported host; this wrapper does not
 provide a fresh source-build bootstrap.
-No universal OS/client compatibility is implied. Published MCP requires an
-activated Team/Enterprise license; source-only checks without credentials do
+No universal OS/client compatibility is implied. MCP is free to list, licensed
+to call: `initialize` and `tools/list` always work, and tool calls require an
+activated Team/Enterprise license (otherwise a structured `locked` result;
+`get_activation_payload` stays free). Source-only checks without credentials do
 not validate the licensed hardened route. Never put license keys in configs.
 
 ```bash
