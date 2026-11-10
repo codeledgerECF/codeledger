@@ -1,0 +1,31 @@
+# Proposed for the public repository only, after independent authorization.
+# Configure the named protected environment before allowing the job to run.
+name: Create the approved CodeLedger v0.10.83 public tag
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Confirm approved tag creation
+        type: boolean
+        default: false
+permissions: {}
+jobs:
+  tag:
+    if: github.repository == 'codeledgerECF/codeledger' && github.ref == 'refs/heads/main' && inputs.execute && vars.CODELEDGER_V01083_PUBLIC_TAG_APPROVED == 'true'
+    environment: codeledger-v01083-public-tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PROJECTION_COMMIT: 8a5f8b78ec2206a8a87f00c527147a7b253fd9da
+      PROJECTION_TREE: 1891006705e1012917e689501faed25c646d28b3
+    steps:
+      - name: Create the tag at the verified public projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint="repos/codeledgerECF/codeledger/git/commits/$PROJECTION_COMMIT"
+          test "$(gh api --hostname github.com "$endpoint" --jq .tree.sha)" = "$PROJECTION_TREE"
+          gh api --hostname github.com --method POST repos/codeledgerECF/codeledger/git/refs \
+            -f ref=refs/tags/v0.10.83 -f "sha=$PROJECTION_COMMIT"
