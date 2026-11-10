@@ -93,6 +93,10 @@ codeledger --version
 
 ## Step 2: Initialize in Your Project
 
+Setup can create or update repository guidance such as `AGENTS.md` or
+`CLAUDE.md`, along with `.gitignore` and client configuration. Generated native
+routes can include machine-local paths.
+
 ```bash
 cd your-project
 codeledger init
@@ -107,7 +111,12 @@ This creates:
 | Claude Code hooks | `.claude/hooks.json` | Auto-activates bundles on session start |
 | Scenarios | `.codeledger/harness/scenarios/` | Starter benchmark scenarios |
 
-> **Already have a CLAUDE.md?** CodeLedger appends its section. It won't overwrite your existing content.
+Review the setup changes before committing.
+
+```bash
+git status --short
+git diff -- .gitignore AGENTS.md CLAUDE.md
+```
 
 ### Working In Git Worktrees
 
