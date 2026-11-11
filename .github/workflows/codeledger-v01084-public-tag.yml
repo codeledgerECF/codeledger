@@ -1,0 +1,70 @@
+name: Create the approved CodeLedger v0.10.84 public tag
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Create the one approved tag after owner authorization
+        type: boolean
+        default: false
+permissions: {}
+concurrency:
+  group: codeledger-v01084-public-tag
+  cancel-in-progress: false
+jobs:
+  tag:
+    if: github.repository == 'codeledgerECF/codeledger' && github.ref == 'refs/heads/main' && inputs.execute
+    environment: codeledger-v01084-public-tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PUBLIC_TAG_APPROVED: ${{ vars.CODELEDGER_V01084_TAG_APPROVED }}
+    steps:
+      - name: Verify the live protections and create the exact approved ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${PUBLIC_TAG_APPROVED:-}" = true
+          repo='repos/codeledgerECF/codeledger'
+          tag='refs/tags/v0.10.84'
+          projection='e3b9109966daf1c6ee4bd902a17bc5e98848111a'
+          tree='79e5c4a098803dfc97dcbd64bf5466301d9ae8c5'
+          stage='refs/heads/codex/public-v0.10.84-projection'
+          environment='codeledger-v01084-public-tag'
+          name='Protect CodeLedger v0.10.84 public tag'
+          api() { gh api --hostname github.com "$@"; }
+
+          api "$repo/environments/$environment" | jq -e '
+            .can_admins_bypass == false and
+            .deployment_branch_policy == {protected_branches:false, custom_branch_policies:true} and
+            ([.protection_rules[] | select(.type=="required_reviewers") | .reviewers[]
+              | select(.type=="User") | .reviewer.id] == [28944998])
+          ' >/dev/null
+          api "$repo/environments/$environment/deployment-branch-policies" | jq -e '
+            [.branch_policies[] | {name,type}] == [{name:"main",type:"branch"}]
+          ' >/dev/null
+          rule_id=$(api "$repo/rulesets?includes_parents=true" --paginate --slurp |
+            jq -er --arg name "$name" '[.[][] | select(.name==$name)] |
+              if length==1 then .[0].id else error("Expected one v0.10.84 ruleset") end')
+          # Ruleset writers can see bypass_actors. Owner readback is required before dispatch.
+          api "$repo/rulesets/$rule_id" | jq -e --arg tag "$tag" '
+            .target=="tag" and .enforcement=="active" and (.bypass_actors // [])==[] and
+            .conditions.ref_name=={include:[$tag],exclude:[]} and
+            ([.rules[].type]|sort)==["deletion","update"]
+          ' >/dev/null
+          test "$(api "$repo/actions/workflows/release.yml" --jq .state)" = disabled_manually
+
+          api "$repo/git/ref/heads/codex/public-v0.10.84-projection" |
+            jq -e --arg ref "$stage" --arg sha "$projection" '.ref==$ref and .object.sha==$sha and .object.type=="commit"' >/dev/null
+          api "$repo/git/commits/$projection" |
+            jq -e --arg sha "$projection" --arg tree "$tree" '.sha==$sha and .tree.sha==$tree and .parents==[]' >/dev/null
+          api "$repo/git/matching-refs/tags/v0.10.84" |
+            jq -e --arg tag "$tag" 'all(.[]; .ref != $tag)' >/dev/null
+
+          api --method POST "$repo/git/refs" -f "ref=$tag" -f "sha=$projection" |
+            jq -e --arg tag "$tag" --arg sha "$projection" '.ref==$tag and .object.sha==$sha and .object.type=="commit"' >/dev/null
+          api "$repo/git/ref/tags/v0.10.84" |
+            jq -e --arg tag "$tag" --arg sha "$projection" '.ref==$tag and .object.sha==$sha and .object.type=="commit"' >/dev/null
