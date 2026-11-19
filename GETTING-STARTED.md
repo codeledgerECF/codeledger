@@ -1,3 +1,10 @@
+# CodeLedger 0.10.84 portable developer preview
+
+Follow the [preview Quickstart](README.md#quickstart) for installation, literal Git lookup, MCP, uninstall, and feedback.
+
+<details>
+<summary>Earlier full-runtime documentation</summary>
+
 # Getting Started with CodeLedger
 
 Need a command-by-command walkthrough with example output? See the public [CLI Command Reference](https://github.com/codeledgerECF/codeledger/blob/main/docs/CLI_COMMAND_REFERENCE.md).
@@ -495,3 +502,5 @@ codeledger upgrade            # Explore Team / Enterprise
 ---
 
 <sub>**CodeLedger** is produced by Intelligent Context AI, Inc. [timetocontext.co](https://timetocontext.co) · [codeledger.dev](https://codeledger.dev)</sub>
+
+</details>
