@@ -1,3 +1,54 @@
+# CodeLedger developer preview · 0.10.84
+
+Find committed code, tests, and documentation containing a literal term. Each result carries the Git commit, path, line number, and matching text. Use the CLI directly or connect an MCP client over local stdio.
+
+## Quickstart
+
+Use Node.js 20 or newer, Git on `PATH`, and a local worktree with a committed `HEAD`.
+
+```sh
+npm install --global @codeledger/cli@0.10.84
+codeledger --version
+cd /path/to/worktree
+codeledger activate --task "Find how Retry-After determines the delay" --query "Retry-After"
+```
+
+Use a literal term that appears in your repo. To check a citation, copy the result’s `source_revision` and `path` into `git show '<source_revision>:<path>'`, then compare the cited line. That checks the excerpt against Git.
+
+For MCP, configure the client to launch the installed `codeledger` executable with these arguments. Use an absolute executable path if your client does not inherit your terminal’s `PATH`.
+
+```json
+{
+  "command": "codeledger",
+  "args": ["mcp", "start", "--repo", "/absolute/path/to/worktree", "--profile", "core"]
+}
+```
+
+Call `get_activation_payload` with `task` and `query`. Choose a worktree you have authorized the client to read. The tool returns matching lines verbatim.
+
+## Known limitations
+
+- Lookup is stateless, literal, and limited to committed `HEAD`. Use your normal tools for uncommitted changes and semantic search.
+- Results are capped at 20 matches. The `truncated` status means you can narrow the literal.
+- Git can substantiate a citation. Automated verification of changes, test execution, and policy enforcement are outside this preview. The preview supports `activate` and the core MCP tool. Full-runtime commands such as `ready` and `verify` are unavailable.
+- Managed writes remain an opt-in full-runtime workflow. Context refresh remains archived.
+- Exact-package install and stdio smoke tests passed on Ubuntu 24.04, Windows, and macOS 15 Apple Silicon with Node 22. The representative-task check used the TypeScript MCP SDK on macOS Apple Silicon. Interactive coding-client testing is deferred.
+
+## Uninstall
+
+```sh
+npm uninstall --global @codeledger/cli
+```
+
+Remove the preview’s MCP server entry from your client. If you used the [portable ZIP](https://github.com/codeledgerECF/codeledger/releases/tag/v0.10.84), delete the extracted folder. The lookup does not create a `.codeledger` directory.
+
+## Feedback
+
+[Open a preview feedback issue](https://github.com/codeledgerECF/codeledger/issues/new?title=Portable%20preview%20feedback). Include your OS, Node and client versions, a public or sanitized example, and what you expected to find. Keep private code, credentials, and raw MCP payloads out of public issues. [Report security issues privately](https://github.com/codeledgerECF/codeledger/security/advisories/new).
+
+<details>
+<summary>Earlier full-runtime documentation</summary>
+
 # CodeLedger
 
 **Give AI coding agents the right repo context before they start - then verify
@@ -190,3 +241,5 @@ and agents, see [ContextECF](docs/context-ecf.md).
 
 CodeLedger is produced by Intelligent Context AI, Inc. See
 [codeledger.dev](https://codeledger.dev).
+
+</details>
