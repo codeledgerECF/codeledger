@@ -1,9 +1,11 @@
-# CodeLedger 0.10.84 portable developer preview
+# Getting Started with CodeLedger v0.10.86
 
-Follow the [preview Quickstart](README.md#quickstart) for installation, literal Git lookup, MCP, uninstall, and feedback.
+The [Quickstart](README.md#quickstart) walks through installing the CLI, selecting context for a task, connecting an MCP client, checking your work and resuming a session.
+
+[Managed writes](README.md#managed-writes) are opt-in. The [read-only portable preview](https://github.com/codeledgerECF/codeledger/releases/tag/v0.10.84) remains available for literal lookup.
 
 <details>
-<summary>Earlier full-runtime documentation</summary>
+<summary>Archived full-runtime reference</summary>
 
 # Getting Started with CodeLedger
 

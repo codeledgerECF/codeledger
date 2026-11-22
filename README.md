@@ -1,38 +1,53 @@
-# CodeLedger developer preview · 0.10.84
+# CodeLedger v0.10.86
 
-Find committed code, tests, and documentation containing a literal term. Each result carries the Git commit, path, line number, and matching text. Use the CLI directly or connect an MCP client over local stdio.
+Give your coding agent task-relevant repository context, then verify the work and keep the evidence for the next session. CodeLedger selects files and excerpts locally and records which repository revision it worked from.
 
 ## Quickstart
 
-Use Node.js 20 or newer, Git on `PATH`, and a local worktree with a committed `HEAD`.
+Use Node.js 22 or newer, Git on your PATH, and a local worktree with a committed HEAD.
 
 ```sh
-npm install --global @codeledger/cli@0.10.84
+npm install --global @codeledger/cli@latest
 codeledger --version
 cd /path/to/worktree
-codeledger activate --task "Find how Retry-After determines the delay" --query "Retry-After"
+task='Preserve explicit zero when applying the default and add a regression test'
+codeledger ready --task "$task"
+codeledger activate --task "$task"
 ```
 
-Use a literal term that appears in your repo. To check a citation, copy the result’s `source_revision` and `path` into `git show '<source_revision>:<path>'`, then compare the cited line. That checks the excerpt against Git.
+Replace the example with your own task. Have your agent read `.codeledger/active-bundle.md` before editing. Review any repository files created by onboarding before committing them.
 
-For MCP, configure the client to launch the installed `codeledger` executable with these arguments. Use an absolute executable path if your client does not inherit your terminal’s `PATH`.
+After the work, run your project's actual validation command and review the result. This example uses an npm project's test script.
+
+```sh
+codeledger validate -- npm test
+codeledger verify --task "$task" --json
+codeledger session-summary --json
+codeledger session brief --json
+```
+
+Validation records what ran and the revision and working tree it tested. Verification and the session recap expose the available evidence. Use the session brief to continue the work in another session.
+
+### Connect an MCP client
+
+Configure your client to launch the installed CLI over stdio. Use its absolute executable path if your client does not inherit your PATH.
 
 ```json
 {
   "command": "codeledger",
-  "args": ["mcp", "start", "--repo", "/absolute/path/to/worktree", "--profile", "core"]
+  "args": ["mcp", "start", "--cwd", "/absolute/path/to/worktree", "--profile", "core"]
 }
 ```
 
-Call `get_activation_payload` with `task` and `query`. Choose a worktree you have authorized the client to read. The tool returns matching lines verbatim.
+Call `get_activation_payload` after activation to inspect the current task and its freshness. With Team or Enterprise, call `get_active_context` with the task as `intent` to retrieve full selected context through MCP. Local CLI context selection and the activation diagnostic work without a paid license.
 
-## Known limitations
+### Managed writes
 
-- Lookup is stateless, literal, and limited to committed `HEAD`. Use your normal tools for uncommitted changes and semantic search.
-- Results are capped at 20 matches. The `truncated` status means you can narrow the literal.
-- Git can substantiate a citation. Automated verification of changes, test execution, and policy enforcement are outside this preview. The preview supports `activate` and the core MCP tool. Full-runtime commands such as `ready` and `verify` are unavailable.
-- Managed writes remain an opt-in full-runtime workflow. Context refresh remains archived.
-- Exact-package install and stdio smoke tests passed on Ubuntu 24.04, Windows, and macOS 15 Apple Silicon with Node 22. The representative-task check used the TypeScript MCP SDK on macOS Apple Silicon. Interactive coding-client testing is deferred.
+Managed writes are opt-in. The qualified Linux Docker workflow uses an explicitly configured executor and signed authorization for file writes. A normal CLI install does not confine a coding agent's direct writes to the host checkout.
+
+## Tested platforms
+
+The exact v0.10.86 package passed clean-install, context-selection, MCP stdio, validation and continuity checks on Apple Silicon macOS, Linux x64 and Windows x64 with Node.js 22.22.2. Full licensed MCP context export was exercised on macOS. Signed managed-write enforcement was exercised on Linux Docker. The [read-only portable preview](https://github.com/codeledgerECF/codeledger/releases/tag/v0.10.84) remains available.
 
 ## Uninstall
 
@@ -40,14 +55,14 @@ Call `get_activation_payload` with `task` and `query`. Choose a worktree you hav
 npm uninstall --global @codeledger/cli
 ```
 
-Remove the preview’s MCP server entry from your client. If you used the [portable ZIP](https://github.com/codeledgerECF/codeledger/releases/tag/v0.10.84), delete the extracted folder. The lookup does not create a `.codeledger` directory.
+Remove the CodeLedger MCP entry from your client. Repository-local CodeLedger configuration and evidence remain in your worktree. Review those files before removing them, especially if you need the receipts or session history.
 
 ## Feedback
 
-[Open a preview feedback issue](https://github.com/codeledgerECF/codeledger/issues/new?title=Portable%20preview%20feedback). Include your OS, Node and client versions, a public or sanitized example, and what you expected to find. Keep private code, credentials, and raw MCP payloads out of public issues. [Report security issues privately](https://github.com/codeledgerECF/codeledger/security/advisories/new).
+[Open a developer feedback issue](https://github.com/codeledgerECF/codeledger/issues/new?title=CodeLedger%200.10.86%20feedback). Include your OS, Node and client versions, a public or sanitized example, and what you expected. [Report security issues privately](https://github.com/codeledgerECF/codeledger/security/advisories/new).
 
 <details>
-<summary>Earlier full-runtime documentation</summary>
+<summary>Archived full-runtime reference</summary>
 
 # CodeLedger
 
